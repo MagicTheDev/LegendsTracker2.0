@@ -37,7 +37,7 @@
 <h3 align="center">LegendsTracker</h3>
 
   <p align="center">
-    Premier and **FREE** Legends Defense & Attacks Tracking Bot!
+    Premier and FREE Legends Defense & Attacks Tracking Bot!
     <br />
     <a href="https://github.com/MagicTheDev/LegendsTracker2.0"><strong>Explore the docs »</strong></a>
     <br />
@@ -55,7 +55,7 @@
 <!-- ABOUT THE PROJECT -->
 ## MagicBot
 
-Premier and **FREE** Legends Defense & Attacks Tracking Bot!
+Premier and **FREE** Legends Defense & Attacks Tracking Bot w/ leaderboards, stats, & more!
 
 
 
