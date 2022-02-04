@@ -19,16 +19,16 @@ db_client = motor.motor_asyncio.AsyncIOMotorClient(DB_LOGIN)
 
 #### DATABASES USED ####
 legends_stats = db_client.legends_stats
+history_db = db_client.clan_tags
 
+### COLLECTIONS USED ###
 ongoing_stats = legends_stats.ongoing_stats
 server_db = legends_stats.server
 settings_db = legends_stats.settings
 
 
 
-async def addLegendsPlayer(player, clan_name):
-      ongoing_db = client.legends_stats
-      ongoing_stats = ongoing_db.ongoing_stats
+async def addLegendsPlayer_GLOBAL(player, clan_name):
       await ongoing_stats.insert_one({
         "tag": player.tag,
         "name": player.name,
@@ -43,14 +43,56 @@ async def addLegendsPlayer(player, clan_name):
         "previous_defenses": [],
         "num_yesterday_hits": 0,
         "end_of_day": [],
-        "servers": [],
         "clan": clan_name,
-        "change": None,
         "link": player.share_link,
-        "league": str(player.league)
+        "league": str(player.league),
+        "last_updated" : None
       })
 
+
+async def addLegendsPlayer_SERVER(guild_id, player):
+  await server_db.update_one({'server': guild_id},
+                                 {'$push': {"tracked_members": player.tag}})
+
+async def removeLegendsPlayer_SERVER(guild_id, player):
+  await server_db.update_one({'server': guild_id},
+                                 {'$pull': {"tracked_members": player.tag}})
+
+
+async def createTimeStats(player):
+  ongoingOffense = player.get("previous_hits")
+  ongoingDefense = player.get("previous_defenses")
+  ongoingNet = player.get("ongoingNet")
+
+  calcOff = []
+  for off in ongoingOffense:
+    calcOff.append(sum(off))
+  ongoingOffense = calcOff
+
+  calcDef = []
+  for defe in ongoingDefense:
+    calcDef.append(sum(defe))
+  ongoingDefense = calcDef
+
+  if len(ongoingOffense) == 0:
+    text = f"**Average Offense:** No stats collected yet.\n" \
+           f"**Average Defense:** No stats collected yet.\n" \
+           f"**Average Net Gain:** No stats collected yet.\n"
+    return text
+
+  averageOffense = round(sum(ongoingOffense) / len(ongoingOffense))
+  averageDefense = round(sum(ongoingDefense) / len(ongoingDefense))
+  averageNet = averageOffense - averageDefense
+
+  text = f"**Average Offense:** {averageOffense} cups a day.\n" \
+         f"**Average Defense:** {averageDefense} cups a day.\n" \
+         f"**Average Net Gain:** {averageNet} cups a day.\n" \
+         f"*Stats collected from {len(ongoingOffense)} days of data.*"
+  return text
+
+
 async def getTags(ctx, ping):
+  ping = str(ping)
   if (ping.startswith('<@') and ping.endswith('>')):
     ping = ping[2:len(ping) - 1]
 

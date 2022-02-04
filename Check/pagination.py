@@ -1,18 +1,16 @@
-
 from discord.ext import commands
-from discord_slash.utils.manage_components import create_button, create_actionrow, wait_for_component
-from discord_slash.model import ButtonStyle
+import discord
 
 class pagination(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    async def button_pagination(self, ctx, msg, results):
+    async def button_pagination(self, ctx, results):
         #statTypes
         stat_types = ["Yesterday","Stats", "Graph", "History"]
 
-        check = self.bot.get_cog("check")
+        check = self.bot.get_cog("CheckStats")
         graph = self.bot.get_cog("graph")
 
         current_stat = 1
@@ -24,48 +22,43 @@ class pagination(commands.Cog):
           stats_page.append(embed)
         
 
-        await msg.edit(embed=stats_page[0], components=self.create_components(results,current_page), mention_author= False)
+        await ctx.edit(embed=stats_page[0], view=self.create_components(results,current_page))
 
         while True:
             try:
-                res = await wait_for_component(self.bot, components=self.create_components(results,current_page), messages=msg, timeout=600)
+                res = await self.bot.wait_for("interaction", timeout=600)
             except:
-                await msg.edit(components=[])
+                await ctx.edit(view=None)
                 break
 
-            if res.author_id != ctx.author.id:
-                await res.send(content="You must run the command to interact with components.", hidden=True)
-                continue
 
-            await res.edit_origin()
-            if res.custom_id == "Previous":
+            if res.data["custom_id"] == "Previous":
                 current_page -= 1
                 embed = stats_page[current_page]
 
-                await msg.edit(embed=embed,
-                               components=self.create_components(results, current_page))
+                await ctx.edit(embed=embed,
+                               view=self.create_components(results, current_page))
 
-            elif res.custom_id == "Next":
-
+            elif res.data["custom_id"] == "Next":
                 current_page += 1
                 embed = stats_page[current_page]
 
-                await msg.edit(embed=embed,
-                               components=self.create_components(results, current_page))
+                await ctx.edit(embed=embed,
+                               view=self.create_components(results, current_page))
 
-            elif res.custom_id in stat_types:
-                current_stat = stat_types.index(res.custom_id)
+            elif res.data["custom_id"] in stat_types:
+                current_stat = stat_types.index(res.data["custom_id"])
                 embed = await self.display_embed(results, stat_types[current_stat], current_page, ctx)
-                await msg.edit(embed=embed,
-                               components=self.create_components(results, current_page))
+                await ctx.edit(embed=embed,
+                               view=self.create_components(results, current_page))
             
 
 
     async def display_embed(self, results, stat_type, current_page, ctx):
 
-        check = self.bot.get_cog("check")
+        check = self.bot.get_cog("CheckStats")
         graph = self.bot.get_cog("graph")
-        history = self.bot.get_cog("historyy")
+        history = self.bot.get_cog("History")
 
         if stat_type == "Stats":
             return await check.checkEmbed(results[current_page], 0)
@@ -80,23 +73,33 @@ class pagination(commands.Cog):
     def create_components(self, results, current_page):
         length = len(results)
 
-        page_buttons = [create_button(label="Prev", emoji="◀️", style=ButtonStyle.blue, disabled=(current_page == 0),
-                                      custom_id="Previous"),
-                        create_button(label=f"Page {current_page + 1}/{len(results)}", style=ButtonStyle.grey, disabled=True),
-                        create_button(label="Next", emoji="▶️", style=ButtonStyle.blue,
-                                      disabled=(current_page == length-1), custom_id="Next")]
-        page_buttons = create_actionrow(*page_buttons)
+        view = discord.ui.View()
+        stat_buttons = [
+            discord.ui.Button(label=f"YStats", style=discord.ButtonStyle.primary, custom_id="Yesterday"),
+            discord.ui.Button(label=f"Stats", style=discord.ButtonStyle.primary, custom_id="Stats"),
+            discord.ui.Button(label=f"Graph", style=discord.ButtonStyle.primary, custom_id="Graph"),
+            discord.ui.Button(label=f"", emoji = "🕑", style=discord.ButtonStyle.primary, custom_id="History")
+        ]
 
-        stat_buttons = [create_button(label="YStats", style=ButtonStyle.blue, custom_id="Yesterday", disabled=False),
-                        create_button(label="Stats",  style=ButtonStyle.blue, custom_id="Stats"),
-                        create_button(label="Graph", style=ButtonStyle.blue, custom_id="Graph", disabled=False),
-                        create_button(label="",  emoji = "🕑", style=ButtonStyle.blue, custom_id="History")]
-        stat_buttons = create_actionrow(*stat_buttons)
-
+        for button in stat_buttons:
+            view.add_item(button)
         if length == 1:
-            return [stat_buttons]
+            return view
 
-        return [stat_buttons,page_buttons]
+        page_buttons = [
+            discord.ui.Button(label='Prev', emoji="◀️", style=discord.ButtonStyle.primary, disabled=(current_page == 0),
+                              custom_id="Previous", row=2),
+            discord.ui.Button(label=f"Page {current_page + 1}/{len(results)}", style=discord.ButtonStyle.grey,
+                              disabled=True, row=2),
+            discord.ui.Button(label='Next', emoji="▶️", style=discord.ButtonStyle.primary,
+                              disabled=(current_page == length - 1), custom_id="Next", row=2)
+        ]
+
+
+        for button in page_buttons:
+            view.add_item(button)
+
+        return view
 
 
 

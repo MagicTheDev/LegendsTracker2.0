@@ -1,8 +1,8 @@
-from tinydb import TinyDB
+
 import discord
 from discord.ext import commands, tasks
 
-from clashClient import coc_client
+from helper import coc_client
 
 locations = [32000007, 32000008, 32000009, 32000010, 32000011, 32000012, 32000013, 32000014, 32000015, 32000016, 32000017,
              32000018, 32000019, 32000020, 32000021, 32000022, 32000023, 32000024, 32000025, 32000026, 32000027, 32000028,

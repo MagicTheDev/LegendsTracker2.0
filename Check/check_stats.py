@@ -1,21 +1,12 @@
 
 from discord.ext import commands
 import discord
-import random
-from clashClient import getPlayer, coc_client
-
-
+from helper import getPlayer, ongoing_stats
 import time
-
-import motor.motor_asyncio
-client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://localhost:27017")
-
-ongoing_db = client.legends_stats
-ongoing_stats = ongoing_db.ongoing_stats
 
 tips = ["New Command: \"do history {playertag}\"."]
 
-class check(commands.Cog):
+class CheckStats(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -198,11 +189,5 @@ class check(commands.Cog):
 
 
 
-
-
-
-
-
-
 def setup(bot: commands.Bot):
-    bot.add_cog(check(bot))
+    bot.add_cog(CheckStats(bot))

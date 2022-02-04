@@ -1,17 +1,8 @@
-
-from discord.ext import commands, tasks
+from discord.ext import commands
 import discord
 import matplotlib.pyplot as plt
 import io
-from main import createTimeStats
-import certifi
-ca = certifi.where()
-
-import motor.motor_asyncio
-client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://localhost:27017")
-ongoing_db = client.legends_stats
-ongoing_stats = ongoing_db.ongoing_stats
-
+from helper import ongoing_stats, createTimeStats
 
 class graph(commands.Cog):
 

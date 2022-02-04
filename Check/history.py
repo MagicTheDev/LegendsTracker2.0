@@ -1,6 +1,7 @@
 from discord.ext import commands
-from clashClient import getPlayer
+from helper import getPlayer, history_db
 import discord
+from discord.commands import slash_command
 
 dates = ["2015-07", "2015-08", "2015-09", "2015-10", "2015-11", "2015-12",
          "2016-01","2016-02","2016-03","2016-04","2016-05","2016-06","2016-07","2016-08","2016-09","2016-10","2016-11","2016-12",
@@ -18,26 +19,22 @@ months = ["July", "August", "September", "October", "November", "December","Janu
           "April", "May", "June", "July", "August", "September", "October", "November", "December", "January", "February",
           "March","April", "May", "June", "July", "August", "September", "October", "November"]
 
-import motor.motor_asyncio
-client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://localhost:27017")
-history = client.clan_tags
 
-
-class historyy(commands.Cog):
+class History(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.command(name="history")
-    async def histo(self, ctx, *, tag):
+    @slash_command(name="history",
+                   description = "View a players historical legends data.",
+                   guild_ids=[923764211845312533])
+    async def history_co(self, ctx, *, player_tag):
       embed = discord.Embed(
             description="<a:loading:884400064313819146> Fetching Historical Data.",
             color=discord.Color.green())
-      msg = await ctx.reply(embed=embed, mention_author = False)
-      embed= await self.create_history(ctx, tag)
-      await msg.edit(embed=embed)
-
-
+      await ctx.respond(embed=embed)
+      embed= await self.create_history(ctx, player_tag)
+      await ctx.edit(embed=embed)
 
     async def create_history(self, ctx, tag):
         stats = []
@@ -50,8 +47,7 @@ class historyy(commands.Cog):
 
         no_results = True
         for date in dates:
-            season_stats = history[f"{date}"]
-            #await season_stats.create_index([("tag", 1)], unique = True)
+            season_stats = history_db[f"{date}"]
             result = await season_stats.find_one({"tag": player.tag})
             if result is not None:
                 no_results = False
@@ -79,7 +75,7 @@ class historyy(commands.Cog):
         for x in range(0, len(stats),2):
             month = months[int(x/2)]
             month = month.ljust(9)
-            month = "`" + month + "`"
+            month = f"`{month}`"
             year = dates[int(x/2)]
             year = year[0:4]
             rank = stats[x]
@@ -99,4 +95,4 @@ class historyy(commands.Cog):
         
 
 def setup(bot: commands.Bot):
-    bot.add_cog(historyy(bot))
+    bot.add_cog(History(bot))

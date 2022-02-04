@@ -20,19 +20,18 @@ class Bot_Events(commands.Cog):
             if results is None:
                 await server_db.insert_one({
                     "server": g.id,
-                    "prefix": "do ",
+                    "tracked_members": [],
                 })
 
     @commands.Cog.listener()
-    async def on_command(self,ctx):
-        pass
+    async def on_application_command(self,ctx):
         channel = self.bot.get_channel(936069341693231155)
         server = ctx.guild.name
         user = ctx.author
-        command = ctx.message.content
+        command = ctx.command.qualified_name
         embed = discord.Embed(description=f"**{command}** \nused by {user.mention} [{user.name}] in {server} server",
                               color=discord.Color.blue())
-        embed.set_thumbnail(url=user.avatar_url)
+        embed.set_thumbnail(url=user.avatar.url)
         await channel.send(embed=embed)
 
     @commands.Cog.listener()
@@ -52,7 +51,7 @@ class Bot_Events(commands.Cog):
         if results is None:
             await server_db.insert_one({
                 "server": guild.id,
-                "prefix": "do ",
+                "tracked_members": [],
             })
         channel = self.bot.get_channel(937519135607373874)
         await channel.send(f"Just joined {guild.name}")
@@ -65,43 +64,13 @@ class Bot_Events(commands.Cog):
         for guild in guilds:
             guild_ids.append(guild.id)
 
-        removed_channels = []
         tracked = settings_db.find({})
         limit = await settings_db.count_documents(filter={})
         for document in await tracked.to_list(length=limit):
             server = document.get("server_id")
             if server not in guild_ids:
-                await ongoing_stats.find_one_and_delete({'server_id': server})
+                await settings_db.find_one_and_delete({'server_id': server})
 
-        tracked = ongoing_stats.find({})
-        limit = await ongoing_stats.count_documents(filter={})
-        for document in await tracked.to_list(length=limit):
-            servers = document.get("servers")
-            tag = document.get("tag")
-            for s in servers:
-                if s in removed_channels:
-                    await ongoing_stats.update_one({'tag': f"{tag}"},
-                                                   {'$pull': {'servers': s}})
-
-    @commands.Cog.listener()
-    async def on_message(self,message):
-        ping = "825324351016534036"
-        if ping in message.content:
-            results = await server_db.find_one({"server": message.guild.id})
-            try:
-                prefix = results.get("prefix")
-            except:
-                prefix = "do "
-            await message.channel.send(f"Hello! My prefix is `{prefix}` (i.e `{prefix}help`)")
-
-        await self.bot.process_commands(message)
-
-    @commands.Cog.listener()
-    async def on_message_edit(self,before, after):
-        try:
-            await self.bot.process_commands(after)  # Bot will attempt to process the new edited command
-        except:
-            pass
 
 
 
