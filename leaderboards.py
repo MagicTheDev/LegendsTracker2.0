@@ -30,7 +30,6 @@ locations = [32000007, 32000008, 32000009, 32000010, 32000011, 32000012, 3200001
 
 rankings = []
 
-
 class leaderboards(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
@@ -62,62 +61,6 @@ class leaderboards(commands.Cog):
                 rankings.append(x)
                 rankings.append(country_name)
                 x += 1
-
-    @commands.command(name = "lb")
-    @commands.is_owner()
-    async def leaderb(self, ctx, extra):
-      extra = extra.lower()
-      rankings = None
-      text = ""
-      for location in locations:
-        country = await coc_client.get_location(location_id = location)
-        country_code = country.country_code
-        country_code = country_code.lower()
-        country_names = country.name
-        country_name = country_names.lower()
-
-        if country_code == extra :
-          id = country.id
-          rankings = await coc_client.get_location_players(location_id=location)
-
-          x = 1
-          for player in rankings:
-            text += f"{x}| {player.name}\n"
-            x += 1
-
-          embed = discord.Embed(title=f"{country_names} rankings",
-                                      description=text,
-                                      color=discord.Color.blue())
-
-          await ctx.send(embed=embed)     
-          return
-
-      for location in locations:
-        country = await coc_client.get_location(location_id = location)
-        country_code = country.country_code
-        country_code = country_code.lower()
-        country_names = country.name
-        country_name = country_names.lower()
-
-        if extra in country_name:
-          id = country.id
-          rankings = await coc_client.get_location_players(location_id=location)
-
-          x = 1
-          for player in rankings:
-            text += f"{x}| {player.name}\n"
-            x += 1
-
-          embed = discord.Embed(title=f"{country_names} rankings",
-                                      description=text,
-                                      color=discord.Color.blue())
-
-          await ctx.send(embed=embed)     
-          return
-        
-        
-
-
 
 
 

@@ -25,6 +25,7 @@ history_db = db_client.clan_tags
 ongoing_stats = legends_stats.ongoing_stats
 server_db = legends_stats.server
 settings_db = legends_stats.settings
+coc_leaderboard_db = legends_stats.coc_leaderboard
 
 
 

@@ -18,8 +18,8 @@ initial_extensions = (
             "on_events",
             "emojis",
             "track",
-            "Pepe.pepe"
-            "api"
+            "Pepe.pepe",
+            "leaderboards"
         )
 
 # test comment
