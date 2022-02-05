@@ -25,8 +25,6 @@ history_db = db_client.clan_tags
 ongoing_stats = legends_stats.ongoing_stats
 server_db = legends_stats.server
 settings_db = legends_stats.settings
-coc_leaderboard_db = legends_stats.coc_leaderboard
-
 
 
 async def addLegendsPlayer_GLOBAL(player, clan_name):
@@ -47,6 +45,7 @@ async def addLegendsPlayer_GLOBAL(player, clan_name):
         "clan": clan_name,
         "link": player.share_link,
         "league": str(player.league),
+        "highest_streak" : 0,
         "last_updated" : None
       })
 

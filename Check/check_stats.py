@@ -11,7 +11,6 @@ class CheckStats(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-
     async def checkEmbed(self, results, start):
         emojis = self.bot.get_cog("emoji_dictionary")
         legend_shield = emojis.fetch_emojis("legends_shield")
@@ -19,16 +18,9 @@ class CheckStats(commands.Cog):
         shield = emojis.fetch_emojis("shield")
 
         from leaderboards import rankings
-        #print(rankings)
 
-        
-        t = time.time() - start
-        t = round(t, 2)
-        t = str(t)
         result = await ongoing_stats.find_one({"tag": results})
-        #print(f"{time.time() - t} time get main results")
-        #print(tag)
-        
+
         player = await getPlayer(results)
         if player == None:
           embed = discord.Embed(title=f"{results}",
@@ -36,14 +28,11 @@ class CheckStats(commands.Cog):
                                   color=discord.Color.blue())
           return embed
         
-        #print(f"{time.time() - t} time fetch player")
-
 
         gspot = "<:status_offline:910938138984206347>"
         cou_spot = "<:status_offline:910938138984206347>"
         flag = "🏳️"
         country_name = "- Country: Not Ranked\n"
-        
 
         spots = [i for i, value in enumerate(rankings) if value == results]
 
@@ -58,20 +47,19 @@ class CheckStats(commands.Cog):
                 flag = f":flag_{loc}:"
                 country_name = "- Country: " + rankings[r + 3] + "\n"
 
-        
 
         league = result.get("league")
         hits = result.get("today_hits")
         defenses = result.get("today_defenses")
         numHits = result.get("num_today_hits")
         seasonHits = result.get("num_season_hits")
-        seasonDefenses = result.get("num_season_defenses")
-        #numHits = len(hits)
         numDefs = len(defenses)
         totalOff = sum(hits)
         totalDef = sum(defenses)
         net = totalOff - totalDef
         link = result.get("link")
+
+        hit_stats = await self.hit_rates_offense(db_result=result)
 
         clanName = "No Clan"
         try:
@@ -122,9 +110,20 @@ class CheckStats(commands.Cog):
             defi = "No Defenses Yet."
         embed.add_field(name="**Offense**", value=off, inline=True)
         embed.add_field(name="**Defense**", value=defi, inline=True)
-        embed.set_footer(text=f"New demo/support server: do server")
-        
+
+        three_star = str(hit_stats[3]) + "%"
+        two_star = str(hit_stats[2]) + "%"
+        one_star = str(hit_stats[1]) + "%"
+        three_star = three_star.ljust(3, " ")
+        two_star = two_star.ljust(3, " ")
+        one_star = one_star.ljust(3, " ")
+        embed.add_field(name="**All Time Hit Rates**",
+                        value=f"3 Star: {three_star}\n"
+                              f"2 Star: {two_star}\n"
+                              f"1 Star: {one_star}\n"
+                              f"Total: {hit_stats[0]} hits", inline=False)
         return embed
+
 
     async def checkYEmbed(self, results):
         
@@ -188,6 +187,32 @@ class CheckStats(commands.Cog):
         return embed
 
 
+
+    async def hit_rates_offense(self, db_result):
+        one_stars = 0
+        two_stars = 0
+        three_stars = 0
+        hits = db_result.get("previous_hits")
+
+        if hits == []:
+            return None
+
+        for day in hits:
+            for hit in day:
+                if hit >= 5 and hit <= 15:
+                    one_stars += 1
+                elif hit >= 16 and hit <= 32:
+                    two_stars += 1
+                elif hit >= 40:
+                    if hit % 40 == 0:
+                        three_stars += (hit // 40)
+
+        total = one_stars + two_stars + three_stars
+        one_stars_avg = int(round((one_stars / total), 2) * 100)
+        two_stars_avg = int(round((two_stars / total), 2) * 100)
+        three_stars_avg = int(round((three_stars / total), 2) * 100)
+
+        return [total, one_stars_avg, two_stars_avg, three_stars_avg]
 
 def setup(bot: commands.Bot):
     bot.add_cog(CheckStats(bot))

@@ -3,8 +3,10 @@ from discord.ext import commands
 import os
 os.system("pip install \"pymongo[srv]\"")
 import traceback
+from discord_slash import SlashCommand
 
 bot = commands.Bot(command_prefix=[","], help_command=None, intents=discord.Intents().all())
+slash = SlashCommand(bot, sync_commands=True, sync_on_cog_reload=True)
 
 embed_color = discord.Color.blue()
 
@@ -19,14 +21,21 @@ initial_extensions = (
             "emojis",
             "track",
             "Pepe.pepe",
-            "leaderboards"
+            "leaderboards",
+            "context_menus",
+            "top",
+            "server_leaderboard",
+            "link",
+            "stats"
         )
 
 # test comment
-@bot.command(name='reload', hidden=True)
-async def _reload(ctx, *, module: str):
+@slash.slash(name='reload',guild_ids=[328997757048324101, 923764211845312533],
+                            description="Reload portion of bot.")
+async def _reload(ctx):
+    module = "server_leaderboard"
     """Reloads a module."""
-    if ctx.message.author.id == 706149153431879760:
+    if ctx.author.id == 706149153431879760:
         try:
             bot.unload_extension(module)
             bot.load_extension(module)

@@ -2,7 +2,8 @@ from discord.ext import commands
 from PIL import Image, ImageDraw, ImageFont
 import io
 import discord
-from discord.commands import slash_command
+from discord_slash import cog_ext
+from discord_slash.utils.manage_commands import create_option
 
 
 class pepe(commands.Cog):
@@ -10,10 +11,17 @@ class pepe(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @slash_command(name="pepe",
-                   description="Fun Command. Create a pepe holding a sign w/ text.",
-                   guild_ids=[923764211845312533])
-    async def createPFP(self,ctx, *, sign_text):
+    @cog_ext.cog_slash(name="pepe", guild_ids=[328997757048324101, 923764211845312533],
+                       description="Fun Command. Create a pepe holding a sign w/ text.",
+                       options=[
+                           create_option(
+                               name="sign_text",
+                               description="Text to write on sign",
+                               option_type=3,
+                               required=True,
+                           )]
+                       )
+    async def createPFP(self,ctx, sign_text):
 
         size = 40
         if len(sign_text) > 20:
@@ -40,7 +48,7 @@ class pepe(commands.Cog):
         temp.seek(0)
         file = discord.File(fp=temp, filename="filename.png")
 
-        await ctx.respond(content="Save image or copy link & send wherever you like :)",file=file, ephemeral=True)
+        await ctx.send(content="Save image or copy link & send wherever you like :)",file=file, hidden=True)
 
 
 

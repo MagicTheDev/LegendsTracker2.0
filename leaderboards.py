@@ -1,5 +1,3 @@
-
-import discord
 from discord.ext import commands, tasks
 
 from helper import coc_client

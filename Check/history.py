@@ -1,7 +1,9 @@
 from discord.ext import commands
 from helper import getPlayer, history_db
 import discord
-from discord.commands import slash_command
+from discord_slash import cog_ext
+from discord_slash.utils.manage_commands import create_option
+
 
 dates = ["2015-07", "2015-08", "2015-09", "2015-10", "2015-11", "2015-12",
          "2016-01","2016-02","2016-03","2016-04","2016-05","2016-06","2016-07","2016-08","2016-09","2016-10","2016-11","2016-12",
@@ -25,14 +27,21 @@ class History(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @slash_command(name="history",
-                   description = "View a players historical legends data.",
-                   guild_ids=[923764211845312533])
-    async def history_co(self, ctx, *, player_tag):
+    @cog_ext.cog_slash(name="history", guild_ids=[328997757048324101, 923764211845312533],
+                            description="View a players historical legends data.",
+                            options=[
+                                create_option(
+                                    name="player_tag",
+                                    description="Player to search for",
+                                    option_type=3,
+                                    required=True,
+                                )]
+                            )
+    async def history_co(self, ctx, player_tag):
       embed = discord.Embed(
             description="<a:loading:884400064313819146> Fetching Historical Data.",
             color=discord.Color.green())
-      await ctx.respond(embed=embed)
+      await ctx.send(embed=embed)
       embed= await self.create_history(ctx, player_tag)
       await ctx.edit(embed=embed)
 

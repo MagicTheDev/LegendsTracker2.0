@@ -1,20 +1,12 @@
 from discord.ext import commands
-from clashClient import getPlayer, getClan
+from helper import getPlayer, getClan, ongoing_stats, server_db
 import discord
 import emoji
 import time
 from datetime import timedelta
+from discord_slash import cog_ext
 
-import speedtest
 
-import certifi
-ca = certifi.where()
-
-import motor.motor_asyncio
-client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://localhost:27017")
-ongoing_db = client.legends_stats
-ongoing_stats = ongoing_db.ongoing_stats
-settings = ongoing_db.settings
 
 class legend_stats(commands.Cog):
 
@@ -22,31 +14,9 @@ class legend_stats(commands.Cog):
         self.bot = bot
         self.up = time.time()
 
-    @commands.command(name="stats", aliases=["stat"])
+    @cog_ext.cog_slash(name="stats", guild_ids=[328997757048324101, 923764211845312533],
+                       description="View bot stats.")
     async def stat(self, ctx):
-        results = await settings.find_one({"server_id": ctx.guild.id})
-
-        feed = "None"
-        tlimit = "None"
-
-        if results == None:
-            feed = "None"
-        else:
-            feed =results.get("channel_id")
-            tlimit = results.get("feedlimit")
-
-        if str(feed) == "None":
-            feed = "None"
-            tlimit = "None"
-
-        #print(feed)
-        if str(feed) != "None":
-            guild = ctx.guild.id
-            guild = await self.bot.fetch_guild(guild)
-            channels = await guild.fetch_channels()
-            #print(feed)
-            feed = discord.utils.get(channels,id=int(feed))
-            feed = feed.mention
 
 
         number_tracked = await ongoing_stats.count_documents(filter={})
@@ -87,21 +57,22 @@ class legend_stats(commands.Cog):
                                           f"<a:num:863149480819949568> Watching {members} users\n" +
                                           f"<a:check:861157797134729256> {number_tracked} accounts tracked\n"+
                                           f"📆 {days_tracking} days spent tracking.\n"+
-                                          f"🕐 Uptime: {uptime}\n"+
-                                          f"Feed Channel: {feed}\n"+
-                                          f"Feed TrophyLimit: {tlimit}",
+                                          f"🕐 Uptime: {uptime}\n",
                               color=discord.Color.blue())
 
         await msg.edit(content="", embed=embed)
 
-    @commands.command(name='streak', aliases=["streaks"])
-    async def streaks(self, ctx):
-        board = discord.Embed(description="This command is down for the moment, being reworked & updated.", color=discord.Color.blue())
-        return await ctx.send(embed=board)
-        tracked = ongoing_stats.find({"row_triple" : {"$gte" : 3}})
-        limit = await ongoing_stats.count_documents(filter={"row_triple" : {"$gte" : 3}})
+
+
+    @cog_ext.cog_subcommand(base="streaks",name="server", guild_ids=[3289977570483241, 923764211845312533],
+                       description="View the top 3 star streaks in your server.")
+    async def streaks_local(self, ctx):
+        results = await server_db.find_one({"server": ctx.guild.id})
+        tracked_members = results.get("tracked_members")
+
         results = []
-        for player in await tracked.to_list(length=limit):
+        for member in tracked_members:
+            player = await ongoing_stats.find({"tag": member})
             thisPlayer = []
             numberOfTriples = player.get("row_triple")
             name = player.get("name")
@@ -110,7 +81,9 @@ class legend_stats(commands.Cog):
                 thisPlayer.append(numberOfTriples)
                 results.append(thisPlayer)
 
+
         ranking = sorted(results, key=lambda l: l[1], reverse=True)
+        ranking = ranking[0:25]
 
         text = ""
         x = 1
@@ -127,11 +100,55 @@ class legend_stats(commands.Cog):
         if text == "":
             text = "No Streaks in Progress."
 
-        board = discord.Embed(title="🔥 Ongoing 3 Star Streaks 🔥 \n", description="(3 or more triples in a row)\n"+text,
+        board = discord.Embed(title="🔥 Top 25 Server 3 Star Streaks 🔥 \n", description=text,
                               color=discord.Color.blue())
         await ctx.send(embed=board)
 
-    @commands.command(name= "popular")
+
+
+    @cog_ext.cog_subcommand(base="streaks", name="global", guild_ids=[3289977570483241, 923764211845312533],
+                            description="View the top 3 star streaks among all tracked players.")
+    async def streaks_global(self, ctx):
+        tracked = ongoing_stats.find({"row_triple": {"$gte": 2}})
+        limit = await ongoing_stats.count_documents(filter={"row_triple": {"$gte": 2}})
+        results = []
+        for player in await tracked.to_list(length=limit):
+            thisPlayer = []
+            numberOfTriples = player.get("row_triple")
+            name = player.get("name")
+            if numberOfTriples >= 2:
+                thisPlayer.append(name)
+                thisPlayer.append(numberOfTriples)
+                results.append(thisPlayer)
+
+        ranking = sorted(results, key=lambda l: l[1], reverse=True)
+
+        ranking = ranking[0:25]
+        text = ""
+        x = 1
+
+        for person in ranking:
+            name = person[0]
+            name = emoji.get_emoji_regexp().sub(' ', name)
+            name = f"{x}. {name}"
+            name = name.ljust(15)
+            streak = person[1]
+            text += f"`{name}` | **{streak} perfect** streak\n"
+            x += 1
+
+        if text == "":
+            text = "No Streaks in Progress."
+
+        board = discord.Embed(title="🔥 Top 25 Ongoing 3 Star Streaks 🔥 \n",
+                              description=text,
+                              color=discord.Color.blue())
+        await ctx.send(embed=board)
+
+
+
+
+    @cog_ext.cog_slash(name="popular", guild_ids=[328997757048324101, 923764211845312533],
+                       description="View popular tracked players.")
     async def popular(self, ctx):
         tracked = ongoing_stats.find()
         limit = await ongoing_stats.count_documents(filter={})
@@ -156,7 +173,8 @@ class legend_stats(commands.Cog):
                               color=discord.Color.blue())
         await ctx.send(embed=board)
 
-    @commands.command(name='lstats')
+    @cog_ext.cog_slash(name="legend_stats", guild_ids=[328997757048324101, 923764211845312533],
+                       description="Stats on the state of tracked players.")
     async def legendStats(self, ctx):
 
         # 5000, 5100, 5200, 5300, 5400, 5500, 5600, 5700, 5800, 5900, 6000+
@@ -244,7 +262,8 @@ class legend_stats(commands.Cog):
                               color=discord.Color.blue())
         await ctx.send(embed=embed)
 
-    @commands.command(name='breakdown')
+    @cog_ext.cog_slash(name="trophy_breakdown", guild_ids=[328997757048324101, 923764211845312533],
+                       description="Trophy Breakdown for players tracked.")
     async def breakdown(self, ctx):
 
         results = [[], [], [], [], [], [], [], [], [], [], []]
@@ -274,54 +293,6 @@ class legend_stats(commands.Cog):
                               color=discord.Color.blue())
         await ctx.send(embed=board)
 
-    @commands.command(name="numbers")
-    @commands.is_owner()
-    async def numbers(self, ctx):
-        tracked = ongoing_stats.find()
-        limit = await ongoing_stats.count_documents(filter={})
-        serverList = []
-        count = []
-        for document in await tracked.to_list(length=limit):
-
-            servers = document.get("servers")
-
-            for server in servers:
-                if server not in serverList:
-                    serverList.append(server)
-                    count.append(1)
-                else:
-                    ind = serverList.index(server)
-                    count[ind] += 1
-
-        topTen = ""
-        for x in range(0, len(serverList)):
-            guild = await self.bot.fetch_guild(serverList[x])
-            topTen += f"{guild.name} | {count[x]}\n"
-            
-              
-        board = discord.Embed(title="**Numbers Tracked by Server**",
-                                    description=topTen,
-                                    color=discord.Color.blue())
-        await ctx.send(embed=board)
-
-    @commands.command(name="cleanup")
-    @commands.is_owner()
-    async def cleanup(self, ctx):
-        tracked = ongoing_stats.find()
-        limit = await ongoing_stats.count_documents(filter={})
-        for document in await tracked.to_list(length=limit):
-            tag = document.get("tag")
-            today_hits = document.get("today_hits")
-            for hit in today_hits:
-                if hit >=41:
-                    await ongoing_stats.update_one({'tag': f"{tag}"},
-                                                   {'$pull': {"today_hits": hit}})
-
-
-
-
-
-    
 
 
 def setup(bot: commands.Bot):
