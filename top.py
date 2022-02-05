@@ -12,7 +12,7 @@ class top(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @cog_ext.cog_subcommand(base="top", name="server", guild_ids=[328997757048324101, 923764211845312533],
+    @cog_ext.cog_subcommand(base="top", name="server",
                             description="Top player stats on this server.",
                             options=[
                                 create_option(
@@ -86,7 +86,7 @@ class top(commands.Cog):
             await msg.edit(embed=embed,
                            components=selects)
 
-    @cog_ext.cog_subcommand(base="top", name="global", guild_ids=[328997757048324101, 923764211845312533],
+    @cog_ext.cog_subcommand(base="top", name="global",
                             description="Top player stats amongst all tracked.",
                             options=[
                                 create_option(

@@ -17,7 +17,7 @@ class track(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @cog_ext.cog_subcommand(base="track", name="add", guild_ids=[328997757048324101, 923764211845312533],
+    @cog_ext.cog_subcommand(base="track", name="add",
                             description="Add legends tracking for a player.",
                             options=[
                                 create_option(
@@ -58,7 +58,7 @@ class track(commands.Cog):
                 color=discord.Color.green())
             await ctx.send(embed=embed)
 
-    @cog_ext.cog_subcommand(base="track", name="remove", guild_ids=[328997757048324101, 923764211845312533],
+    @cog_ext.cog_subcommand(base="track", name="remove",
                             description="Remove server legends tracking for a player.",
                             options=[
                                 create_option(
@@ -88,7 +88,7 @@ class track(commands.Cog):
 
 
 
-    @cog_ext.cog_subcommand(base="ctrack", name="add", guild_ids=[328997757048324101, 923764211845312533],
+    @cog_ext.cog_subcommand(base="ctrack", name="add",
                             description="Add players in a clan to legends tracking.",
                             options=[
                                 create_option(
@@ -135,7 +135,7 @@ class track(commands.Cog):
         return await ctx.send(embed=embed)
 
 
-    @cog_ext.cog_subcommand(base="ctrack", name="remove", guild_ids=[328997757048324101, 923764211845312533],
+    @cog_ext.cog_subcommand(base="ctrack", name="remove",
                             description="Remove players in a clan from legends tracking.",
                             options=[
                                 create_option(
@@ -196,10 +196,6 @@ class track(commands.Cog):
             embed = discord.Embed(description="Sorry, cannot track players that are not in legends.",
                                   color=discord.Color.red())
             return await ctx.send(embed=embed)
-
-
-
-
 
 
 def setup(bot: commands.Bot):

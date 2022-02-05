@@ -11,7 +11,7 @@ class Check_Slash(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @cog_ext.cog_subcommand(base="check", name="search", guild_ids=[328997757048324101, 923764211845312533], description="Check a player's legends stats.",
+    @cog_ext.cog_subcommand(base="check", name="search", description="Check a player's legends stats.",
                        options=[
                            create_option(
                                name="search",
@@ -27,7 +27,7 @@ class Check_Slash(commands.Cog):
         msg = await ctx.send(embed=embed)
         await self.legends(ctx, msg, search)
 
-    @cog_ext.cog_subcommand(base="check", name="member", guild_ids=[328997757048324101, 923764211845312533],
+    @cog_ext.cog_subcommand(base="check", name="member",
                        description="Check a player's legends stats.",
                        options=[
                            create_option(

@@ -17,7 +17,7 @@ class Server_LB(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @cog_ext.cog_slash(name="leaderboard", guild_ids=[328997757048324101, 923764211845312533],
+    @cog_ext.cog_slash(name="leaderboard",
                             description="Create a server leaderboard.")
     async def leaderboard(self, ctx):
         await ctx.defer()

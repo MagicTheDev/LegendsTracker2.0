@@ -14,7 +14,7 @@ class legend_stats(commands.Cog):
         self.bot = bot
         self.up = time.time()
 
-    @cog_ext.cog_slash(name="stats", guild_ids=[328997757048324101, 923764211845312533],
+    @cog_ext.cog_slash(name="stats",
                        description="View bot stats.")
     async def stat(self, ctx):
 
@@ -64,7 +64,7 @@ class legend_stats(commands.Cog):
 
 
 
-    @cog_ext.cog_subcommand(base="streaks",name="server", guild_ids=[3289977570483241, 923764211845312533],
+    @cog_ext.cog_subcommand(base="streaks",name="server",
                        description="View the top 3 star streaks in your server.")
     async def streaks_local(self, ctx):
         results = await server_db.find_one({"server": ctx.guild.id})
@@ -72,7 +72,7 @@ class legend_stats(commands.Cog):
 
         results = []
         for member in tracked_members:
-            player = await ongoing_stats.find({"tag": member})
+            player = await ongoing_stats.find_one({"tag": member})
             thisPlayer = []
             numberOfTriples = player.get("row_triple")
             name = player.get("name")
@@ -106,7 +106,7 @@ class legend_stats(commands.Cog):
 
 
 
-    @cog_ext.cog_subcommand(base="streaks", name="global", guild_ids=[3289977570483241, 923764211845312533],
+    @cog_ext.cog_subcommand(base="streaks", name="global",
                             description="View the top 3 star streaks among all tracked players.")
     async def streaks_global(self, ctx):
         tracked = ongoing_stats.find({"row_triple": {"$gte": 2}})
@@ -145,23 +145,38 @@ class legend_stats(commands.Cog):
         await ctx.send(embed=board)
 
 
+    @cog_ext.cog_slash(name='migrate', guild_ids=[849364313156485120],
+                 description="Move portion of bot.")
+    async def migrate(self, ctx):
+        tracked = ongoing_stats.find()
+        limit = await ongoing_stats.count_documents(filter={})
+        for document in await tracked.to_list(length=limit):
+            tag = document.get("tag")
+            servers = document.get("servers")
+            for server in servers:
+                await server_db.update_one({'server': server},
+                                           {'$push': {"tracked_members": tag}})
 
 
-    @cog_ext.cog_slash(name="popular", guild_ids=[328997757048324101, 923764211845312533],
+
+    @cog_ext.cog_slash(name="popular",
                        description="View popular tracked players.")
     async def popular(self, ctx):
         tracked = ongoing_stats.find()
         limit = await ongoing_stats.count_documents(filter={})
         playerStats = []
         for document in await tracked.to_list(length=limit):
-            player = []
-            servers = document.get("servers")
-            name = document.get("name")
-            tag = document.get("tag")
-            player.append(name)
-            player.append(tag)
-            player.append(len(servers))
-            playerStats.append(player)
+            try:
+                player = []
+                servers = document.get("servers")
+                name = document.get("name")
+                tag = document.get("tag")
+                player.append(name)
+                player.append(tag)
+                player.append(len(servers))
+                playerStats.append(player)
+            except:
+                continue
 
         playerStats.sort(key=lambda row: (row[2]), reverse=True)
         topTen = "**Name | Tag | # of servers tracked in**\n"
@@ -173,7 +188,7 @@ class legend_stats(commands.Cog):
                               color=discord.Color.blue())
         await ctx.send(embed=board)
 
-    @cog_ext.cog_slash(name="legend_stats", guild_ids=[328997757048324101, 923764211845312533],
+    @cog_ext.cog_slash(name="legend_stats",
                        description="Stats on the state of tracked players.")
     async def legendStats(self, ctx):
 
@@ -262,7 +277,7 @@ class legend_stats(commands.Cog):
                               color=discord.Color.blue())
         await ctx.send(embed=embed)
 
-    @cog_ext.cog_slash(name="trophy_breakdown", guild_ids=[328997757048324101, 923764211845312533],
+    @cog_ext.cog_slash(name="trophy_breakdown",
                        description="Trophy Breakdown for players tracked.")
     async def breakdown(self, ctx):
 

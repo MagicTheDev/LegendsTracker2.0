@@ -11,7 +11,7 @@ class context_menus(commands.Cog):
         self.bot = bot
 
     @cog_ext.cog_context_menu(target=ContextMenuType.USER,
-                              name="Check", guild_ids=[328997757048324101, 923764211845312533])
+                              name="Check")
     async def context_check(self, ctx: MenuContext):
         await ctx.defer()
         legends = self.bot.get_cog("Check_Slash")
