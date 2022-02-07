@@ -5,10 +5,26 @@ os.system("pip install \"pymongo[srv]\"")
 import traceback
 from discord_slash import SlashCommand
 
-bot = commands.Bot(command_prefix=[","], help_command=None, intents=discord.Intents().all())
+
+bot = commands.Bot(command_prefix=["do ", "Do "], help_command=None, intents=discord.Intents().all())
 slash = SlashCommand(bot, sync_commands=True, sync_on_cog_reload=True)
 
-embed_color = discord.Color.blue()
+
+
+
+@bot.command(name='reload', hidden=True)
+async def _reload(ctx, *, module : str):
+    """Reloads a module."""
+    if ctx.message.author.id == 706149153431879760:
+        try:
+            bot.unload_extension(module)
+            bot.load_extension(module)
+        except:
+            await ctx.send('<a:no:862552093324083221> Could not reload module.')
+        else:
+            await ctx.send('<a:check:861157797134729256> Reloaded module successfully')
+    else:
+        await ctx.send("You aren't magic. <:PS_Noob:783126177970782228>")
 
 initial_extensions = (
             "Check.check",
@@ -36,6 +52,8 @@ for extension in initial_extensions:
         bot.load_extension(extension)
     except Exception as extension:
         traceback.print_exc()
+
+
 
 
 TOKEN = os.getenv("TOKEN")

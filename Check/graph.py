@@ -3,6 +3,7 @@ import discord
 import matplotlib.pyplot as plt
 import io
 from helper import ongoing_stats, createTimeStats
+import gc
 
 class graph(commands.Cog):
 
@@ -65,7 +66,9 @@ class graph(commands.Cog):
         msg = await pic_channel.send(file=file)
         pic = msg.attachments[0].url
         embed.set_image(url=pic)
-        plt.close()
+        plt.clf()
+        plt.close("all")
+        gc.collect()
         return embed
 
 

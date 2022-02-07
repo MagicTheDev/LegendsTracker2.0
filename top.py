@@ -68,7 +68,7 @@ class top(commands.Cog):
                 res = await wait_for_component(self.bot, components=selects,
                                                messages=msg, timeout=600)
             except:
-                await ctx.edit(components=[])
+                await msg.edit(components=[])
                 break
 
             if res.author_id != ctx.author.id:
@@ -142,7 +142,7 @@ class top(commands.Cog):
                 res = await wait_for_component(self.bot, components=selects,
                                                messages=msg, timeout=600)
             except:
-                await ctx.edit(components=[])
+                await msg.edit(components=[])
                 break
 
             if res.author_id != ctx.author.id:

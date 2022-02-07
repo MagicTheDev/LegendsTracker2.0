@@ -148,14 +148,28 @@ class legend_stats(commands.Cog):
     @cog_ext.cog_slash(name='migrate', guild_ids=[849364313156485120],
                  description="Move portion of bot.")
     async def migrate(self, ctx):
-        tracked = ongoing_stats.find()
-        limit = await ongoing_stats.count_documents(filter={})
+        await ctx.defer()
+        tracked = server_db.find()
+        limit = await server_db.count_documents(filter={})
         for document in await tracked.to_list(length=limit):
-            tag = document.get("tag")
-            servers = document.get("servers")
-            for server in servers:
+            server = document.get("server")
+            tracked_mem = document.get("tracked_members")
+
+            real = []
+            for member in tracked_mem:
+                if member not in real:
+                    real.append(member)
+
+            for member in tracked_mem:
                 await server_db.update_one({'server': server},
-                                           {'$push': {"tracked_members": tag}})
+                                           {'$pull': {"tracked_members": member}})
+
+            for member in real:
+                await server_db.update_one({'server': server},
+                                           {'$push': {"tracked_members": member}})
+
+
+        await ctx.send("DONE")
 
 
 
@@ -197,7 +211,7 @@ class legend_stats(commands.Cog):
         legendsDef = [[], [], [], [], [], [], [], [], [], [], []]
         legendsNet = [[], [], [], [], [], [], [], [], [], [], []]
 
-        tracked = ongoing_stats.find()
+        tracked = ongoing_stats.find({"league" : {"$eq" : "Legend League"}})
         limit = await ongoing_stats.count_documents(filter={"league" : {"$eq" : "Legend League"}})
         playerStats = []
         for player in await tracked.to_list(length=limit):
@@ -211,6 +225,8 @@ class legend_stats(commands.Cog):
             today_net = sum(today_hits) - sum(today_def)
 
             trophy = player.get("trophies")
+            if trophy < 5000:
+                continue
             started = trophy - today_net
 
             try:
@@ -281,24 +297,27 @@ class legend_stats(commands.Cog):
                        description="Trophy Breakdown for players tracked.")
     async def breakdown(self, ctx):
 
-        results = [[], [], [], [], [], [], [], [], [], [], []]
-        tracked = ongoing_stats.find()
+        results = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        tracked = ongoing_stats.find({"league": {"$eq": "Legend League"}})
         limit = await ongoing_stats.count_documents(filter={"league": {"$eq": "Legend League"}})
         playerStats = []
         for player in await tracked.to_list(length=limit):
             ct = player.get("trophies")
+            if ct < 5000:
+                continue
+
 
             if ct < 6000:
                 spot = str(ct)
                 spot = spot[1]
                 spot = int(spot)
-                results[spot].append(1)
+                results[spot]+=1
             else:
                 results[10].append(1)
 
         text = ""
         for x in range(0, 11):
-            atRange = sum(results[x])
+            atRange = results[x]
             if x <= 9:
                 text += f"**5{x}00: ** {atRange}\n"
             else:

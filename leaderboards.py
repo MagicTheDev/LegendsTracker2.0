@@ -1,5 +1,6 @@
-from discord.ext import commands, tasks
+import gc
 
+from discord.ext import commands, tasks
 from helper import coc_client
 
 locations = [32000007, 32000008, 32000009, 32000010, 32000011, 32000012, 32000013, 32000014, 32000015, 32000016, 32000017,
@@ -27,18 +28,23 @@ locations = [32000007, 32000008, 32000009, 32000010, 32000011, 32000012, 3200001
              32000249, 32000250, 32000251, 32000252, 32000253, 32000254, 32000255, 32000256, 32000257, 32000258, 32000259, 32000260]
 
 rankings = []
+import tracemalloc
 
 class leaderboards(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.feed_update.start()
+        self.test.start()
+
 
     def cog_unload(self):
         self.feed_update.cancel()
+        self.test.cancel()
 
-    @tasks.loop(seconds=180)
+    @tasks.loop(seconds=60)
     async def feed_update(self):
+        rankings = []
         glob = await coc_client.get_location_players()
         x = 1
         for player in glob:
@@ -60,6 +66,24 @@ class leaderboards(commands.Cog):
                 rankings.append(country_name)
                 x += 1
 
+    @tasks.loop(seconds=30)
+    async def test(self):
+        tracemalloc.start()
+
+        # ... run your application ...
+
+        snapshot = tracemalloc.take_snapshot()
+        top_stats = snapshot.statistics('lineno')
+
+        print("[ Top 10 ]")
+        for stat in top_stats[:10]:
+            print(stat)
+
+
+    @test.before_loop
+    async def before_printer(self):
+        print('waiting...')
+        await self.bot.wait_until_ready()
 
 
 def setup(bot: commands.Bot):

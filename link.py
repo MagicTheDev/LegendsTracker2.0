@@ -14,7 +14,7 @@ class Linking(commands.Cog):
         self.bot = bot
 
     @cog_ext.cog_slash(name="link", guild_ids=[328997757048324101, 923764211845312533],
-                       description="View a players historical legends data.",
+                       description="Link a clash account to your discord account.",
                        options=[
                            create_option(
                                name="player_tag",

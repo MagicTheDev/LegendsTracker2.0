@@ -27,11 +27,12 @@ class Server_LB(commands.Cog):
             embed = discord.Embed(description="No players tracked on this server.",
                                   color=discord.Color.blue())
             return await ctx.send(embed=embed)
-        page_buttons = [create_button(label="Prev", emoji="◀️", style=ButtonStyle.blue, disabled=(current_page == 0),
-                                      custom_id=f"back_{current_page}"),
-                        create_button(label=f"",emoji="🔁", style=ButtonStyle.blue, custom_id=f"refresh_{current_page}"),
-                        create_button(label="Next", emoji="▶️", style=ButtonStyle.blue,
-                                      disabled=(current_page == (file[1]-1)), custom_id=f"forward_{current_page}")]
+        page_buttons = [
+            create_button(label="Prev", emoji="◀️", style=ButtonStyle.blue, disabled=(current_page == 0),
+                          custom_id=f"back_{current_page}"),
+            create_button(label=f"", emoji="🔁", style=ButtonStyle.blue, custom_id=f"refresh_{current_page}"),
+            create_button(label="Next", emoji="▶️", style=ButtonStyle.blue,
+                          disabled=(current_page == (file[1] - 1)), custom_id=f"forward_{current_page}")]
         page_buttons = create_actionrow(*page_buttons)
         embed = discord.Embed(title=f"{ctx.guild.name} Legends Board",
                               color=discord.Color.blue())
@@ -39,43 +40,51 @@ class Server_LB(commands.Cog):
         pic_channel = await self.bot.fetch_channel(884951195406458900)
         msg = await pic_channel.send(file=file[0])
         pic = msg.attachments[0].url
-        msg = await ctx.send(pic, components=[page_buttons])
+        embed.set_image(url=pic)
+        embed.set_thumbnail(url=ctx.guild.icon_url_as())
+        await ctx.send(content="", embed=embed, components=[page_buttons])
 
 
     @commands.Cog.listener()
     async def on_component(self, ctx):
+        try:
+            type = ctx.component["type"]
 
-        type = ctx.component["type"]
+            if type == 2:
+                cid = ctx.component["custom_id"]
+                cid = cid.split("_")
+
+                direction = cid[0]
+                current_page = int(cid[1])
+
+                if direction == "back":
+                    current_page -= 1
+                elif direction == "forward":
+                    current_page += 1
+                elif direction == "refresh":
+                    current_page = 0
 
 
-        if type == 2:
-            cid = ctx.component["custom_id"]
-            cid = cid.split("_")
+                file = await self.create_embed(ctx.guild, current_page)
+                page_buttons = [
+                    create_button(label="Prev", emoji="◀️", style=ButtonStyle.blue, disabled=(current_page == 0),
+                                  custom_id=f"back_{current_page}"),
+                    create_button(label=f"", emoji="🔁", style=ButtonStyle.blue, custom_id=f"refresh_{current_page}"),
+                    create_button(label="Next", emoji="▶️", style=ButtonStyle.blue,
+                                  disabled=(current_page == (file[1]-1)), custom_id=f"forward_{current_page}")]
+                page_buttons = create_actionrow(*page_buttons)
+                embed = discord.Embed(title=f"{ctx.guild.name} Legends Board",
+                                      color=discord.Color.blue())
 
-            direction = cid[0]
-            current_page = int(cid[1])
+                pic_channel = await self.bot.fetch_channel(884951195406458900)
+                msg = await pic_channel.send(file=file[0])
+                pic = msg.attachments[0].url
+                embed.set_image(url=pic)
+                embed.set_thumbnail(url=ctx.guild.icon_url_as())
+                await ctx.edit_origin(content="",embed=embed, components=[page_buttons])
+        except:
+            pass
 
-            if direction == "back":
-                current_page -= 1
-            elif direction == "forward":
-                current_page += 1
-
-
-            file = await self.create_embed(ctx.guild, current_page)
-            page_buttons = [
-                create_button(label="Prev", emoji="◀️", style=ButtonStyle.blue, disabled=(current_page == 0),
-                              custom_id=f"back_{current_page}"),
-                create_button(label=f"", emoji="🔁", style=ButtonStyle.blue, custom_id=f"refresh_{current_page}"),
-                create_button(label="Next", emoji="▶️", style=ButtonStyle.blue,
-                              disabled=(current_page == (file[1]-1)), custom_id=f"forward_{current_page}")]
-            page_buttons = create_actionrow(*page_buttons)
-            embed = discord.Embed(title=f"{ctx.guild.name} Legends Board",
-                                  color=discord.Color.blue())
-
-            pic_channel = await self.bot.fetch_channel(884951195406458900)
-            msg = await pic_channel.send(file=file[0])
-            pic = msg.attachments[0].url
-            await ctx.send(content=pic, components=[page_buttons], ephemeral=True)
 
 
     async def create_embed(self, guild, page):
@@ -192,17 +201,6 @@ class Server_LB(commands.Cog):
                 temp.seek(0)
                 file = discord.File(fp=temp, filename="filename.png")
                 return [file, max_pages]
-
-
-
-
-
-
-
-
-
-
-
 
 
 

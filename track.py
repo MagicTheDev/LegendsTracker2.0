@@ -54,7 +54,7 @@ class track(commands.Cog):
             await addLegendsPlayer_GLOBAL(player=player, clan_name=clan_name)
 
             embed = discord.Embed(
-                description=f"[{player.name}] ({player.share_link}) | {clan_name} was added for legends tracking.",
+                description=f"[{player.name}]({player.share_link}) | {clan_name} was added for legends tracking.",
                 color=discord.Color.green())
             await ctx.send(embed=embed)
 

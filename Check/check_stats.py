@@ -59,7 +59,20 @@ class CheckStats(commands.Cog):
         net = totalOff - totalDef
         link = result.get("link")
 
+        highest_streak = result.get("highest_streak")
+        if highest_streak == None:
+            highest_streak = 0
+        active_streak = result.get("row_triple")
+
+        if highest_streak != 0:
+            highest_streak = f", Highest Streak: {highest_streak}"
+        else:
+            highest_streak = ""
+
+
         hit_stats = await self.hit_rates_offense(db_result=result)
+
+        active_streak = f"- Triple Streak: {active_streak}{highest_streak}"
 
         clanName = "No Clan"
         try:
@@ -78,12 +91,23 @@ class CheckStats(commands.Cog):
                                           f"- Started: {legend_shield} {str(player.trophies - net)}, Current: {legend_shield} {str(player.trophies)}\n" +
                                           f"- {numHits} attacks for +{str(totalOff)} trophies\n" +
                                           f"- {numDefs} defenses for -{str(totalDef)} trophies\n"
-                                          f"- Net Trophies: {str(net)} trophies\n",
+                                          f"- Net Trophies: {str(net)} trophies\n{active_streak}",
 
                               color=discord.Color.blue())
+        three_star = str(hit_stats[3]) + "%"
+        two_star = str(hit_stats[2]) + "%"
+        one_star = str(hit_stats[1]) + "%"
+        three_star = three_star.ljust(3, " ")
+        two_star = two_star.ljust(3, " ")
+        one_star = one_star.ljust(3, " ")
 
-        embed.add_field(name= "**Season Stats**", value=f"- Rank: <a:earth:861321402909327370> {gspot} | {flag} {cou_spot}\n"+ country_name + 
-                                f"- Season Hits: {seasonHits}\n" 
+
+        embed.add_field(name= "**Stats**", value=f"- Rank: <a:earth:861321402909327370> {gspot} | {flag} {cou_spot}\n"+ country_name +
+                                f"- Total: {hit_stats[0]} tracked hits\n"
+                                f"- 3 Star: {three_star}\n"
+                                  f"- 2 Star: {two_star}\n"
+                                  f"- 1 Star: {one_star}\n"
+
                                 , inline=False)
 
         if player.town_hall == 14:
@@ -111,17 +135,7 @@ class CheckStats(commands.Cog):
         embed.add_field(name="**Offense**", value=off, inline=True)
         embed.add_field(name="**Defense**", value=defi, inline=True)
 
-        three_star = str(hit_stats[3]) + "%"
-        two_star = str(hit_stats[2]) + "%"
-        one_star = str(hit_stats[1]) + "%"
-        three_star = three_star.ljust(3, " ")
-        two_star = two_star.ljust(3, " ")
-        one_star = one_star.ljust(3, " ")
-        embed.add_field(name="**All Time Hit Rates**",
-                        value=f"3 Star: {three_star}\n"
-                              f"2 Star: {two_star}\n"
-                              f"1 Star: {one_star}\n"
-                              f"Total: {hit_stats[0]} hits", inline=False)
+
         return embed
 
 
@@ -195,7 +209,7 @@ class CheckStats(commands.Cog):
         hits = db_result.get("previous_hits")
 
         if hits == []:
-            return None
+            return [0, 0, 0 ,0]
 
         for day in hits:
             for hit in day:
@@ -208,9 +222,18 @@ class CheckStats(commands.Cog):
                         three_stars += (hit // 40)
 
         total = one_stars + two_stars + three_stars
-        one_stars_avg = int(round((one_stars / total), 2) * 100)
-        two_stars_avg = int(round((two_stars / total), 2) * 100)
-        three_stars_avg = int(round((three_stars / total), 2) * 100)
+        try:
+            one_stars_avg = int(round((one_stars / total), 2) * 100)
+        except:
+            one_stars_avg = 0
+        try:
+            two_stars_avg = int(round((two_stars / total), 2) * 100)
+        except:
+            two_stars_avg = 0
+        try:
+            three_stars_avg = int(round((three_stars / total), 2) * 100)
+        except:
+            three_stars_avg = 0
 
         return [total, one_stars_avg, two_stars_avg, three_stars_avg]
 
