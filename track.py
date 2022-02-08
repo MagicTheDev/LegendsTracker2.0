@@ -30,7 +30,9 @@ class track(commands.Cog):
     async def track_add(self,ctx, player_tag):
         # pull player from tag, check if valid player or in legends
         player = await getPlayer(player_tag)
-        await self.valid_player_check(ctx=ctx, player=player)
+        valid = await self.valid_player_check(ctx=ctx, player=player)
+        if not valid:
+            return
 
         is_server_tracked = await self.check_server_tracked(player, ctx.guild.id)
         is_global_tracked = await self.check_global_tracked(player)
@@ -50,8 +52,9 @@ class track(commands.Cog):
             if player.clan != None:
                 clan_name = player.clan.name
 
-            await addLegendsPlayer_SERVER(player=player, guild_id=ctx.guild.id)
             await addLegendsPlayer_GLOBAL(player=player, clan_name=clan_name)
+            await addLegendsPlayer_SERVER(player=player, guild_id=ctx.guild.id)
+
 
             embed = discord.Embed(
                 description=f"[{player.name}]({player.share_link}) | {clan_name} was added for legends tracking.",
@@ -190,12 +193,16 @@ class track(commands.Cog):
         if player is None:
             embed = discord.Embed(description="Not a valid player tag. Check the spelling or a different tag.",
                                   color=discord.Color.red())
-            return await ctx.send(embed=embed)
+            await ctx.send(embed=embed)
+            return False
 
         if str(player.league) != "Legend League":
             embed = discord.Embed(description="Sorry, cannot track players that are not in legends.",
                                   color=discord.Color.red())
-            return await ctx.send(embed=embed)
+            await ctx.send(embed=embed)
+            return False
+
+        return True
 
 
 def setup(bot: commands.Bot):

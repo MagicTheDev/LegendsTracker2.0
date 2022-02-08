@@ -5,6 +5,8 @@ from discord_slash.utils.manage_components import create_select, create_select_o
 from discord_slash import cog_ext
 
 
+
+
 import inspect
 
 class help(commands.Cog):
@@ -38,6 +40,8 @@ class help(commands.Cog):
     async def serv(self, ctx):
         await ctx.send(
             "discord.gg/Z96S8Gg2Uv")
+
+
 
 
 def setup(bot: commands.Bot):

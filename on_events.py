@@ -1,7 +1,7 @@
 from discord.ext import commands
 import discord
 
-from helper import ongoing_stats, server_db, settings_db
+from helper import server_db
 
 
 
@@ -21,6 +21,7 @@ class Bot_Events(commands.Cog):
                 await server_db.insert_one({
                     "server": g.id,
                     "tracked_members": [],
+                    "channel_id": None
                 })
 
     @commands.Cog.listener()
@@ -52,6 +53,7 @@ class Bot_Events(commands.Cog):
             await server_db.insert_one({
                 "server": guild.id,
                 "tracked_members": [],
+                "channel_id" : None
             })
         channel = self.bot.get_channel(937519135607373874)
         await channel.send(f"Just joined {guild.name}")
@@ -64,12 +66,12 @@ class Bot_Events(commands.Cog):
         for guild in guilds:
             guild_ids.append(guild.id)
 
-        tracked = settings_db.find({})
-        limit = await settings_db.count_documents(filter={})
+        tracked = server_db.find({})
+        limit = await server_db.count_documents(filter={})
         for document in await tracked.to_list(length=limit):
             server = document.get("server_id")
             if server not in guild_ids:
-                await settings_db.find_one_and_delete({'server_id': server})
+                await server_db.find_one_and_delete({'server_id': server})
 
 
 

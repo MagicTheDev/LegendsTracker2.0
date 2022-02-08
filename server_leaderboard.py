@@ -23,7 +23,7 @@ class Server_LB(commands.Cog):
         await ctx.defer()
         current_page = 0
         file = await self.create_embed(ctx.guild, 0)
-        if file is None:
+        if file[0] is None:
             embed = discord.Embed(description="No players tracked on this server.",
                                   color=discord.Color.blue())
             return await ctx.send(embed=embed)

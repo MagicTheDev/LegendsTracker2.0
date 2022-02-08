@@ -24,7 +24,6 @@ history_db = db_client.clan_tags
 ### COLLECTIONS USED ###
 ongoing_stats = legends_stats.ongoing_stats
 server_db = legends_stats.server
-settings_db = legends_stats.settings
 
 
 async def addLegendsPlayer_GLOBAL(player, clan_name):
@@ -41,20 +40,26 @@ async def addLegendsPlayer_GLOBAL(player, clan_name):
         "previous_hits": [],
         "previous_defenses": [],
         "num_yesterday_hits": 0,
+        "servers" :[],
         "end_of_day": [],
         "clan": clan_name,
         "link": player.share_link,
         "league": str(player.league),
         "highest_streak" : 0,
-        "last_updated" : None
+        "last_updated" : None,
+        "change" : None
       })
 
 
 async def addLegendsPlayer_SERVER(guild_id, player):
+  await ongoing_stats.update_one({'tag': player.tag},
+                                 {'$push': {"servers": guild_id}})
   await server_db.update_one({'server': guild_id},
                                  {'$push': {"tracked_members": player.tag}})
 
 async def removeLegendsPlayer_SERVER(guild_id, player):
+  await ongoing_stats.update_one({'tag': player.tag},
+                                 {'$pull': {"servers": guild_id}})
   await server_db.update_one({'server': guild_id},
                                  {'$pull': {"tracked_members": player.tag}})
 

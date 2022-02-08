@@ -1,5 +1,11 @@
 from discord.ext import commands
 import discord
+from discord_slash import cog_ext
+from discord_slash.utils.manage_commands import create_option
+from discord_slash.utils.manage_components import create_button, wait_for_component, create_select, create_select_option, create_actionrow
+from discord_slash.model import ButtonStyle
+
+from helper import server_db, coc_client
 
 
 class bot_settings(commands.Cog):
@@ -7,22 +13,156 @@ class bot_settings(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
+    @cog_ext.cog_slash(name='setfeed',
+                       description="Set channel for attack/defense feed.")
+    async def setfeed(self, ctx, *, extra):
+        perms = ctx.author.guild_permissions.manage_guild
+        if not perms:
+            embed = discord.Embed(description="Command requires you to have `Manage Guild` permissions.",
+                                  color=discord.Color.red())
+            return await ctx.send(embed=embed)
 
-    @commands.command(name='servers')
-    @commands.is_owner()
-    async def servers(self, ctx):
+        results = await server_db.find_one({"server": ctx.guild.id})
+
+        if results == None:
+            await server_db.insert_one({"server": ctx.guild.id, "tracked_members": [], "channel_id": None})
+
+        ex = extra.lower()
+        if ex == "none":
+            await server_db.update_one({"server": ctx.guild.id}, {'$set': {"channel_id": None}})
+            embed = discord.Embed(description=f"Feed channel removed.",
+                                  color=discord.Color.green())
+            return await ctx.send(embed=embed)
+
+        if (extra.startswith('<#') and extra.endswith('>')):
+            extra = extra[2:len(extra) - 1]
+        try:
+            extra = int(extra)
+        except:
+            pass
+
+        try:
+            extra = await self.bot.fetch_channel(extra)
+            c = extra
+            g = ctx.guild
+            r = await g.fetch_member(825324351016534036)
+            perms = c.permissions_for(r)
+            send_msg = perms.send_messages
+            external_emoji = perms.use_external_emojis
+            if send_msg == False or external_emoji == False:
+                embed = discord.Embed(
+                    description=f"Feed channel creation canceled. Missing Permissions in that channel.\nMust have `Send Messages` and `Use External Emojis` perms in the feed channel.\n `do setfeed none` to remove feed.",
+                    color=discord.Color.red())
+                return await ctx.send(embed=embed)
+        except:
+            embed = discord.Embed(
+                description=f"Invalid channel or Missing Access to view channel.\n`do setfeed none` to remove feed.",
+                color=discord.Color.red())
+            return await ctx.send(embed=embed)
+
+        channel = extra.id
+
+        await server_db.update_one({"server_id": ctx.guild.id}, {'$set': {"channel_id": channel}})
+
+        embed = discord.Embed(
+            description=f"{extra.mention} set as feed channel.\nEnsure I have permission to send messages there.\nView current feed channel with `/stats`.",
+            color=discord.Color.green())
+        return await ctx.send(embed=embed)
+
+    @cog_ext.cog_slash(name='tracked_list',
+                       description="List of clans or players tracked in server.",
+                       options=[
+                           create_option(
+                               name="list_type",
+                               description="Choose clan or player tracked list",
+                               option_type=3,
+                               required=True,
+                               choices=["Clan list", "Player list"]
+                           )
+                       ])
+    async def tracked_list(self, ctx, list_type):
+        list = []
+        results = await server_db.find_one({"server": ctx.guild.id})
+        tags = results.get("tracked_members")
+        if tags == []:
+            embed = discord.Embed(description="No players tracked on this server.",
+                                  color=discord.Color.red())
+            return await ctx.send(embed=embed)
+        async for player in coc_client.get_players(tags):
+            if list_type == "Clan list":
+                if player.clan != None:
+                    list.append(player.clan)
+            else:
+                list.append(player)
+
         text = ""
-        guilds = self.bot.guilds
-        for guild in guilds:
-            id =guild.member_count
-            #owner = await self.bot.fetch_user(id)
-            text += guild.name +f" | {id} members\n"
+        x = 0
+        embeds= []
+        for l in list:
+            text += f"{l.name} | {l.tag}"
+            x += 1
+            if x == 25:
+                embed = discord.Embed(title=f"Tracked List ({len(list)} results)",description=f"{text}",
+                                      color=discord.Color.blue())
+                x = 0
+                embeds.append(embed)
+                text = ""
 
-        embed = discord.Embed(description=text,
-                              color=discord.Color.green())
+        if text != "":
+            embed = discord.Embed(title=f"Tracked List ({len(list)} results)", description=f"{text}",
+                                  color=discord.Color.blue())
+            embeds.append(embed)
+
+        current_page = 0
+        msg = await ctx.send(embed=embeds[0], components=self.create_components(current_page, embeds),
+                             mention_author=False)
+
+        while True:
+            try:
+                res = await wait_for_component(self.bot, components=self.create_components(current_page, embeds),
+                                               messages=msg, timeout=600)
+            except:
+                await msg.edit(components=[])
+                break
+
+            if res.author_id != ctx.author.id:
+                await res.send(content="You must run the command to interact with components.", hidden=True)
+                continue
+
+            await res.edit_origin()
+
+            # print(res.custom_id)
+            if res.custom_id == "Previous":
+                current_page -= 1
+                await msg.edit(embed=embeds[current_page],
+                               components=self.create_components(current_page, embeds))
+
+            elif res.custom_id == "Next":
+                current_page += 1
+                await msg.edit(embed=embeds[current_page],
+                               components=self.create_components(current_page, embeds))
 
 
-        await ctx.send(embed =embed)
+    def create_components(self, current_page, embeds):
+        length = len(embeds)
+        if length == 1:
+            return []
+
+        page_buttons = [create_button(label="", emoji="◀️", style=ButtonStyle.blue, disabled=(current_page == 0),
+                                      custom_id="Previous"),
+                        create_button(label=f"Page {current_page + 1}/{length}", style=ButtonStyle.grey,
+                                      disabled=True),
+                        create_button(label="", emoji="▶️", style=ButtonStyle.blue,
+                                      disabled=(current_page == length - 1), custom_id="Next"),
+                        create_button(label="", emoji="🖨️", style=ButtonStyle.grey,
+                                      custom_id="Print")
+                        ]
+        page_buttons = create_actionrow(*page_buttons)
+
+        return [page_buttons]
+
+
+
 
 
 

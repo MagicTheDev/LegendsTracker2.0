@@ -28,8 +28,7 @@ class pagination(commands.Cog):
 
         while True:
             try:
-                res = await wait_for_component(self.bot, components=self.create_components(results, current_page),
-                                               messages=msg, timeout=600)
+                res = await wait_for_component(self.bot, components=self.create_components(results, current_page),messages=msg, timeout=600)
             except:
                 await msg.edit(components=[])
                 break

@@ -1,59 +1,15 @@
 
 
-from discord.ext import commands, tasks
+from discord.ext import commands
 import discord
 
-from tinydb import TinyDB, Query
+from helper import getPlayer, ongoing_stats
 
-
-botDb = TinyDB('botStuff.json')
-
-from clashClient import coc_client, getPlayer
-
-
-import motor.motor_asyncio
-client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://localhost:27017")
-ongoing_db = client.legends_stats
-ongoing_stats = ongoing_db.ongoing_stats
 
 class trophy(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-
-    @commands.command(name = "test")
-    @commands.is_owner()
-    async def test(self,ctx):
-      guilds = self.bot.guilds
-
-      guild_ids = []
-      for guild in guilds:
-        guild_ids.append(guild.id)
-
-      feeds = botDb.all()
-      removed_channels = []
-      for feed in feeds:
-          channel = feed.get("channel_id")
-          server = feed.get("server_id")
-          if server not in guild_ids:
-            removed_channels.append(server)
-            look = Query()
-            el = botDb.get(look.server_id== server)
-            doc = el.doc_id
-            botDb.remove(doc_ids=[doc])
-            
-
-      tracked = ongoing_stats.find({})
-      limit = await ongoing_stats.count_documents(filter={})
-      for document in await tracked.to_list(length=limit):            
-            servers = document.get("servers")
-            tag = document.get("tag")
-            for s in servers:
-              if s in removed_channels:
-                await ongoing_stats.update_one({'tag': f"{tag}"},
-                                             {'$pull': {'servers': s}})
-                
-      
       
 
     @commands.Cog.listener()

@@ -1,5 +1,5 @@
 from discord.ext import commands
-from helper import getPlayer, getClan, ongoing_stats, server_db
+from helper import getPlayer, ongoing_stats, server_db
 import discord
 import emoji
 import time
@@ -17,7 +17,19 @@ class legend_stats(commands.Cog):
     @cog_ext.cog_slash(name="stats",
                        description="View bot stats.")
     async def stat(self, ctx):
+        results = await server_db.find_one({"server": ctx.guild.id})
 
+        feed = "None"
+
+        if results != None:
+            feed = results.get("channel_id")
+
+        if str(feed) != "None":
+            guild = ctx.guild.id
+            guild = await self.bot.fetch_guild(guild)
+            channels = await guild.fetch_channels()
+            feed = discord.utils.get(channels,id=int(feed))
+            feed = feed.mention
 
         number_tracked = await ongoing_stats.count_documents(filter={})
         days_tracking = await ongoing_stats.find_one({"tag": "#2QV029CVC"})
@@ -25,7 +37,6 @@ class legend_stats(commands.Cog):
             days_tracking = len(days_tracking.get("end_of_day")) + 1
         except:
             days_tracking = 0
-        owner = await self.bot.fetch_user(706149153431879760)
 
         uptime = time.time() - self.up
         uptime = time.strftime("%H hours %M minutes %S seconds", time.gmtime(uptime))
@@ -49,7 +60,6 @@ class legend_stats(commands.Cog):
 
         embed = discord.Embed(title='LegendsTracker Stats',
                               description=f"<:bot:862911608140333086> Bot: {me}\n" +
-                                          f"<a:crown:862912607005442088> Owner: {owner.mention}\n" +
                                           f"<:discord:840749695466864650> Discord Api Ping: {round(self.bot.latency * 1000, 2)} ms\n" +
                                           f"<a:ping:862916971711168562> Bot Ping: {round(meping, 2)} ms\n" +
                                           f"<:clash:855491735488036904> COC Api Ping: {cocping} ms\n" +
@@ -57,11 +67,11 @@ class legend_stats(commands.Cog):
                                           f"<a:num:863149480819949568> Watching {members} users\n" +
                                           f"<a:check:861157797134729256> {number_tracked} accounts tracked\n"+
                                           f"📆 {days_tracking} days spent tracking.\n"+
-                                          f"🕐 Uptime: {uptime}\n",
+                                          f"🕐 Uptime: {uptime}\n"+
+                                          f"Feed Channel: {feed}",
                               color=discord.Color.blue())
 
         await msg.edit(content="", embed=embed)
-
 
 
     @cog_ext.cog_subcommand(base="streaks",name="server",
@@ -105,7 +115,6 @@ class legend_stats(commands.Cog):
         await ctx.send(embed=board)
 
 
-
     @cog_ext.cog_subcommand(base="streaks", name="global",
                             description="View the top 3 star streaks among all tracked players.")
     async def streaks_global(self, ctx):
@@ -145,34 +154,6 @@ class legend_stats(commands.Cog):
         await ctx.send(embed=board)
 
 
-    @cog_ext.cog_slash(name='migrate', guild_ids=[849364313156485120],
-                 description="Move portion of bot.")
-    async def migrate(self, ctx):
-        await ctx.defer()
-        tracked = server_db.find()
-        limit = await server_db.count_documents(filter={})
-        for document in await tracked.to_list(length=limit):
-            server = document.get("server")
-            tracked_mem = document.get("tracked_members")
-
-            real = []
-            for member in tracked_mem:
-                if member not in real:
-                    real.append(member)
-
-            for member in tracked_mem:
-                await server_db.update_one({'server': server},
-                                           {'$pull': {"tracked_members": member}})
-
-            for member in real:
-                await server_db.update_one({'server': server},
-                                           {'$push': {"tracked_members": member}})
-
-
-        await ctx.send("DONE")
-
-
-
     @cog_ext.cog_slash(name="popular",
                        description="View popular tracked players.")
     async def popular(self, ctx):
@@ -202,98 +183,8 @@ class legend_stats(commands.Cog):
                               color=discord.Color.blue())
         await ctx.send(embed=board)
 
-    @cog_ext.cog_slash(name="legend_stats",
-                       description="Stats on the state of tracked players.")
-    async def legendStats(self, ctx):
 
-        # 5000, 5100, 5200, 5300, 5400, 5500, 5600, 5700, 5800, 5900, 6000+
-        legendsHits = [[], [], [], [], [], [], [], [], [], [], []]
-        legendsDef = [[], [], [], [], [], [], [], [], [], [], []]
-        legendsNet = [[], [], [], [], [], [], [], [], [], [], []]
-
-        tracked = ongoing_stats.find({"league" : {"$eq" : "Legend League"}})
-        limit = await ongoing_stats.count_documents(filter={"league" : {"$eq" : "Legend League"}})
-        playerStats = []
-        for player in await tracked.to_list(length=limit):
-
-            hits = player.get("previous_hits")
-            defs = player.get("previous_defenses")
-
-            today_hits = player.get("today_hits")
-            today_def = player.get("today_defenses")
-
-            today_net = sum(today_hits) - sum(today_def)
-
-            trophy = player.get("trophies")
-            if trophy < 5000:
-                continue
-            started = trophy - today_net
-
-            try:
-              hits = sum(hits[-1])
-            except:
-              hits = 0
-
-            try:
-              defs = sum(defs[-1])
-            except:
-              defs = 0
-
-            net = hits - defs            
-
-            if started < 6000:
-                spot = str(started)
-                spot = spot[1]
-                spot = int(spot)
-                # print(spot)
-                # print(legendsHits)
-                if hits != 0:
-                  legendsHits[spot].append(hits)
-                if defs != 0:
-                  legendsDef[spot].append(defs)
-                
-                if hits != 0 or defs != 0:
-                  legendsNet[spot].append(net)
-            else:
-                spot = 10
-                if hits != 0:
-                  legendsHits[spot].append(hits)
-                if defs != 0:
-                  legendsDef[spot].append(defs)
-                
-                if hits != 0 or defs != 0:
-                  legendsNet[spot].append(net)
-
-        text = "Stats calculated using yesterday numbers.\n"
-
-        for x in range(0, 11):
-            lenHit = len(legendsDef[x])
-            # print(legendsHits)
-            if lenHit != 0:
-                averageHit = sum(legendsHits[x]) / len(legendsNet[x])
-                averageDef = sum(legendsDef[x]) / len(legendsDef[x])
-                averageNet = averageHit - averageDef
-                if x == 10:
-                    text += f"**At 6000+**\n" \
-                            f"- Avg Hit Total: {int(averageHit)} trophies\n" \
-                            f"- Avg Def Total: {int(averageDef)} trophies\n" \
-                            f"- Avg Net Gain: {int(averageNet)} trophies\n"
-                else:
-                    text += f"**At 5{x}00**\n" \
-                            f"- Avg Hit Total: {int(averageHit)} trophies\n" \
-                            f"- Avg Def Total: {int(averageDef)} trophies\n" \
-                            f"- Avg Net Gain: {int(averageNet)} trophies\n"
-            else:
-                if x == 10:
-                    text += f"**-- No Results for 6000+ --**\n"
-                else:
-                    text += f"**-- No Results for 5{x}00 --**\n"
-
-        embed = discord.Embed(title="Average Stats by Trophy Counts", description=text,
-                              color=discord.Color.blue())
-        await ctx.send(embed=embed)
-
-    @cog_ext.cog_slash(name="trophy_breakdown",
+    @cog_ext.cog_slash(name="breakdown",
                        description="Trophy Breakdown for players tracked.")
     async def breakdown(self, ctx):
 

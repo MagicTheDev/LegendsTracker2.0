@@ -43,7 +43,9 @@ initial_extensions = (
             "server_leaderboard",
             "link",
             "stats",
-            "help"
+            "help",
+            "legend_feed",
+            "settings"
         )
 
 

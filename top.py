@@ -12,8 +12,8 @@ class top(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @cog_ext.cog_subcommand(base="top", name="server",
-                            description="Top player stats on this server.",
+    @cog_ext.cog_slash(name="top",
+                            description="Top player stats - (hits, def, net).",
                             options=[
                                 create_option(
                                     name="stat_type",
@@ -21,9 +21,21 @@ class top(commands.Cog):
                                     option_type=3,
                                     required=True,
                                     choices=["Hits", "Defenses", "Net Gain"]
-                                )]
+                                ),
+                                create_option(
+                                    name="scope_type",
+                                    description="Scope of stats",
+                                    option_type=3,
+                                    required=True,
+                                    choices=["All Stats", "Server Stats"]
+                                )
+                            ]
                             )
-    async def top_server(self,ctx, stat_type):
+    async def top_server(self,ctx, stat_type, scope_type):
+        if scope_type == "All Stats":
+            scope_type = "global"
+        else:
+            scope_type = "local"
         option_list = ["All", "5000", "5100", "5200", "5300", "5400", "5500", "5600", "5700", "5800", "5900", "6000"]
         select1 = create_select(
             options=[
@@ -59,7 +71,7 @@ class top(commands.Cog):
         selects = create_actionrow(select1)
         selects = [selects]
 
-        embed = await self.createBest(5000, 3000, stat_type, "local", ctx)
+        embed = await self.createBest(5000, 3000, stat_type, scope_type, ctx)
 
         msg = await ctx.send(embed=embed, components=selects)
 
@@ -79,89 +91,12 @@ class top(commands.Cog):
             value = res.values[0]
 
             if value == "All":
-                embed = await self.createBest(5000, 3000, stat_type, "local", ctx)
+                embed = await self.createBest(5000, 3000, stat_type, scope_type, ctx)
             else:
-                embed = await self.createBest(int(value), 100, stat_type, "local", ctx)
+                embed = await self.createBest(int(value), 100, stat_type, scope_type, ctx)
 
             await msg.edit(embed=embed,
                            components=selects)
-
-    @cog_ext.cog_subcommand(base="top", name="global",
-                            description="Top player stats amongst all tracked.",
-                            options=[
-                                create_option(
-                                    name="stat_type",
-                                    description="Filter type",
-                                    option_type=3,
-                                    required=True,
-                                    choices=["Hits", "Defenses", "Net Gain"]
-                                )]
-                            )
-    async def top_global(self, ctx, stat_type):
-        option_list = ["All", "5000", "5100", "5200", "5300", "5400", "5500", "5600", "5700", "5800", "5900", "6000"]
-        select1 = create_select(
-            options=[
-                create_select_option("All", value=f"All",
-                                     description="Based on start of day trophies."),
-                create_select_option("5000", value=f"5000",
-                                     description="Based on start of day trophies."),
-                create_select_option("5100", value=f"5100",
-                                     description="Based on start of day trophies."),
-                create_select_option("5200", value=f"5200",
-                                     description="Based on start of day trophies."),
-                create_select_option("5300", value=f"5300",
-                                     description="Based on start of day trophies."),
-                create_select_option("5400", value=f"5400",
-                                     description="Based on start of day trophies."),
-                create_select_option("5500", value=f"5500",
-                                     description="Based on start of day trophies."),
-                create_select_option("5600", value=f"5600",
-                                     description="Based on start of day trophies."),
-                create_select_option("5700", value=f"5700",
-                                     description="Based on start of day trophies."),
-                create_select_option("5800", value=f"5800",
-                                     description="Based on start of day trophies."),
-                create_select_option("5900", value=f"5900",
-                                     description="Based on start of day trophies."),
-                create_select_option("6000+", value=f"6000",
-                                     description="Based on start of day trophies.")
-            ],
-            placeholder="Choose your option",
-            min_values=1,  # the minimum number of options a user must select
-            max_values=1  # the maximum number of options a user can select
-        )
-        selects = create_actionrow(select1)
-        selects = [selects]
-
-        embed = await self.createBest(5000, 3000, stat_type, "global", ctx)
-
-        msg = await ctx.send(embed=embed, components=selects)
-
-        while True:
-            try:
-                res = await wait_for_component(self.bot, components=selects,
-                                               messages=msg, timeout=600)
-            except:
-                await msg.edit(components=[])
-                break
-
-            if res.author_id != ctx.author.id:
-                await res.send(content="You must run the command to interact with components.", hidden=True)
-                continue
-
-            await res.edit_origin()
-            value = res.values[0]
-
-            if value == "All":
-                embed = await self.createBest(5000, 3000, stat_type, "global", ctx)
-            else:
-                embed = await self.createBest(int(value), 100, stat_type, "global", ctx)
-
-            await msg.edit(embed=embed,
-                           components=selects)
-
-
-
 
     async def createBest(self, limit, bounds, stat_type, scope, ctx):
         ranking = []

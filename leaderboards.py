@@ -35,14 +35,13 @@ class leaderboards(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.feed_update.start()
-        self.test.start()
 
 
     def cog_unload(self):
         self.feed_update.cancel()
-        self.test.cancel()
 
-    @tasks.loop(seconds=60)
+
+    @tasks.loop(seconds=120)
     async def feed_update(self):
         rankings = []
         glob = await coc_client.get_location_players()

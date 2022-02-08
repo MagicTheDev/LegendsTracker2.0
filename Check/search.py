@@ -1,3 +1,4 @@
+import re
 
 from discord.ext import commands
 from helper import getPlayer, getTags, ongoing_stats
@@ -35,6 +36,7 @@ class search(commands.Cog):
         #await ongoing_stats.create_index([("name", "text")])
 
         query = query.lower()
+        query = re.escape(query)
         results = ongoing_stats.find({"$and" : [
             {"name": {"$regex": f"^(?i).*{query}.*$"}},
             {"league" : {"$eq" : "Legend League"}}
