@@ -27,12 +27,12 @@ class top(commands.Cog):
                                     description="Scope of stats",
                                     option_type=3,
                                     required=True,
-                                    choices=["All Stats", "Server Stats"]
+                                    choices=["Server", "All"]
                                 )
                             ]
                             )
     async def top_server(self,ctx, stat_type, scope_type):
-        if scope_type == "All Stats":
+        if scope_type == "All":
             scope_type = "global"
         else:
             scope_type = "local"

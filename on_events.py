@@ -40,10 +40,11 @@ class Bot_Events(commands.Cog):
         try:
             channel = guild.text_channels[0]
             embed = discord.Embed(title="Hello " + guild.name + "!", description="Thanks for inviting me!\n"
-                                                                                 "To set up a attack/defense feed use `do setfeed #channel`\n"
-                                                                                 "To start tracking a player use `do track #playerTag`\n"
-                                                                                 "To add a player to your feed use `do feed #playerTag` (this starts tracking if not already, to save you a step of tracking.)\n"
-                                                                                 "For other commands & help check out `do help`\n"
+                                                                                 f"**Quick Setup:**To set up a attack/defense feed use `/setfeed #channel`\n"
+                                                                                 f"To start tracking a player & add them to your server use `/track add #playerTag`\n"
+                                                                                 f"To start tracking a player & add them to your server use `/track remove #playerTag`\n"
+                                       f"For other commands & help check out `/help`\n"
+                                       "**NOTE:** Players have to be tracked before you can view stats on them, after that stats will start to show as they are collected."
                                                                                  "If any questions concerns or problems, join the support server: https://discord.gg/Z96S8Gg2Uv")
             await channel.send(embed=embed)
         except:
@@ -60,18 +61,7 @@ class Bot_Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_remove(self,guild):
-        guilds = self.bot.guilds
-
-        guild_ids = []
-        for guild in guilds:
-            guild_ids.append(guild.id)
-
-        tracked = server_db.find({})
-        limit = await server_db.count_documents(filter={})
-        for document in await tracked.to_list(length=limit):
-            server = document.get("server_id")
-            if server not in guild_ids:
-                await server_db.find_one_and_delete({'server_id': server})
+        await server_db.find_one_and_delete({'server_id': guild.id})
 
 
 

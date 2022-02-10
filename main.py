@@ -45,7 +45,8 @@ initial_extensions = (
             "stats",
             "help",
             "legend_feed",
-            "settings"
+            "settings",
+            "trophyChanges"
         )
 
 

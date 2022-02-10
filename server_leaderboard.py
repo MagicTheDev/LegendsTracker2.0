@@ -8,18 +8,19 @@ import io
 import random
 import math
 
-from discord_slash.utils.manage_components import create_button, create_actionrow
+from discord_slash.utils.manage_components import create_button, wait_for_component, create_select, create_select_option, create_actionrow
 from discord_slash.model import ButtonStyle
 
+SUPER_SCRIPTS=["⁰","¹","²","³","⁴","⁵","⁶", "⁷","⁸"]
 
 class Server_LB(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @cog_ext.cog_slash(name="leaderboard",
-                            description="Create a server leaderboard.")
-    async def leaderboard(self, ctx):
+    @cog_ext.cog_slash(name="leaderboard_pic",
+                            description="Server Legends leaderboard (picture)")
+    async def pic_leaderboard(self, ctx):
         await ctx.defer()
         current_page = 0
         file = await self.create_embed(ctx.guild, 0)
@@ -43,6 +44,110 @@ class Server_LB(commands.Cog):
         embed.set_image(url=pic)
         embed.set_thumbnail(url=ctx.guild.icon_url_as())
         await ctx.send(content="", embed=embed, components=[page_buttons])
+
+
+    @cog_ext.cog_slash(name="leaderboard", description="Server Legends leaderboard (text)")
+    async def leaderboard(self, ctx):
+        await ctx.defer()
+        results = await server_db.find_one({'server': ctx.guild.id})
+        tracked_members = results.get("tracked_members")
+        if len(tracked_members) == 0:
+            return None
+        ranking = []
+
+        for member in tracked_members:
+            person = await ongoing_stats.find_one({'tag': member})
+            league = person.get("league")
+            if league != "Legend League":
+                continue
+
+            thisPlayer = []
+            trophy = person.get("trophies")
+
+            name = person.get("name")
+            name = emoji.get_emoji_regexp().sub('', name)
+            name = f"{name}"
+            hits = person.get("today_hits")
+            hits = sum(hits)
+            numHit = person.get("num_today_hits")
+            defs = person.get("today_defenses")
+            numDef = len(defs)
+            defs = sum(defs)
+
+            started = trophy - (hits - defs)
+
+            thisPlayer.append(name)
+            thisPlayer.append(started)
+            thisPlayer.append(hits)
+            thisPlayer.append(numHit)
+            thisPlayer.append(defs)
+            thisPlayer.append(numDef)
+            thisPlayer.append(trophy)
+
+            ranking.append(thisPlayer)
+
+        ranking = sorted(ranking, key=lambda l: l[6], reverse=True)
+
+        text = ""
+        initial = f"__**{ctx.guild.name} Legends Leaderboard**__\n"
+        embeds = []
+        x = 0
+        for player in ranking:
+            name = player[0]
+            hits = player[2]
+            hits = player[2]
+            numHits = player[3]
+            if numHits >= 9:
+                numHits = 8
+            defs = player[4]
+            numDefs = player[5]
+            numHits = SUPER_SCRIPTS[numHits]
+            numDefs = SUPER_SCRIPTS[numDefs]
+            trophies = player[6]
+            text += f"\u200e**<:trophyy:849144172698402817>\u200e{trophies} | \u200e{name}**\n➼ <:sword_coc:940713893926428782> {hits}{numHits} <:clash:877681427129458739> {defs}{numDefs}\n"
+            x += 1
+            if x == 15:
+                embed = discord.Embed(title=f"**{ctx.guild} Legend Leaderboard**",
+                                      description=text)
+                embed.set_thumbnail(url=ctx.guild.icon_url_as())
+                x = 0
+                embeds.append(embed)
+                text = ""
+
+        if text != "":
+            embed = discord.Embed(title=f"**{ctx.guild} Legend Leaderboard**",
+                                  description=text)
+            embed.set_thumbnail(url=ctx.guild.icon_url_as())
+            embeds.append(embed)
+
+        current_page = 0
+        msg = await ctx.send(embed=embeds[0], components=self.create_components(current_page, embeds))
+
+        while True:
+            try:
+                res = await wait_for_component(self.bot, components=self.create_components(current_page, embeds),
+                                               messages=msg, timeout=600)
+            except:
+                await msg.edit(components=[])
+                break
+
+            if res.author_id != ctx.author.id:
+                await res.send(content="You must run the command to interact with components.", hidden=True)
+                continue
+
+            await res.edit_origin()
+
+            # print(res.custom_id)
+            if res.custom_id == "Previous":
+                current_page -= 1
+                await msg.edit(embed=embeds[current_page],
+                               components=self.create_components(current_page, embeds))
+
+            elif res.custom_id == "Next":
+                current_page += 1
+                await msg.edit(embed=embeds[current_page],
+                               components=self.create_components(current_page, embeds))
+
 
 
     @commands.Cog.listener()
@@ -84,7 +189,6 @@ class Server_LB(commands.Cog):
                 await ctx.edit_origin(content="",embed=embed, components=[page_buttons])
         except:
             pass
-
 
 
     async def create_embed(self, guild, page):
@@ -202,7 +306,21 @@ class Server_LB(commands.Cog):
                 file = discord.File(fp=temp, filename="filename.png")
                 return [file, max_pages]
 
+    def create_components(self, current_page, embeds):
+        length = len(embeds)
+        if length == 1:
+            return []
 
+        page_buttons = [create_button(label="", emoji="◀️", style=ButtonStyle.blue, disabled=(current_page == 0),
+                                      custom_id="Previous"),
+                        create_button(label=f"Page {current_page + 1}/{length}", style=ButtonStyle.grey,
+                                      disabled=True),
+                        create_button(label="", emoji="▶️", style=ButtonStyle.blue,
+                                      disabled=(current_page == length - 1), custom_id="Next")
+                        ]
+        page_buttons = create_actionrow(*page_buttons)
+
+        return [page_buttons]
 
 
 def setup(bot: commands.Bot):

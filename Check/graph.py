@@ -69,6 +69,87 @@ class graph(commands.Cog):
         plt.clf()
         plt.close("all")
         gc.collect()
+
+
+        one_stars = 0
+        two_stars = 0
+        three_stars = 0
+
+        zero_star_def = 0
+        one_stars_def = 0
+        two_stars_def = 0
+        three_stars_def = 0
+
+        hits = result.get("previous_hits")
+        defs = result.get("previous_defenses")
+
+        for day in hits:
+            for hit in day:
+                if hit >= 5 and hit <= 15:
+                    one_stars += 1
+                elif hit >= 16 and hit <= 32:
+                    two_stars += 1
+                elif hit >= 40:
+                    if hit % 40 == 0:
+                        three_stars += (hit // 40)
+
+        total = one_stars + two_stars + three_stars
+        try:
+            one_stars_avg = int(round((one_stars / total), 2) * 100)
+        except:
+            one_stars_avg = 0
+        try:
+            two_stars_avg = int(round((two_stars / total), 2) * 100)
+        except:
+            two_stars_avg = 0
+        try:
+            three_stars_avg = int(round((three_stars / total), 2) * 100)
+        except:
+            three_stars_avg = 0
+
+        for day in defs:
+            for hit in day:
+                if hit >= 0 and hit <= 4:
+                    zero_star_def += 1
+                if hit >= 5 and hit <= 15:
+                    one_stars_def += 1
+                elif hit >= 16 and hit <= 32:
+                    two_stars_def += 1
+                elif hit >= 40:
+                    if hit % 40 == 0:
+                        three_stars_def += (hit // 40)
+
+        total_def = zero_star_def + one_stars_def + two_stars_def + three_stars_def
+        try:
+            zero_stars_avg_def = int(round((zero_star_def / total_def), 2) * 100)
+        except:
+            zero_stars_avg_def = 0
+        try:
+            one_stars_avg_def = int(round((one_stars_def / total_def), 2) * 100)
+        except:
+            one_stars_avg_def = 0
+        try:
+            two_stars_avg_def = int(round((two_stars_def / total_def), 2) * 100)
+        except:
+            two_stars_avg_def = 0
+        try:
+            three_stars_avg_def = int(round((three_stars_def / total_def), 2) * 100)
+        except:
+            three_stars_avg_def = 0
+
+        embed.add_field(name="**Offensive Stats:**",
+                        value=f"- One Star: {one_stars_avg}%\n"
+                              f"- Two Star: {two_stars_avg}%\n"
+                              f"- Three Star: {three_stars_avg}%\n"
+                              f"- Total {total} attacks accurately tracked.")
+        embed.add_field(name="**Defensive Stats:**",
+                        value=f"- Zero Star: {zero_stars_avg_def}%\n"
+                              f"- One Star: {one_stars_avg_def}%\n"
+                              f"- Two Star: {two_stars_avg_def}%\n"
+                              f"- Three Star: {three_stars_avg_def}%\n"
+                              f"- Total {total_def} defenses accurately tracked."
+                        )
+
         return embed
 
 

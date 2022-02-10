@@ -3,7 +3,7 @@ from discord.ext import commands
 from discord_slash import cog_ext
 from discord_slash.utils.manage_commands import create_option
 
-from helper import addLegendsPlayer_GLOBAL, addLegendsPlayer_SERVER,getPlayer
+from helper import addLegendsPlayer_GLOBAL,getPlayer
 
 
 
@@ -51,12 +51,12 @@ class Check_Slash(commands.Cog):
                     clan_name = player.clan.name
                 await addLegendsPlayer_GLOBAL(player=player, clan_name=clan_name)
                 embed = discord.Embed(
-                    description=f"{player.name} now tracked. View stats with `/check search {player.tag}`.\n**Note:** Legends stats aren't given, so they have to be collected as they happen. Stats will appear from now & forward :)",
+                    description=f"{player.name} now tracked. View stats with `/check {player.tag}`.\n**Note:** Legends stats aren't given, so they have to be collected as they happen. Stats will appear from now & forward :)",
                     color=discord.Color.green())
                 return await msg.edit(content=None,embed=embed)
             else:
                 embed = discord.Embed(
-                    description="**No results found.** \nCommands:\n`/track #playerTag` to track an account.",
+                    description="**No results found.** \nCommands:\n`/track add #playerTag` to track an account.",
                     color=discord.Color.red())
                 return await msg.edit(content=None, embed=embed)
 

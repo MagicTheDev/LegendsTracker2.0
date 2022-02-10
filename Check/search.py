@@ -41,7 +41,7 @@ class search(commands.Cog):
             {"name": {"$regex": f"^(?i).*{query}.*$"}},
             {"league" : {"$eq" : "Legend League"}}
         ]})
-        for document in await results.to_list(length=50):
+        for document in await results.to_list(length=25):
             tags.append(document.get("tag"))
         return tags
 

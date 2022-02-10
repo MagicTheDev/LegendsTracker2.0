@@ -14,8 +14,10 @@ class bot_settings(commands.Cog):
         self.bot = bot
 
     @cog_ext.cog_slash(name='setfeed',
-                       description="Set channel for attack/defense feed.")
-    async def setfeed(self, ctx, *, extra):
+                       description="Set channel for attack/defense feed.",
+                       options=[create_option(name="channel", option_type=3, description="Choose channel for feed (\"None\" to remove.)", required=True)])
+    async def setfeed(self, ctx, channel=None):
+        extra = channel
         perms = ctx.author.guild_permissions.manage_guild
         if not perms:
             embed = discord.Embed(description="Command requires you to have `Manage Guild` permissions.",
@@ -25,7 +27,7 @@ class bot_settings(commands.Cog):
         results = await server_db.find_one({"server": ctx.guild.id})
 
         if results == None:
-            await server_db.insert_one({"server": ctx.guild.id, "tracked_members": [], "channel_id": None})
+            return
 
         ex = extra.lower()
         if ex == "none":
@@ -62,7 +64,7 @@ class bot_settings(commands.Cog):
 
         channel = extra.id
 
-        await server_db.update_one({"server_id": ctx.guild.id}, {'$set': {"channel_id": channel}})
+        await server_db.update_one({"server": ctx.guild.id}, {'$set': {"channel_id": channel}})
 
         embed = discord.Embed(
             description=f"{extra.mention} set as feed channel.\nEnsure I have permission to send messages there.\nView current feed channel with `/stats`.",
@@ -81,6 +83,7 @@ class bot_settings(commands.Cog):
                            )
                        ])
     async def tracked_list(self, ctx, list_type):
+        await ctx.defer()
         list = []
         results = await server_db.find_one({"server": ctx.guild.id})
         tags = results.get("tracked_members")
@@ -91,7 +94,8 @@ class bot_settings(commands.Cog):
         async for player in coc_client.get_players(tags):
             if list_type == "Clan list":
                 if player.clan != None:
-                    list.append(player.clan)
+                    if player.clan not in list:
+                        list.append(player.clan)
             else:
                 list.append(player)
 
@@ -99,7 +103,7 @@ class bot_settings(commands.Cog):
         x = 0
         embeds= []
         for l in list:
-            text += f"{l.name} | {l.tag}"
+            text += f"{l.name} | {l.tag}\n"
             x += 1
             if x == 25:
                 embed = discord.Embed(title=f"Tracked List ({len(list)} results)",description=f"{text}",
@@ -114,8 +118,7 @@ class bot_settings(commands.Cog):
             embeds.append(embed)
 
         current_page = 0
-        msg = await ctx.send(embed=embeds[0], components=self.create_components(current_page, embeds),
-                             mention_author=False)
+        msg = await ctx.send(embed=embeds[0], components=self.create_components(current_page, embeds))
 
         while True:
             try:
@@ -153,9 +156,7 @@ class bot_settings(commands.Cog):
                         create_button(label=f"Page {current_page + 1}/{length}", style=ButtonStyle.grey,
                                       disabled=True),
                         create_button(label="", emoji="▶️", style=ButtonStyle.blue,
-                                      disabled=(current_page == length - 1), custom_id="Next"),
-                        create_button(label="", emoji="🖨️", style=ButtonStyle.grey,
-                                      custom_id="Print")
+                                      disabled=(current_page == length - 1), custom_id="Next")
                         ]
         page_buttons = create_actionrow(*page_buttons)
 

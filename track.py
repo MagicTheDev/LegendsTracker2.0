@@ -85,7 +85,7 @@ class track(commands.Cog):
             return await ctx.send(embed=embed)
 
         await removeLegendsPlayer_SERVER(player=player, guild_id=ctx.guild.id)
-        embed = discord.Embed(description=f"[{player.name}] ({player.share_link}) removed from server legends tracking.",
+        embed = discord.Embed(description=f"[{player.name}]({player.share_link}) removed from **server** legends tracking.",
                               color=discord.Color.green())
         return await ctx.send(embed=embed)
 
@@ -186,7 +186,17 @@ class track(commands.Cog):
     async def check_server_tracked(self,player, server_id):
         results = await server_db.find_one({"server": server_id})
         tracked_members = results.get("tracked_members")
-        return (player.tag in tracked_members)
+
+        results = await ongoing_stats.find_one({"tag": player.tag})
+        if results != None:
+            servers = []
+            servers = results.get("servers")
+            if servers == None:
+                servers = []
+        else:
+            servers = []
+
+        return ((player.tag in tracked_members) or (server_id in servers))
 
 
     async def valid_player_check(self, ctx, player):
