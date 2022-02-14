@@ -11,7 +11,7 @@ import math
 from discord_slash.utils.manage_components import create_button, wait_for_component, create_select, create_select_option, create_actionrow
 from discord_slash.model import ButtonStyle
 
-SUPER_SCRIPTS=["⁰","¹","²","³","⁴","⁵","⁶", "⁷","⁸"]
+SUPER_SCRIPTS=["⁰","¹","²","³","⁴","⁵","⁶", "⁷","⁸", "⁹"]
 
 class Server_LB(commands.Cog):
 

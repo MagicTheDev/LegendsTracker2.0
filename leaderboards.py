@@ -1,4 +1,3 @@
-import gc
 
 from discord.ext import commands, tasks
 from helper import coc_client
@@ -28,7 +27,6 @@ locations = [32000007, 32000008, 32000009, 32000010, 32000011, 32000012, 3200001
              32000249, 32000250, 32000251, 32000252, 32000253, 32000254, 32000255, 32000256, 32000257, 32000258, 32000259, 32000260]
 
 rankings = []
-import tracemalloc
 
 class leaderboards(commands.Cog):
 
@@ -65,21 +63,8 @@ class leaderboards(commands.Cog):
                 rankings.append(country_name)
                 x += 1
 
-    @tasks.loop(seconds=30)
-    async def test(self):
-        tracemalloc.start()
 
-        # ... run your application ...
-
-        snapshot = tracemalloc.take_snapshot()
-        top_stats = snapshot.statistics('lineno')
-
-        print("[ Top 10 ]")
-        for stat in top_stats[:10]:
-            print(stat)
-
-
-    @test.before_loop
+    @feed_update.before_loop
     async def before_printer(self):
         print('waiting...')
         await self.bot.wait_until_ready()
