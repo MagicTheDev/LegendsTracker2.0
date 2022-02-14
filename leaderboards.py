@@ -41,27 +41,48 @@ class leaderboards(commands.Cog):
 
     @tasks.loop(seconds=120)
     async def feed_update(self):
-        rankings = []
         glob = await coc_client.get_location_players()
         x = 1
+        global rankings
+        rr = []
         for player in glob:
-            rankings.append(player.tag)
-            rankings.append("global")
-            rankings.append(x)
+            rr.append(player.tag)
+            rr.append("global")
+            rr.append(x)
+            rr.append("Global")
+            try:
+                rr.append(player.clan.tag)
+                rr.append(player.clan.name)
+            except:
+                rr.append("No Clan")
+                rr.append("No Clan")
+            rr.append(player.trophies)
+            rr.append(player.name)
             x += 1
 
         for location in locations:
             country = await coc_client.get_location_players(location_id=location)
             country_code = await coc_client.get_location(location_id=location)
             country_name = country_code.name
-            country_code= country_code.country_code            
+            # print(country_name)
+            country_code = country_code.country_code
             x = 1
             for player in country:
-                rankings.append(player.tag)
-                rankings.append(country_code)
-                rankings.append(x)
-                rankings.append(country_name)
+                rr.append(player.tag)
+                rr.append(country_code)
+                rr.append(x)
+                rr.append(country_name)
+                try:
+                    rr.append(player.clan.tag)
+                    rr.append(player.clan.name)
+                except:
+                    rr.append("No Clan")
+                    rr.append("No Clan")
+                rr.append(player.trophies)
+                rr.append(player.name)
                 x += 1
+        rankings = rr
+        print("lb rank done")
 
 
     @feed_update.before_loop
