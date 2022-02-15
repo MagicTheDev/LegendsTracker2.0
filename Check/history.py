@@ -62,11 +62,7 @@ class History(commands.Cog):
                 no_results = False
                 stats.append(str(result.get("rank")))
                 stats.append(str(result.get("trophies")))
-                clan = result.get("clan").get("name")
                 name = result.get("name")
-                rank = str(result.get("rank"))
-                trophies = str(result.get("trophies"))
-                print(f"Rank: {rank} Trophies: {trophies} Clan: {clan}")
                 if (name != player.name) and (name not in names):
                   names.append(name)
             else:
