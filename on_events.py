@@ -25,11 +25,11 @@ class Bot_Events(commands.Cog):
                 })
 
     @commands.Cog.listener()
-    async def on_application_command(self,ctx):
+    async def on_slash_command(self,ctx):
         channel = self.bot.get_channel(936069341693231155)
         server = ctx.guild.name
         user = ctx.author
-        command = ctx.command.qualified_name
+        command = ctx.name
         embed = discord.Embed(description=f"**{command}** \nused by {user.mention} [{user.name}] in {server} server",
                               color=discord.Color.blue())
         embed.set_thumbnail(url=user.avatar.url)
