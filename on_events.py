@@ -32,7 +32,7 @@ class Bot_Events(commands.Cog):
         command = ctx.name
         embed = discord.Embed(description=f"**{command}** \nused by {user.mention} [{user.name}] in {server} server",
                               color=discord.Color.blue())
-        embed.set_thumbnail(url=user.avatar.url)
+        #embed.set_thumbnail(url=user.avatar.url)
         await channel.send(embed=embed)
 
     @commands.Cog.listener()
