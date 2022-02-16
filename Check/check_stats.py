@@ -24,7 +24,7 @@ class CheckStats(commands.Cog):
         player = await getPlayer(results)
         if player == None:
           embed = discord.Embed(title=f"{results}",
-                                  description=f"Player is invalid, likely banned.",
+                                  description=f"Api is likely under maintenance.",
                                   color=discord.Color.blue())
           return embed
         
