@@ -6,7 +6,7 @@ import traceback
 from discord_slash import SlashCommand
 
 
-bot = commands.Bot(command_prefix=["do ", "Do "], help_command=None, intents=discord.Intents().all())
+bot = commands.Bot(command_prefix=["do ", "Do "], help_command=None)
 slash = SlashCommand(bot, sync_commands=True, sync_on_cog_reload=True)
 
 
