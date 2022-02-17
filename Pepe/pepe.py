@@ -11,7 +11,7 @@ class pepe(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @cog_ext.cog_slash(name="pepe", guild_ids=[328997757048324101, 923764211845312533],
+    @cog_ext.cog_slash(name="pepe",
                        description="Fun Command. Create a pepe holding a sign w/ text.",
                        options=[
                            create_option(
