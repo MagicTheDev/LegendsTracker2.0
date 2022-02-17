@@ -2,9 +2,9 @@
 from discord.ext import commands
 import discord
 from helper import getPlayer, ongoing_stats
-import time
+import random
 
-tips = ["New Command: \"do history {playertag}\"."]
+tips = ["Join support server - `/server` for help.", "Stats only show up from the moment tracked & forward.", "New website - legendstracker.info"]
 
 class CheckStats(commands.Cog):
 
@@ -119,6 +119,7 @@ class CheckStats(commands.Cog):
             defi = "No Defenses Yet."
         embed.add_field(name="**Offense**", value=off, inline=True)
         embed.add_field(name="**Defense**", value=defi, inline=True)
+        embed.set_footer(text=random.choice(tips))
 
         return embed
 
