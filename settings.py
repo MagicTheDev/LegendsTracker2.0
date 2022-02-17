@@ -58,7 +58,7 @@ class bot_settings(commands.Cog):
                 return await ctx.send(embed=embed)
         except:
             embed = discord.Embed(
-                description=f"Invalid channel or Missing Access to view channel.\n`do setfeed none` to remove feed.",
+                description=f"Invalid Channel or Missing Access to view channel.\n`do setfeed none` to remove feed.",
                 color=discord.Color.red())
             return await ctx.send(embed=embed)
 
