@@ -41,11 +41,6 @@ class legend_stats(commands.Cog):
         uptime = time.time() - self.up
         uptime = time.strftime("%H hours %M minutes %S seconds", time.gmtime(uptime))
 
-        msg = await ctx.send("<a:loading:862934416137781248> Loading data...")
-        bp = msg.created_at - ctx.message.created_at
-        bp = (bp / timedelta(milliseconds=1))
-        meping = bp
-
         me = self.bot.user.mention
 
         before = time.time()
@@ -60,8 +55,7 @@ class legend_stats(commands.Cog):
 
         embed = discord.Embed(title='LegendsTracker Stats',
                               description=f"<:bot:862911608140333086> Bot: {me}\n" +
-                                          f"<:discord:840749695466864650> Discord Api Ping: {round(self.bot.latency * 1000, 2)} ms\n" +
-                                          f"<a:ping:862916971711168562> Bot Ping: {round(meping, 2)} ms\n" +
+                                          f"<:discord:840749695466864650> Bot Ping: {round(self.bot.latency * 1000, 2)} ms\n" +
                                           f"<:clash:855491735488036904> COC Api Ping: {cocping} ms\n" +
                                           f"<:server:863148364006031422> In {str(inservers)} servers\n" +
                                           f"<a:num:863149480819949568> Watching {members} users\n" +
@@ -71,7 +65,7 @@ class legend_stats(commands.Cog):
                                           f"Feed Channel: {feed}",
                               color=discord.Color.blue())
 
-        await msg.edit(content="", embed=embed)
+        await ctx.send(embed=embed)
 
 
     @cog_ext.cog_subcommand(base="streaks",name="server",
