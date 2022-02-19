@@ -31,6 +31,12 @@ class bot_settings(commands.Cog):
         if results == None:
             return
 
+        typeC = str(channel.type)
+        if typeC != "text":
+            embed = discord.Embed(description=f"Must be a text channel, not {typeC} channel.",
+                                  color=discord.Color.red())
+            return await ctx.send(embed=embed)
+
         try:
             extra = await self.bot.fetch_channel(extra)
             c = extra
