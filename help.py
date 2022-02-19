@@ -143,8 +143,11 @@ class help(commands.Cog):
         embed3 = discord.Embed(title="Legends Tracker",
                                description="Settings Commands",
                                color=discord.Color.blue())
-        embed3.add_field(name=f"**/setfeed [channel]**",
-                         value="Manage Guild Required.\nSet the channel where for updating legends feed, */setfeed None* to remove.",
+        embed3.add_field(name=f"**/feed set [channel]**",
+                         value="Manage Guild Required.*\nSet the channel where for updating legends feed",
+                         inline=False)
+        embed3.add_field(name=f"**/feed remove**",
+                         value="Manage Guild Required.*\nRemove the channel for legends feed",
                          inline=False)
         embeds.append(embed3)
 
