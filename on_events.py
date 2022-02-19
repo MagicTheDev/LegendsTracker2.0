@@ -40,7 +40,7 @@ class Bot_Events(commands.Cog):
         try:
             channel = guild.text_channels[0]
             embed = discord.Embed(title="Hello " + guild.name + "!", description="Thanks for inviting me!\n"
-                                                                                 f"**Quick Setup:**To set up a attack/defense feed use `/setfeed #channel`\n"
+                                                                                 f"**Quick Setup:**To set up a attack/defense feed use `/feed set #channel`\n"
                                                                                  f"To start tracking a player & add them to your server use `/track add #playerTag`\n"
                                                                                  f"To start tracking a player & add them to your server use `/track remove #playerTag`\n"
                                        f"For other commands & help check out `/help`\n"
@@ -57,12 +57,13 @@ class Bot_Events(commands.Cog):
                 "channel_id" : None
             })
         channel = self.bot.get_channel(937519135607373874)
-        await channel.send(f"Just joined {guild.name}")
+        await channel.send(f"Just joined {guild.name}, {guild.member_count} members")
 
     @commands.Cog.listener()
     async def on_guild_remove(self,guild):
         await server_db.find_one_and_delete({'server_id': guild.id})
-
+        channel = self.bot.get_channel(937519135607373874)
+        await channel.send(f"Just left {guild.name}, {guild.member_count} members")
 
 
 

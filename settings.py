@@ -13,9 +13,9 @@ class bot_settings(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @cog_ext.cog_slash(name='setfeed',
+    @cog_ext.cog_subcommand(base='feed', name="set",
                        description="Set channel for attack/defense feed.",
-                       options=[create_option(name="channel", option_type=3, description="Choose channel for feed (\"None\" to remove.)", required=True)])
+                       options=[create_option(name="channel", option_type=7, description="Choose channel for feed.", required=True)])
     async def setfeed(self, ctx, channel=None):
         extra = channel
         perms = ctx.author.guild_permissions.manage_guild
@@ -60,7 +60,7 @@ class bot_settings(commands.Cog):
                 return await ctx.send(embed=embed)
         except:
             embed = discord.Embed(
-                description=f"Invalid Channel or Missing Access to view channel.\n`do setfeed none` to remove feed.",
+                description=f"Invalid Channel or Missing Access to view channel.\n`/feed remove` to remove feed.",
                 color=discord.Color.red())
             return await ctx.send(embed=embed)
 
@@ -72,6 +72,97 @@ class bot_settings(commands.Cog):
             description=f"{extra.mention} set as feed channel.\nEnsure I have permission to send messages there.\nView current feed channel with `/stats`.",
             color=discord.Color.green())
         return await ctx.send(embed=embed)
+
+    @cog_ext.cog_subcommand(base='feed', name="remove",
+                            description="Remove channel for attack/defense feed.")
+    async def feed_remove(self, ctx):
+        perms = ctx.author.guild_permissions.manage_guild
+        if ctx.author.id == 706149153431879760:
+            perms = True
+        if not perms:
+            embed = discord.Embed(description="Command requires you to have `Manage Guild` permissions.",
+                                  color=discord.Color.red())
+            return await ctx.send(embed=embed)
+
+        results = await server_db.find_one({"server": ctx.guild.id})
+
+        if results == None:
+            embed = discord.Embed(description=f"No feed channel to remove.",
+                              color=discord.Color.red())
+            return await ctx.send(embed=embed)
+
+
+        await server_db.update_one({"server": ctx.guild.id}, {'$set': {"channel_id": None}})
+        embed = discord.Embed(description=f"Feed channel removed.",
+                              color=discord.Color.green())
+        return await ctx.send(embed=embed)
+
+    @cog_ext.cog_subcommand(base='feed', name="remove",
+                            description="Set channel for attack/defense feed.",
+                            options=[
+                                create_option(name="channel", option_type=7, description="Choose channel for feed.",
+                                              required=True)])
+    async def setfeed(self, ctx, channel=None):
+        extra = channel
+        perms = ctx.author.guild_permissions.manage_guild
+        if ctx.author.id == 706149153431879760:
+            perms = True
+        if not perms:
+            embed = discord.Embed(description="Command requires you to have `Manage Guild` permissions.",
+                                  color=discord.Color.red())
+            return await ctx.send(embed=embed)
+
+        results = await server_db.find_one({"server": ctx.guild.id})
+
+        if results == None:
+            return
+
+        ex = extra.lower()
+        if ex == "none":
+            await server_db.update_one({"server": ctx.guild.id}, {'$set': {"channel_id": None}})
+            embed = discord.Embed(description=f"Feed channel removed.",
+                                  color=discord.Color.green())
+            return await ctx.send(embed=embed)
+
+        if (extra.startswith('<#') and extra.endswith('>')):
+            extra = extra[2:len(extra) - 1]
+        try:
+            extra = int(extra)
+        except:
+            pass
+
+        try:
+            extra = await self.bot.fetch_channel(extra)
+            c = extra
+            g = ctx.guild
+            r = await g.fetch_member(825324351016534036)
+            perms = c.permissions_for(r)
+            send_msg = perms.send_messages
+            external_emoji = perms.use_external_emojis
+            if send_msg == False or external_emoji == False:
+                embed = discord.Embed(
+                    description=f"Feed channel creation canceled. Missing Permissions in that channel.\nMust have `Send Messages` and `Use External Emojis` perms in the feed channel.\n `do setfeed none` to remove feed.",
+                    color=discord.Color.red())
+                return await ctx.send(embed=embed)
+        except:
+            embed = discord.Embed(
+                description=f"Invalid Channel or Missing Access to view channel.\n`/setfeed remove` to remove feed.",
+                color=discord.Color.red())
+            return await ctx.send(embed=embed)
+
+        channel = extra.id
+
+        await server_db.update_one({"server": ctx.guild.id}, {'$set': {"channel_id": channel}})
+
+        embed = discord.Embed(
+            description=f"{extra.mention} set as feed channel.\nEnsure I have permission to send messages there.\nView current feed channel with `/stats`.",
+            color=discord.Color.green())
+        return await ctx.send(embed=embed)
+
+
+
+
+
 
     @cog_ext.cog_slash(name='tracked_list',
                        description="List of clans or players tracked in server.",

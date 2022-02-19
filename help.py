@@ -73,7 +73,7 @@ class help(commands.Cog):
         embeds = []
 
         embed5 = discord.Embed(title="Legends Tracker",
-                               description=f"**Quick Setup:**To set up a attack/defense feed use `/setfeed #channel`\n"
+                               description=f"**Quick Setup:**To set up a attack/defense feed use `/feed set #channel`\n"
                                            f"To start tracking a player & add them to your server use `/track add #playerTag`\n"
                                            f"To start tracking a player & add them to your server use `/track remove #playerTag`\n"
                                            f"For other commands & help check out `/help`\n"
