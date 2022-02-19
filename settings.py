@@ -17,7 +17,7 @@ class bot_settings(commands.Cog):
                        description="Set channel for attack/defense feed.",
                        options=[create_option(name="channel", option_type=7, description="Choose channel for feed.", required=True)])
     async def setfeed(self, ctx, channel=None):
-        extra = channel
+        extra = channel.id
         perms = ctx.author.guild_permissions.manage_guild
         if ctx.author.id == 706149153431879760:
             perms = True
@@ -30,20 +30,6 @@ class bot_settings(commands.Cog):
 
         if results == None:
             return
-
-        ex = extra.lower()
-        if ex == "none":
-            await server_db.update_one({"server": ctx.guild.id}, {'$set': {"channel_id": None}})
-            embed = discord.Embed(description=f"Feed channel removed.",
-                                  color=discord.Color.green())
-            return await ctx.send(embed=embed)
-
-        if (extra.startswith('<#') and extra.endswith('>')):
-            extra = extra[2:len(extra) - 1]
-        try:
-            extra = int(extra)
-        except:
-            pass
 
         try:
             extra = await self.bot.fetch_channel(extra)
@@ -85,12 +71,6 @@ class bot_settings(commands.Cog):
             return await ctx.send(embed=embed)
 
         results = await server_db.find_one({"server": ctx.guild.id})
-
-        if results == None:
-            embed = discord.Embed(description=f"No feed channel to remove.",
-                              color=discord.Color.red())
-            return await ctx.send(embed=embed)
-
 
         await server_db.update_one({"server": ctx.guild.id}, {'$set': {"channel_id": None}})
         embed = discord.Embed(description=f"Feed channel removed.",
