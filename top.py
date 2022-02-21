@@ -109,6 +109,7 @@ class top(commands.Cog):
             if limit == 6000:
                 bounds = 1000
             for person in await tracked.to_list(length=lim):
+
                 thisPlayer = []
                 trophy = person.get("trophies")
 
@@ -135,6 +136,10 @@ class top(commands.Cog):
 
             for member in tracked_members:
                 person =  await ongoing_stats.find_one({'tag': member})
+                if person is None:
+                    await server_db.update_one({'server': ctx.guild.id},
+                                               {'$pull': {"tracked_members": member}})
+                    continue
                 league = person.get("league")
                 if league != "Legend League":
                     continue
