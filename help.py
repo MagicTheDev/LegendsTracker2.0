@@ -53,7 +53,7 @@ class help(commands.Cog):
                        description="Support server for bot.")
     async def serv(self, ctx):
         await ctx.send(
-            "discord.gg/Z96S8Gg2Uv")
+            "discord.gg/gChZm3XCrS")
 
     @cog_ext.cog_slash(name="help", description="Help command")
     async def help(self, ctx):
