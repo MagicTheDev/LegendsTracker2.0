@@ -37,23 +37,9 @@ class legends_feed(commands.Cog):
             if channel is not None:
                 try:
                     channel = await self.bot.fetch_channel(channel)
-                    # print(channel.name)
                     channels.append(server)
                     channels.append(channel)
-                except discord.NotFound:
-                    tracked = ongoing_stats.find({})
-                    limit = await ongoing_stats.count_documents(filter={})
-                    for document in await tracked.to_list(length=limit):
-                        servers = document.get("servers")
-                        if servers == None:
-                            continue
-                        if server in servers:
-                            tag = document.get("tag")
-                            print(tag)
-                            await ongoing_stats.update_one({'tag': f"{tag}"},
-                                                           {'$pull': {'servers': server}})
-                    await server_db.update_one({"channel_id": channel}, {'$set': {"channel_id": None}})
-                except discord.Forbidden:
+                except (discord.NotFound, discord.Forbidden):
                     tracked = ongoing_stats.find({})
                     limit = await ongoing_stats.count_documents(filter={})
                     for document in await tracked.to_list(length=limit):
@@ -94,9 +80,7 @@ class legends_feed(commands.Cog):
                 if servers == None:
                     continue
                 for server in servers:
-                    # print("here")
                     if server in channels:
-                        # print("here2")
                         index = channels.index(server)
                         channel = channels[index + 1]
                         color = None
@@ -117,10 +101,25 @@ class legends_feed(commands.Cog):
                                           custom_id=f"{tag}")]
                         page_buttons = create_actionrow(*page_buttons)
 
-                        # print("here")
-                        await channel.send(embed=embed, components=[page_buttons])
-                        # await asyncio.sleep(0.5)
 
+                        try:
+                            await channel.send(embed=embed, components=[page_buttons])
+                        except (discord.Forbidden):
+                            tracked = ongoing_stats.find({})
+                            limit = await ongoing_stats.count_documents(filter={})
+                            for document in await tracked.to_list(length=limit):
+                                servers = document.get("servers")
+                                if servers == None:
+                                    continue
+                                if server in servers:
+                                    tag = document.get("tag")
+                                    await ongoing_stats.update_one({'tag': f"{tag}"},
+                                                                   {'$pull': {'servers': server}})
+                            await server_db.update_one({"channel_id": channel.id}, {'$set': {"channel_id": None}})
+                        except Exception as e:
+                            print(e)
+                            channel = await self.bot.fetch_channel(923767060977303552)
+                            await channel.send(f"{e}")
 
                 await ongoing_stats.update_one({'tag': tag},
                                                {'$set': {'change': None}})
