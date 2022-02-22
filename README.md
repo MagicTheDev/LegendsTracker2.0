@@ -42,7 +42,7 @@
     <a href="https://github.com/MagicTheDev/LegendsTracker2.0"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://discord.gg/Z96S8Gg2Uv">View Demo</a>
+    <a href="https://discord.gg/gChZm3XCrS">View Demo</a>
     ·
     <a href="https://github.com/MagicTheDev/LegendsTracker2.0/issues">Report Bug</a>
     ·
@@ -96,7 +96,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Discord: [Demo & Support Server](https://discord.gg/Z96S8Gg2Uv)
+Discord: [Demo & Support Server](https://discord.gg/gChZm3XCrS)
 
 
 
