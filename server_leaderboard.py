@@ -18,33 +18,6 @@ class Server_LB(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @cog_ext.cog_slash(name="leaderboard_pic",
-                            description="Server Legends leaderboard (picture)")
-    async def pic_leaderboard(self, ctx):
-        await ctx.defer()
-        current_page = 0
-        file = await self.create_embed(ctx.guild, 0)
-        if file[0] is None:
-            embed = discord.Embed(description="No players tracked on this server.",
-                                  color=discord.Color.blue())
-            return await ctx.send(embed=embed)
-        page_buttons = [
-            create_button(label="Prev", emoji="◀️", style=ButtonStyle.blue, disabled=(current_page == 0),
-                          custom_id=f"back_{current_page}"),
-            create_button(label=f"", emoji="🔁", style=ButtonStyle.blue, custom_id=f"refresh_{current_page}"),
-            create_button(label="Next", emoji="▶️", style=ButtonStyle.blue,
-                          disabled=(current_page == (file[1] - 1)), custom_id=f"forward_{current_page}")]
-        page_buttons = create_actionrow(*page_buttons)
-        embed = discord.Embed(title=f"{ctx.guild.name} Legends Board",
-                              color=discord.Color.blue())
-
-        pic_channel = await self.bot.fetch_channel(884951195406458900)
-        msg = await pic_channel.send(file=file[0])
-        pic = msg.attachments[0].url
-        embed.set_image(url=pic)
-        embed.set_thumbnail(url=ctx.guild.icon_url_as())
-        await ctx.send(content="", embed=embed, components=[page_buttons])
-
 
     @cog_ext.cog_slash(name="leaderboard", description="Server Legends leaderboard (text)")
     async def leaderboard(self, ctx):
