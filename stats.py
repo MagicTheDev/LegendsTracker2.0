@@ -15,6 +15,7 @@ class legend_stats(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.up = time.time()
+        #test comment
         self.key = "statcord.com-rsmhOZRkiyBTI2C7z4i6"
         self.api = statcord.Client(self.bot, self.key, custom1=self.custom1)
         self.api.start_loop()
