@@ -14,8 +14,8 @@ class legend_stats(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.up = time.time()
-        self.statcord_client = StatcordClient(bot, "statcord.com-rsmhOZRkiyBTI2C7z4i6", self.members_served,
-                                              self.guilds_served)
+        self.statcord_client = StatcordClient(bot, "statcord.com-rsmhOZRkiyBTI2C7z4i6", self.members_served)
+
     def cog_unload(self):
         self.statcord_client.close()
 
@@ -23,11 +23,6 @@ class legend_stats(commands.Cog):
         members = await ongoing_stats.count_documents(filter={})
         return members
 
-    async def guilds_served(self):
-        members = 0
-        for guild in self.bot.guilds:
-            members += guild.member_count - 1
-        return members
 
     @cog_ext.cog_slash(name="stats",
                        description="View bot stats.")
@@ -69,7 +64,8 @@ class legend_stats(commands.Cog):
             members += guild.member_count - 1
 
         embed = discord.Embed(title='LegendsTracker Stats',
-                              description=f"<:bot:862911608140333086> Bot: {me}\n" +
+                              description=f"[Statcord Link](https://statcord.com/bot/825324351016534036)\n"
+                                          f"<:bot:862911608140333086> Bot: {me}\n" +
                                           f"<:discord:840749695466864650> Bot Ping: {round(self.bot.latency * 1000, 2)} ms\n" +
                                           f"<:clash:855491735488036904> COC Api Ping: {cocping} ms\n" +
                                           f"<:server:863148364006031422> In {str(inservers)} servers\n" +
