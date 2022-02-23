@@ -5,21 +5,24 @@ import emoji
 import time
 from datetime import timedelta
 from discord_slash import cog_ext
-from statcord import StatcordClient
+import statcord
+
 
 
 
 class legend_stats(commands.Cog):
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot):
         self.bot = bot
-        self.up = time.time()
-        self.statcord_client = StatcordClient(bot, "statcord.com-rsmhOZRkiyBTI2C7z4i6", self.members_served)
+        self.key = "statcord.com-ADDYOURKEYHERE"
+        self.api = statcord.Client(self.bot, self.key, custom1=self.custom1)
+        self.api.start_loop()
 
-    def cog_unload(self):
-        self.statcord_client.close()
+    @commands.Cog.listener()
+    async def on_slash_command(self, ctx):
+        self.api.command_run(ctx)
 
-    async def members_served(self):
+    async def custom1(self):
         members = await ongoing_stats.count_documents(filter={})
         return members
 
