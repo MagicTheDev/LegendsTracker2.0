@@ -209,7 +209,7 @@ class legend_stats(commands.Cog):
                 spot = int(spot)
                 results[spot]+=1
             else:
-                results[10].append(1)
+                results[10]+=1
 
         text = ""
         for x in range(0, 11):
