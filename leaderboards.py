@@ -82,7 +82,7 @@ class leaderboards(commands.Cog):
                 rr.append(player.name)
                 x += 1
         rankings = rr
-        print("lb rank done")
+        #print("lb rank done")
 
 
     @feed_update.before_loop
