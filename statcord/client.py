@@ -58,7 +58,7 @@ class Client:
         else:
             self.bandwidth = True
 
-        self.debug: Optional[bool] = None
+        self.debug: Optional[bool] = True
         if kwargs.get("debug"):
             if isinstance(kwargs["debug"], bool):
                 self.debug = kwargs["debug"]
@@ -201,7 +201,7 @@ class Client:
         """
         await self.bot.wait_until_ready()
         if self.debug:
-            print("Statcord Auto Post has started!")
+            self.logger.debug("Statcord Auto Post has started!")
         while not self.bot.is_closed():
             self.logger.debug("Posting stats...")
             try:
