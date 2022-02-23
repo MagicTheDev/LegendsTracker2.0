@@ -201,7 +201,7 @@ class Client:
         """
         await self.bot.wait_until_ready()
         if self.debug:
-            self.logger.debug("Statcord Auto Post has started!")
+            print("Statcord Auto Post has started!")
         while not self.bot.is_closed():
             self.logger.debug("Posting stats...")
             try:
