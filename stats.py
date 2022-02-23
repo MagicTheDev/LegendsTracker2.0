@@ -5,6 +5,7 @@ import emoji
 import time
 from datetime import timedelta
 from discord_slash import cog_ext
+from statcord import StatcordClient
 
 
 
@@ -13,6 +14,20 @@ class legend_stats(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.up = time.time()
+        self.statcord_client = StatcordClient(bot, "statcord.com-rsmhOZRkiyBTI2C7z4i6", self.members_served,
+                                              self.guilds_served)
+    def cog_unload(self):
+        self.statcord_client.close()
+
+    async def members_served(self):
+        members = await ongoing_stats.count_documents(filter={})
+        return members
+
+    async def guilds_served(self):
+        members = 0
+        for guild in self.bot.guilds:
+            members += guild.member_count - 1
+        return members
 
     @cog_ext.cog_slash(name="stats",
                        description="View bot stats.")
