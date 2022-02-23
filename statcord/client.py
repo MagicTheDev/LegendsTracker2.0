@@ -27,7 +27,7 @@ class Client:
 
         self.bot: DiscordClient = bot
         self.key: str = token
-        self.base: str = "https://api.statcord.com/v3/"
+        self.base: str = "https://beta.statcord.com/"
         self.session: aiohttp.ClientSession = aiohttp.ClientSession(loop=bot.loop)
 
         self.mem: Optional[bool] = None
