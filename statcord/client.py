@@ -7,7 +7,6 @@ import logging
 
 from discord import Client as DiscordClient
 from typing import Any, Optional, Coroutine, Union, List, Dict, Iterable
-from discord.ext.commands import Context
 
 # this could be relative, but apparently Python doesn't like it
 from statcord import exceptions
@@ -180,6 +179,7 @@ class Client:
             await self.__handle_response(resp)
 
     def start_loop(self) -> None:
+        print("here")
         self.bot.loop.create_task(self.__loop())
 
     def command_run(self, ctx: discord_slash.SlashContext) -> None:
@@ -200,6 +200,7 @@ class Client:
         The internal loop used for automatically posting server/guild count stats
         """
         await self.bot.wait_until_ready()
+        print("there")
         if self.debug:
             self.logger.debug("Statcord Auto Post has started!")
         while not self.bot.is_closed():
