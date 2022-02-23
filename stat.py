@@ -20,6 +20,5 @@ class MyStatcordCog(commands.Cog):
             members += guild.member_count - 1
         return members
 
-
-def setup(bot):
+def setup(bot: commands.Bot):
     bot.add_cog(MyStatcordCog(bot))
