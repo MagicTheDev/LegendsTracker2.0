@@ -63,11 +63,12 @@ class legend_stats(commands.Cog):
 
         mem = psutil.virtual_memory()
         mem_used = str(mem.used)
+        mem_used = int(mem_used / 1000000)
         mem_load = str(mem.percent)
         cpu_load = str(psutil.cpu_percent())
 
         current_bandwidth = psutil.net_io_counters().bytes_sent + psutil.net_io_counters().bytes_recv
-        current_bandwidth = int(current_bandwidth /1000000)
+        current_bandwidth = round(current_bandwidth /1000000, 2)
 
 
         embed = discord.Embed(title='LegendsTracker Stats',
