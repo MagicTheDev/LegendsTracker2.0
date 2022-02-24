@@ -21,10 +21,11 @@ class country_leaderboard(commands.Cog):
                                name="country",
                                description="Search by name or country code.",
                                option_type=3,
-                               required=False,
+                               required=True,
                            ) ]
                        )
     async def country_lb(self, ctx, country):
+        await ctx.defer()
         search = country.upper()
         results = await locations.find_one({"country_code" : search})
 
@@ -54,6 +55,8 @@ class country_leaderboard(commands.Cog):
             for document in await results.to_list(length=5):
                 name = document.get("country_name")
                 location_id = document.get("location_id")
+                print(name)
+                print(location_id)
                 match = fuzz.partial_ratio(search, name.lower())
                 if name.lower() == country.lower():
                     embeds = await self.create_lb(location_id)
@@ -136,6 +139,7 @@ class country_leaderboard(commands.Cog):
             country = await coc_client.get_location_players()
             country_name = "Global"
         else:
+            location_id = int(location_id)
             country = await coc_client.get_location_players(location_id=location_id)
             country_name = await coc_client.get_location(location_id)
 
@@ -168,20 +172,20 @@ class country_leaderboard(commands.Cog):
             text += f"`{rank}`\u200e**<:trophyy:849144172698402817>\u200e{member.trophies} | \u200e{name}**\n➼ {hit_text}\n"
             y += 1
             if y == 15:
-                embed = discord.Embed(title=f"**{country_name.name} Legend Leaderboard**",
+                embed = discord.Embed(title=f"**{country_name} Legend Leaderboard**",
                                       description=text)
                 y = 0
                 embeds.append(embed)
                 text = ""
 
         if text != "":
-            embed = discord.Embed(title=f"**{country_name.name} Legend Leaderboard**",
+            embed = discord.Embed(title=f"**{country_name} Legend Leaderboard**",
                                   description=text)
             embeds.append(embed)
 
         if text == "" and embeds == []:
             text = "No Players"
-            embed = discord.Embed(title=f"**{country_name.name} Legend Leaderboard**",
+            embed = discord.Embed(title=f"**{country_name} Legend Leaderboard**",
                                   description=text)
             embeds.append(embed)
 
