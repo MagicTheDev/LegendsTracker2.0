@@ -57,8 +57,6 @@ class country_leaderboard(commands.Cog):
             for document in await results.to_list(length=5):
                 name = document.get("country_name")
                 location_id = document.get("location_id")
-                print(name)
-                print(location_id)
                 match = fuzz.partial_ratio(search, name.lower())
                 if name.lower() == country.lower():
                     embeds = await self.create_lb(location_id)
@@ -138,7 +136,7 @@ class country_leaderboard(commands.Cog):
     async def create_lb(self, location_id):
 
         if location_id == "global":
-            country = await coc_client.get_location_players()
+            country = await coc_client.get_location_players("global")
             country_name = "Global"
         else:
             location_id = int(location_id)
