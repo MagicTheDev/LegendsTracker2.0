@@ -16,26 +16,26 @@ class top(commands.Cog):
                             description="Top player stats - (hits, def, net).",
                             options=[
                                 create_option(
-                                    name="stat_type",
-                                    description="Filter type",
+                                    name="previous",
+                                    description="Previous Top Stats",
                                     option_type=3,
-                                    required=True,
-                                    choices=["Hits", "Defenses", "Net Gain"]
-                                ),
-                                create_option(
-                                    name="scope_type",
-                                    description="Scope of stats",
-                                    option_type=3,
-                                    required=True,
-                                    choices=["Server", "All"]
+                                    required=False,
+                                    choices=["Yesterday", "2 Days Ago", "3 Days Ago"]
                                 )
                             ]
                             )
-    async def top_server(self,ctx, stat_type, scope_type):
-        if scope_type == "All":
-            scope_type = "global"
-        else:
-            scope_type = "local"
+    async def top_server(self,ctx, stat_type, previous=None):
+        scope_type = "global"
+        stat_type = "Hits"
+        limit = 5000
+        bound = 3000
+        if previous == "Yesterday":
+            previous = -1
+        elif previous == "2 Days Ago":
+            previous = -2
+        elif previous == "3 Days Ago":
+            previous = -3
+
         option_list = ["All", "5000", "5100", "5200", "5300", "5400", "5500", "5600", "5700", "5800", "5900", "6000"]
         select1 = create_select(
             options=[
@@ -64,14 +64,40 @@ class top(commands.Cog):
                 create_select_option("6000+", value=f"6000",
                                      description="Based on start of day trophies.")
             ],
-            placeholder="Choose your option",
+            placeholder="Choose trophy range",
             min_values=1,  # the minimum number of options a user must select
             max_values=1  # the maximum number of options a user can select
         )
-        selects = create_actionrow(select1)
-        selects = [selects]
+        select1 = create_actionrow(select1)
 
-        embed = await self.createBest(5000, 3000, stat_type, scope_type, ctx)
+        select2 = create_select(
+            options=[  # the options in your dropdown
+                create_select_option("All", value="global"),
+                create_select_option("Server", value="local"),
+            ],
+            placeholder="Choose scope type",  # the placeholder text to show when no options have been chosen
+            min_values=1,  # the minimum number of options a user must select
+            max_values=1,  # the maximum number of options a user can select
+        )
+        select2 = create_actionrow(select2)
+
+        select3 = create_select(
+            options=[  # the options in your dropdown
+                create_select_option("Hits", emoji="➕", value="Hits"),
+                create_select_option("Defenses", emoji= "➖",value="Defenses"),
+                create_select_option("Net Gain", emoji="📈",value="Net Gain")
+            ],
+            placeholder="Choose stat type",  # the placeholder text to show when no options have been chosen
+            min_values=1,  # the minimum number of options a user must select
+            max_values=1,  # the maximum number of options a user can select
+        )
+        select3 = create_actionrow(select3)
+        selects = [select1, select2, select3]
+
+        scope_options = ["global", "local"]
+        stat_options = ["Hits", "Defenses", "Net Gain"]
+
+        embed = await self.createBest(5000, 3000, stat_type, scope_type, ctx, previous=previous)
 
         msg = await ctx.send(embed=embed, components=selects)
 
@@ -90,15 +116,29 @@ class top(commands.Cog):
             await res.edit_origin()
             value = res.values[0]
 
-            if value == "All":
-                embed = await self.createBest(5000, 3000, stat_type, scope_type, ctx)
-            else:
-                embed = await self.createBest(int(value), 100, stat_type, scope_type, ctx)
+            if value in option_list:
+                if value == "All":
+                    limit = 5000
+                    bound = 3000
+                    embed = await self.createBest(limit, bound, stat_type, scope_type, ctx, previous=previous)
+                else:
+                    limit = int(value)
+                    bound = 100
+                    embed = await self.createBest(limit, bound, stat_type, scope_type, ctx, previous=previous)
+            elif value in scope_options:
+                scope_type = value
+                embed = await self.createBest(limit, bound, stat_type, scope_type, ctx, previous=previous)
+            elif value in stat_options:
+                stat_type = value
+                embed = await self.createBest(limit, bound, stat_type, scope_type, ctx, previous=previous)
 
             await msg.edit(embed=embed,
                            components=selects)
 
-    async def createBest(self, limit, bounds, stat_type, scope, ctx):
+
+
+
+    async def createBest(self, limit, bounds, stat_type, scope, ctx, previous=None):
         ranking = []
 
 
@@ -111,16 +151,36 @@ class top(commands.Cog):
             for person in await tracked.to_list(length=lim):
 
                 thisPlayer = []
-                trophy = person.get("trophies")
+                if previous == None:
+                    trophy = person.get("trophies")
+                    name = person.get("name")
+                    hits = person.get("today_hits")
+                    hits = sum(hits)
+                    defs = person.get("today_defenses")
+                    numDef = len(defs)
+                    defs = sum(defs)
+                    trophy = trophy - (hits - defs)
+                else:
+                    trophy = person.get("trophies")
+                    name = person.get("name")
+                    hits = None
+                    defs = None
+                    numDef = 8
+                    prev_hits = person.get("previous_hits")
+                    prev_def = person.get("previous_defenses")
 
-                name = person.get("name")
-                hits = person.get("today_hits")
-                hits = sum(hits)
-                defs = person.get("today_defenses")
-                numDef = len(defs)
-                defs = sum(defs)
+                    needed_length = previous * -1
+                    if needed_length < 3:
+                        continue
+                    for i in range(-1, previous-1, -1):
+                        hits = sum(prev_hits[i])
+                        defs = sum(prev_def[i])
+                        net = hits - defs
+                        trophy = trophy - net
 
-                trophy = trophy - (hits - defs)
+
+
+
 
                 if trophy >= limit and trophy < limit + bounds:
                     thisPlayer.append(name)
@@ -145,16 +205,32 @@ class top(commands.Cog):
                     continue
 
                 thisPlayer = []
-                trophy = person.get("trophies")
+                if previous == None:
+                    trophy = person.get("trophies")
+                    name = person.get("name")
+                    hits = person.get("today_hits")
+                    hits = sum(hits)
+                    defs = person.get("today_defenses")
+                    numDef = len(defs)
+                    defs = sum(defs)
+                    trophy = trophy - (hits - defs)
+                else:
+                    trophy = person.get("trophies")
+                    name = person.get("name")
+                    hits = None
+                    defs = None
+                    numDef = 8
+                    prev_hits = person.get("previous_hits")
+                    prev_def = person.get("previous_defenses")
 
-                name = person.get("name")
-                hits = person.get("today_hits")
-                hits = sum(hits)
-                defs = person.get("today_defenses")
-                numDef = len(defs)
-                defs = sum(defs)
-
-                trophy = trophy - (hits - defs)
+                    needed_length = previous * -1
+                    if needed_length < 3:
+                        continue
+                    for i in range(-1, previous - 1, -1):
+                        hits = sum(prev_hits[i])
+                        defs = sum(prev_def[i])
+                        net = hits - defs
+                        trophy = trophy - net
 
                 if trophy >= limit and trophy < limit + bounds:
                     thisPlayer.append(name)

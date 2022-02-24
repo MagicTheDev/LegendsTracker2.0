@@ -6,6 +6,7 @@ import time
 from discord_slash import cog_ext
 import statcord
 import psutil
+from discord_slash.utils.manage_components import create_select, create_select_option, create_actionrow, wait_for_component
 
 class legend_stats(commands.Cog):
 
@@ -93,8 +94,46 @@ class legend_stats(commands.Cog):
         await ctx.send(embed=embed)
 
 
-    @cog_ext.cog_subcommand(base="streaks",name="server",
-                       description="View the top 3 star streaks in your server.")
+    @cog_ext.cog_slash(name="streaks",
+                       description="View the top 3 star streak statistics.")
+    async def streaks(self, ctx):
+        fire = "<a:fireflame:946369467561172993>"
+        fire = ''.join(filter(str.isdigit, fire))
+        fire = self.bot.get_emoji(int(fire))
+        fire = discord.PartialEmoji(name=fire.name, id=fire.id, animated=True)
+
+        select = create_select(
+            options=[  # the options in your dropdown
+                create_select_option("All Triple Streaks",emoji=fire, value="1"),
+                create_select_option("Server Triple Streaks",emoji=fire, value="2"),
+                create_select_option("Triple Streak Leaderboard",emoji=fire, value="3"),
+            ],
+            placeholder="Choose your option",  # the placeholder text to show when no options have been chosen
+            min_values=1,  # the minimum number of options a user must select
+            max_values=1,  # the maximum number of options a user can select
+        )
+
+        embed1 = await self.streaks_global(ctx)
+        embed2 = await self.streaks_local(ctx)
+        embed3 = await self.streaks_lb(ctx)
+
+        embeds = [embed1, embed2, embed3]
+
+        dropdown = create_actionrow(select)
+
+        msg = await ctx.send(embed=embed1, components=[dropdown])
+
+        while True:
+            try:
+                res = await wait_for_component(self.bot, components=select, messages=msg, timeout=600)
+            except:
+                await msg.edit(components=None)
+                break
+
+            await res.edit_origin()
+            await msg.edit(embed=embeds[int(res.selected_options[0]) - 1])
+
+
     async def streaks_local(self, ctx):
         results = await server_db.find_one({"server": ctx.guild.id})
         tracked_members = results.get("tracked_members")
@@ -131,11 +170,9 @@ class legend_stats(commands.Cog):
 
         board = discord.Embed(title="🔥 Top 25 Server 3 Star Streaks 🔥 \n", description=text,
                               color=discord.Color.blue())
-        await ctx.send(embed=board)
+        return board
 
 
-    @cog_ext.cog_subcommand(base="streaks", name="global",
-                            description="View the top 3 star streaks among all tracked players.")
     async def streaks_global(self, ctx):
         tracked = ongoing_stats.find({"row_triple": {"$gte": 2}})
         limit = await ongoing_stats.count_documents(filter={"row_triple": {"$gte": 2}})
@@ -170,8 +207,43 @@ class legend_stats(commands.Cog):
         board = discord.Embed(title="🔥 Top 25 Ongoing 3 Star Streaks 🔥 \n",
                               description=text,
                               color=discord.Color.blue())
-        await ctx.send(embed=board)
+        return board
 
+    async def streaks_lb(self, ctx):
+        tracked = ongoing_stats.find({"highest_streak": {"$gte": 2}})
+        limit = await ongoing_stats.count_documents(filter={"highest_streak": {"$gte": 2}})
+        results = []
+        for player in await tracked.to_list(length=limit):
+            thisPlayer = []
+            numberOfTriples = player.get("highest_streak")
+            name = player.get("name")
+            if numberOfTriples >= 2:
+                thisPlayer.append(name)
+                thisPlayer.append(numberOfTriples)
+                results.append(thisPlayer)
+
+        ranking = sorted(results, key=lambda l: l[1], reverse=True)
+
+        ranking = ranking[0:25]
+        text = ""
+        x = 1
+
+        for person in ranking:
+            name = person[0]
+            name = emoji.get_emoji_regexp().sub(' ', name)
+            name = f"{x}. {name}"
+            name = name.ljust(15)
+            streak = person[1]
+            text += f"`{name}` | **{streak} perfect** streak\n"
+            x += 1
+
+        if text == "":
+            text = "No Streaks in Progress."
+
+        board = discord.Embed(title="🔥 Top 25 **All Time** 3 Star Streaks 🔥 \n",
+                              description=text,
+                              color=discord.Color.blue())
+        return board
 
     @cog_ext.cog_slash(name="popular",
                        description="View popular tracked players.")

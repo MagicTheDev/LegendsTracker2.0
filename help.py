@@ -13,7 +13,7 @@ class help(commands.Cog):
     @commands.command(name="check")
     async def check(self, ctx):
         await ctx.send("All commands have been moved to slash commands. Start with a `/` in the chat to view them.\n"
-                       "Slash commands not showing up? Reinvite me.\nNeed Help? Join the support server - discord.gg/Z96S8Gg2Uv\nhttps://discord.com/api/oauth2/authorize?client_id=825324351016534036&permissions=2147747840&scope=bot%20applications.commands")
+                       "Slash commands not showing up? Reinvite me.\nNeed Help? Join the support server - discord.gg/gChZm3XCrS\nhttps://discord.com/api/oauth2/authorize?client_id=825324351016534036&permissions=2147747840&scope=bot%20applications.commands")
 
     @commands.command(name='leave')
     @commands.is_owner()
@@ -107,7 +107,7 @@ class help(commands.Cog):
                         value="Manage Guild Required. Use this command to remove a clan's accounts to your server.",
                         inline=False)
 
-        embed.add_field(name="**/tracked_list**",
+        embed.add_field(name="**/tracked_list [clans or players]**",
                         value="List of clans or players linked in your feed.",
                         inline=False)
 
@@ -120,8 +120,8 @@ class help(commands.Cog):
         embed2.add_field(name=f"**/top**",
                          value="Use this command to get top hitters & defenders tracked.",
                          inline=False)
-        embed2.add_field(name=f"**/streak global & /streak server**",
-                         value="Use this command to get current 3 star streaks.",
+        embed2.add_field(name=f"**/streak**",
+                         value="Use this command to get current 3 star streak stats.",
                          inline=False)
         embed2.add_field(name=f"**/stats**",
                          value="Bot statistics (Uptime, accounts tracked, etc)",
@@ -162,7 +162,7 @@ class help(commands.Cog):
                          value="Link a player to your discord account.",
                          inline=False)
 
-        embed4.add_field(name=f"**/pepe text**",
+        embed4.add_field(name=f"**/pepe [text]**",
                          value="Use this command to create a pepe holding a sign with the text.",
                          inline=False)
 

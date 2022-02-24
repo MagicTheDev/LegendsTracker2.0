@@ -71,13 +71,19 @@ async def createTimeStats(player):
   ongoingNet = player.get("ongoingNet")
 
   calcOff = []
+  x = 0
   for off in ongoingOffense:
-    calcOff.append(sum(off))
+    if off != []:
+      x+=1
+      calcOff.append(sum(off))
   ongoingOffense = calcOff
 
   calcDef = []
+  y = 0
   for defe in ongoingDefense:
-    calcDef.append(sum(defe))
+    if defe != []:
+      y+=1
+      calcDef.append(sum(defe))
   ongoingDefense = calcDef
 
   if len(ongoingOffense) == 0:
@@ -86,14 +92,14 @@ async def createTimeStats(player):
            f"**Average Net Gain:** No stats collected yet.\n"
     return text
 
-  averageOffense = round(sum(ongoingOffense) / len(ongoingOffense))
-  averageDefense = round(sum(ongoingDefense) / len(ongoingDefense))
+  averageOffense = round(sum(ongoingOffense) / x)
+  averageDefense = round(sum(ongoingDefense) / y)
   averageNet = averageOffense - averageDefense
 
   text = f"**Average Offense:** {averageOffense} cups a day.\n" \
          f"**Average Defense:** {averageDefense} cups a day.\n" \
          f"**Average Net Gain:** {averageNet} cups a day.\n" \
-         f"*Stats collected from {len(ongoingOffense)} days of data.*"
+         f"*Stats collected from {x} days of data.*"
   return text
 
 
