@@ -136,7 +136,7 @@ class country_leaderboard(commands.Cog):
     async def create_lb(self, location_id):
 
         if location_id == "global":
-            country = await coc_client.get_location_players("global")
+            country = await coc_client.get_location_players(location_id="global")
             country_name = "Global"
         else:
             location_id = int(location_id)
