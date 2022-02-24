@@ -44,6 +44,7 @@ class country_leaderboard(commands.Cog):
             },
             {
                 "country_name": True,
+                "location_id" : True,
                 "score": {
                     "$meta": "textScore"
                 }
