@@ -136,7 +136,10 @@ class help(commands.Cog):
                          value="Rankings & Trophies for end of previous seasons.",
                          inline=False)
         embed2.add_field(name=f"**/leaderboard**",
-                         value="Display server leaderboard picture.",
+                         value="Display server leaderboard of tracked players.",
+                         inline=False)
+        embed2.add_field(name=f"**/country_leaderboards**",
+                         value="Top 200 Leaderboard of a country.",
                          inline=False)
         embeds.append(embed2)
 
