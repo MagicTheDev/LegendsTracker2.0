@@ -24,7 +24,7 @@ class top(commands.Cog):
                                 )
                             ]
                             )
-    async def top_server(self,ctx, stat_type, previous=None):
+    async def top_server(self,ctx, previous=None):
         scope_type = "global"
         stat_type = "Hits"
         limit = 5000
