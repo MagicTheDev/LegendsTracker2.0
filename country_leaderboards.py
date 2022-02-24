@@ -20,7 +20,7 @@ class country_leaderboard(commands.Cog):
                        options=[
                            create_option(
                                name="country",
-                               description="Search by name or country code.",
+                               description="Search by name or country code (\"global\" for global lb).",
                                option_type=3,
                                required=True,
                            ) ]
