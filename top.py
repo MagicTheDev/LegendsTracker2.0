@@ -177,8 +177,6 @@ class top(commands.Cog):
                         net = hits - defs
                         trophy = trophy - net
 
-                    print(trophy)
-
 
                 if trophy >= limit and trophy < limit + bounds:
                     thisPlayer.append(name)
@@ -186,7 +184,6 @@ class top(commands.Cog):
                     thisPlayer.append(defs)
                     thisPlayer.append(numDef)
                     thisPlayer.append(hits - defs)
-                    print(thisPlayer)
                     ranking.append(thisPlayer)
         else:
             results = await server_db.find_one({'server': ctx.guild.id})
@@ -221,7 +218,7 @@ class top(commands.Cog):
                     prev_hits = person.get("previous_hits")
                     prev_def = person.get("previous_defenses")
 
-                    needed_length = previous * -1
+                    needed_length = len(prev_hits)
                     if needed_length < 3:
                         continue
                     for i in range(-1, previous - 1, -1):
