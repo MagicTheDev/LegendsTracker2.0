@@ -30,6 +30,7 @@ class country_leaderboard(commands.Cog):
         search = country.upper()
         results = await locations.find_one({"country_code" : search})
 
+        msg = None
         embeds = []
         if country.lower() == "global":
             embeds = await self.create_lb("global")
@@ -65,7 +66,7 @@ class country_leaderboard(commands.Cog):
                     names+= f"{name} - {match}% Match\n"
                     option_list.append(create_select_option(f"{name}", value=f"{location_id}"))
 
-            msg = None
+
             if embeds == []:
                 select = create_select(
                     options=option_list,
@@ -98,36 +99,36 @@ class country_leaderboard(commands.Cog):
                 location_id = int(value)
                 embeds = await self.create_lb(location_id)
 
-            current_page = 0
-            if msg is None:
-                msg = await ctx.send(embed=embeds[0], components=self.create_components(current_page, embeds))
-            else:
-                await msg.edit(embed=embeds[0], components=self.create_components(current_page, embeds))
+        current_page = 0
+        if msg is None:
+            msg = await ctx.send(embed=embeds[0], components=self.create_components(current_page, embeds))
+        else:
+            await msg.edit(embed=embeds[0], components=self.create_components(current_page, embeds))
 
-            while True:
-                try:
-                    res = await wait_for_component(self.bot, components=self.create_components(current_page, embeds),
-                                                   messages=msg, timeout=600)
-                except:
-                    await msg.edit(components=[])
-                    break
+        while True:
+            try:
+                res = await wait_for_component(self.bot, components=self.create_components(current_page, embeds),
+                                               messages=msg, timeout=600)
+            except:
+                await msg.edit(components=[])
+                break
 
-                if res.author_id != ctx.author.id:
-                    await res.send(content="You must run the command to interact with components.", hidden=True)
-                    continue
+            if res.author_id != ctx.author.id:
+                await res.send(content="You must run the command to interact with components.", hidden=True)
+                continue
 
-                await res.edit_origin()
+            await res.edit_origin()
 
-                # print(res.custom_id)
-                if res.custom_id == "Previous":
-                    current_page -= 1
-                    await msg.edit(embed=embeds[current_page],
-                                   components=self.create_components(current_page, embeds))
+            # print(res.custom_id)
+            if res.custom_id == "Previous":
+                current_page -= 1
+                await msg.edit(embed=embeds[current_page],
+                               components=self.create_components(current_page, embeds))
 
-                elif res.custom_id == "Next":
-                    current_page += 1
-                    await msg.edit(embed=embeds[current_page],
-                                   components=self.create_components(current_page, embeds))
+            elif res.custom_id == "Next":
+                current_page += 1
+                await msg.edit(embed=embeds[current_page],
+                               components=self.create_components(current_page, embeds))
 
 
 
