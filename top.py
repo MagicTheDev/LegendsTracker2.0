@@ -25,7 +25,7 @@ class top(commands.Cog):
                             ]
                             )
     async def top_server(self,ctx, previous=None):
-        scope_type = "global"
+        scope_type = "All"
         stat_type = "Hits"
         limit = 5000
         bound = 3000
@@ -168,7 +168,7 @@ class top(commands.Cog):
                     prev_hits = person.get("previous_hits")
                     prev_def = person.get("previous_defenses")
 
-                    needed_length = abs(previous)
+                    needed_length = len(prev_hits)
                     if needed_length < 3:
                         continue
                     for i in range(-1, previous-1, -1):
@@ -176,6 +176,8 @@ class top(commands.Cog):
                         defs = sum(prev_def[i])
                         net = hits - defs
                         trophy = trophy - net
+
+                    print(trophy)
 
 
                 if trophy >= limit and trophy < limit + bounds:
