@@ -15,7 +15,7 @@ class country_leaderboard(commands.Cog):
         self.bot = bot
 
     @cog_ext.cog_slash(name="country_leaderboards",
-                       description="View bot stats.",
+                       description="Search country leaderboards.",
                        options=[
                            create_option(
                                name="country",

@@ -3,10 +3,9 @@ from helper import getPlayer, ongoing_stats, server_db
 import discord
 import emoji
 import time
-from datetime import timedelta
 from discord_slash import cog_ext
 import statcord
-
+import psutil
 
 class legend_stats(commands.Cog):
 
@@ -56,24 +55,31 @@ class legend_stats(commands.Cog):
 
         me = self.bot.user.mention
 
-        before = time.time()
-        await getPlayer("#P2PQDW")
-        after = time.time()
-        cocping = round(((after - before) * 1000), 2)
-
         inservers = len(self.bot.guilds)
         members = 0
         for guild in self.bot.guilds:
             members += guild.member_count - 1
 
+
+        mem = psutil.virtual_memory()
+        mem_used = str(mem.used)
+        mem_load = str(mem.percent)
+        cpu_load = str(psutil.cpu_percent())
+
+        current_bandwidth = psutil.net_io_counters().bytes_sent + psutil.net_io_counters().bytes_recv
+        current_bandwidth = int(current_bandwidth /1000000)
+
+
         embed = discord.Embed(title='LegendsTracker Stats',
                               description=f"[Statcord Link](https://beta.statcord.com/bot/825324351016534036)\n"
                                           f"<:bot:862911608140333086> Bot: {me}\n" +
-                                          f"<:discord:840749695466864650> Bot Ping: {round(self.bot.latency * 1000, 2)} ms\n" +
-                                          f"<:clash:855491735488036904> COC Api Ping: {cocping} ms\n" +
+                                          f"<:discord:840749695466864650> Bot Ping: {round(self.bot.latency * 1000, 2)} ms\n"
+                                          f"Memory Used: {mem_used}, {mem_load}%\n"
+                                          f"CPU Load: {cpu_load}%\n"
+                                          f"Current Bandwidth: {current_bandwidth}MB\n" 
                                           f"<:server:863148364006031422> In {str(inservers)} servers\n" +
                                           f"<a:num:863149480819949568> Watching {members} users\n" +
-                                          f"<a:check:861157797134729256> {number_tracked} accounts tracked\n"+
+                                          f"<a:check:861157797134729256> {number_tracked} legends accounts tracked\n"+
                                           f"📆 {days_tracking} days spent tracking.\n"+
                                           f"🕐 Uptime: {uptime}\n"+
                                           f"Feed Channel: {feed}",
