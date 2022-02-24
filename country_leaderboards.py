@@ -77,7 +77,7 @@ class country_leaderboard(commands.Cog):
                 )
                 dropdown = [create_actionrow(select)]
                 embed = discord.Embed(
-                    description=f"**Country Not Found.**\nSimilar Matches Found, Choose from Dropdown List.\n{names}",
+                    description=f"**Country Not Found.**\nSimilar Matches Found, Choose from Dropdown List.\n\n{names}",
                     color=discord.Color.blue())
 
                 msg = await ctx.send(embed=embed, components=dropdown)
@@ -104,7 +104,7 @@ class country_leaderboard(commands.Cog):
             if msg is None:
                 msg = await ctx.send(embed=embeds[0], components=self.create_components(current_page, embeds))
             else:
-                msg = await msg.edit(embed=embeds[0], components=self.create_components(current_page, embeds))
+                await msg.edit(embed=embeds[0], components=self.create_components(current_page, embeds))
 
             while True:
                 try:
@@ -169,9 +169,9 @@ class country_leaderboard(commands.Cog):
                     numDefs = 9
                 numHits = SUPER_SCRIPTS[numHits]
                 numDefs = SUPER_SCRIPTS[numDefs]
-                hit_text = f"<:sword_coc:940713893926428782> {hits}{numHits} <:clash:877681427129458739> {defs}{numDefs}"
+                hit_text = f"\n➼ <:sword_coc:940713893926428782> {hits}{numHits} <:clash:877681427129458739> {defs}{numDefs}"
 
-            text += f"`{rank}`\u200e**<:trophyy:849144172698402817>\u200e{member.trophies} | \u200e{name}**\n➼ {hit_text}\n"
+            text += f"`{rank}`\u200e**<:trophyy:849144172698402817>\u200e{member.trophies} | \u200e{name}**{hit_text}\n"
             y += 1
             if y == 15:
                 embed = discord.Embed(title=f"**{country_name} Legend Leaderboard**",
