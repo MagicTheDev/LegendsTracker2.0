@@ -72,8 +72,8 @@ class top(commands.Cog):
 
         select2 = create_select(
             options=[  # the options in your dropdown
-                create_select_option("All", value="global"),
-                create_select_option("Server", value="local"),
+                create_select_option("All", value="All"),
+                create_select_option("Server", value="Server"),
             ],
             placeholder="Choose scope type",  # the placeholder text to show when no options have been chosen
             min_values=1,  # the minimum number of options a user must select
@@ -94,7 +94,7 @@ class top(commands.Cog):
         select3 = create_actionrow(select3)
         selects = [select1, select2, select3]
 
-        scope_options = ["global", "local"]
+        scope_options = ["All", "Server"]
         stat_options = ["Hits", "Defenses", "Net Gain"]
 
         embed = await self.createBest(5000, 3000, stat_type, scope_type, ctx, previous=previous)
@@ -141,8 +141,7 @@ class top(commands.Cog):
     async def createBest(self, limit, bounds, stat_type, scope, ctx, previous=None):
         ranking = []
 
-
-        if scope == "global":
+        if scope == "All":
             tracked = ongoing_stats.find()
             lim = await ongoing_stats.count_documents(filter={"league": {"$eq": "Legend League"}})
             playerStats = []
@@ -169,7 +168,7 @@ class top(commands.Cog):
                     prev_hits = person.get("previous_hits")
                     prev_def = person.get("previous_defenses")
 
-                    needed_length = previous * -1
+                    needed_length = abs(previous)
                     if needed_length < 3:
                         continue
                     for i in range(-1, previous-1, -1):
@@ -179,16 +178,13 @@ class top(commands.Cog):
                         trophy = trophy - net
 
 
-
-
-
                 if trophy >= limit and trophy < limit + bounds:
                     thisPlayer.append(name)
                     thisPlayer.append(hits)
                     thisPlayer.append(defs)
                     thisPlayer.append(numDef)
                     thisPlayer.append(hits - defs)
-
+                    print(thisPlayer)
                     ranking.append(thisPlayer)
         else:
             results = await server_db.find_one({'server': ctx.guild.id})
@@ -265,7 +261,7 @@ class top(commands.Cog):
             if list == "":
                 list = "No players tracked at this trophy level yet."
 
-            embed = discord.Embed(title=f"Leaderboard | Top 25 Hitters | {eText}",
+            embed = discord.Embed(title=f"LB - {scope} | Top 25 Hitters | {eText}",
                                   description=list,
                                   color=discord.Color.blue())
             return embed
@@ -287,7 +283,7 @@ class top(commands.Cog):
             if list == "":
                 list = "No one tracked has reached 8 defenses yet."
 
-            embed = discord.Embed(title=f"Leaderboard | Top Defenders (8 def) | {eText}",
+            embed = discord.Embed(title=f"LB - {scope} | Top Defenders (8 def) | {eText}",
                                   description=list,
                                   color=discord.Color.blue())
             return embed
@@ -306,7 +302,7 @@ class top(commands.Cog):
             if list == "":
                 list = "No one tracked at this trophy level yet."
 
-            embed = discord.Embed(title=f"Leaderboard | Top Net",
+            embed = discord.Embed(title=f"LB - {scope} | Top Net",
                                   description=list,
                                   color=discord.Color.blue())
             return embed
