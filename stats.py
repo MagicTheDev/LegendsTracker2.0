@@ -106,7 +106,7 @@ class legend_stats(commands.Cog):
             options=[  # the options in your dropdown
                 create_select_option("All Triple Streaks",emoji=fire, value="1"),
                 create_select_option("Server Triple Streaks",emoji=fire, value="2"),
-                create_select_option("Triple Streak Leaderboard",emoji=fire, value="3"),
+                create_select_option("All Time Streak Leaderboard",emoji=fire, value="3"),
             ],
             placeholder="Choose your option",  # the placeholder text to show when no options have been chosen
             min_values=1,  # the minimum number of options a user must select
