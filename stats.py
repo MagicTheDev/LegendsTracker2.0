@@ -62,7 +62,7 @@ class legend_stats(commands.Cog):
 
 
         mem = psutil.virtual_memory()
-        mem_used = str(mem.used)
+        mem_used = mem.used
         mem_used = int(mem_used / 1000000)
         mem_load = str(mem.percent)
         cpu_load = str(psutil.cpu_percent())
