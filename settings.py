@@ -72,7 +72,7 @@ class bot_settings(commands.Cog):
         if ctx.author.id == 706149153431879760:
             perms = True
         if not perms:
-            embed = discord.Embed(description="Command requires you to have `Manage Guild` permissions.",
+            embed = discord.Embed(description="Command requires you to have `Manage Server` permissions.",
                                   color=discord.Color.red())
             return await ctx.send(embed=embed)
 

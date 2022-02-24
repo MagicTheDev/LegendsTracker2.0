@@ -8,8 +8,6 @@ from discord_slash import cog_ext
 import statcord
 
 
-
-
 class legend_stats(commands.Cog):
 
     def __init__(self, bot):
@@ -69,7 +67,7 @@ class legend_stats(commands.Cog):
             members += guild.member_count - 1
 
         embed = discord.Embed(title='LegendsTracker Stats',
-                              description=f"[Statcord Link](https://statcord.com/bot/825324351016534036)\n"
+                              description=f"[Statcord Link](https://beta.statcord.com/bot/825324351016534036)\n"
                                           f"<:bot:862911608140333086> Bot: {me}\n" +
                                           f"<:discord:840749695466864650> Bot Ping: {round(self.bot.latency * 1000, 2)} ms\n" +
                                           f"<:clash:855491735488036904> COC Api Ping: {cocping} ms\n" +

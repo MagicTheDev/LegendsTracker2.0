@@ -106,7 +106,7 @@ class track(commands.Cog):
 
         perms = ctx.author.guild_permissions.manage_guild
         if not perms:
-            embed = discord.Embed(description="Command requires `Manage Guild` permissions.",
+            embed = discord.Embed(description="Command requires `Manage Server` permissions.",
                                   color=discord.Color.red())
             return await ctx.send(embed=embed)
 
@@ -153,7 +153,7 @@ class track(commands.Cog):
 
         perms = ctx.author.guild_permissions.manage_guild
         if not perms:
-            embed = discord.Embed(description="Command requires `Manage Guild` permissions.",
+            embed = discord.Embed(description="Command requires `Manage Server` permissions.",
                                   color=discord.Color.red())
             return await ctx.send(embed=embed)
 
