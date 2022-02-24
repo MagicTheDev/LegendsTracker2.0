@@ -8,6 +8,7 @@ SUPER_SCRIPTS=["⁰","¹","²","³","⁴","⁵","⁶", "⁷","⁸", "⁹"]
 import emoji
 import discord
 from discord_slash.utils.manage_components import create_button, wait_for_component, create_select, create_select_option, create_actionrow
+from discord_slash.model import ButtonStyle
 
 class country_leaderboard(commands.Cog):
 
