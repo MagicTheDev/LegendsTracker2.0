@@ -81,7 +81,7 @@ class legend_stats(commands.Cog):
                                           f"<:discord:840749695466864650> Bot Ping: {round(self.bot.latency * 1000, 2)} ms\n"
                                           f"Memory Used: {mem_used}MB, {mem_load}%\n"
                                           f"CPU Load: {cpu_load}%\n"
-                                          f"Current Bandwidth: {current_bandwidth}MB\n" 
+                                          f"Current Bandwidth: {current_bandwidth}GB\n" 
                                           f"<:server:863148364006031422> In {str(inservers)} servers\n" +
                                           f"<a:num:863149480819949568> Watching {members} users\n" +
                                           f"<a:check:861157797134729256> {number_tracked} legends accounts tracked\n"+
