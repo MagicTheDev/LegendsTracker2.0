@@ -169,7 +169,7 @@ class country_leaderboard(commands.Cog):
                     numDefs = 9
                 numHits = SUPER_SCRIPTS[numHits]
                 numDefs = SUPER_SCRIPTS[numDefs]
-                hit_text = f"\n➼ <:sword_coc:940713893926428782> {hits}{numHits} <:clash:877681427129458739> {defs}{numDefs}"
+                hit_text = f"\n`➼  ` <:sword_coc:940713893926428782> {hits}{numHits} <:clash:877681427129458739> {defs}{numDefs}"
 
             text += f"`{rank}`\u200e**<:trophyy:849144172698402817>\u200e{member.trophies} | \u200e{name}**{hit_text}\n"
             y += 1
