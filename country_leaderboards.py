@@ -173,7 +173,7 @@ class country_leaderboard(commands.Cog):
 
             text += f"`{rank}`\u200e**<:trophyy:849144172698402817>\u200e{member.trophies} | \u200e{name}**{hit_text}\n"
             y += 1
-            if y == 15:
+            if y == 20:
                 embed = discord.Embed(title=f"**{country_name} Legend Leaderboard**",
                                       description=text)
                 y = 0
