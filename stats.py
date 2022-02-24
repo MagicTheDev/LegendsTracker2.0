@@ -44,6 +44,7 @@ class legend_stats(commands.Cog):
             feed = feed.mention
 
         number_tracked = await ongoing_stats.count_documents(filter={})
+        number_tracked = "{:,}".format(number_tracked)
         days_tracking = await ongoing_stats.find_one({"tag": "#2QV029CVC"})
         try:
             days_tracking = len(days_tracking.get("end_of_day")) + 1
@@ -60,14 +61,17 @@ class legend_stats(commands.Cog):
         for guild in self.bot.guilds:
             members += guild.member_count - 1
 
+        members = "{:,}".format(members)
 
         mem = psutil.virtual_memory()
         mem_used = mem.used
         mem_used = int(mem_used / 1000000)
+        mem_used  = "{:,}".format(mem_used)
         mem_load = str(mem.percent)
         cpu_load = str(psutil.cpu_percent())
 
         current_bandwidth = psutil.net_io_counters().bytes_sent + psutil.net_io_counters().bytes_recv
+        current_bandwidth = int(current_bandwidth/1000)
         current_bandwidth = round(current_bandwidth /1000000, 2)
 
 
@@ -75,7 +79,7 @@ class legend_stats(commands.Cog):
                               description=f"[Statcord Link](https://beta.statcord.com/bot/825324351016534036)\n"
                                           f"<:bot:862911608140333086> Bot: {me}\n" +
                                           f"<:discord:840749695466864650> Bot Ping: {round(self.bot.latency * 1000, 2)} ms\n"
-                                          f"Memory Used: {mem_used}, {mem_load}%\n"
+                                          f"Memory Used: {mem_used}MB, {mem_load}%\n"
                                           f"CPU Load: {cpu_load}%\n"
                                           f"Current Bandwidth: {current_bandwidth}MB\n" 
                                           f"<:server:863148364006031422> In {str(inservers)} servers\n" +
