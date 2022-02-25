@@ -94,6 +94,10 @@ class help(commands.Cog):
                               "- /check #PGY2YRQ\n",
                         inline=False)
 
+        embed.add_field(name=f"**/quick_check**",
+                        value="Save up to 25 players to your profile to easily check them with **no** hassle.",
+                        inline=False)
+
         embed.add_field(name=f"**/track add [#playerTag]**",
                         value="Use this command to start tracking statistics on an account.",
                         inline=False)
