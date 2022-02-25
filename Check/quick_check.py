@@ -28,6 +28,7 @@ class quick_check(commands.Cog):
         embed = discord.Embed(
             description="**No players saved to your profile. To save a player, look them up, and under `Stat Pages & Settings`, click `Add to Quick Check`.\nPicture Below.",
             color=discord.Color.red())
+        embed.set_image(url="https://cdn.discordapp.com/attachments/843624785560993833/946687559826833428/unknown.png")
         return await msg.edit(content=None, embed=embed)
 
 
