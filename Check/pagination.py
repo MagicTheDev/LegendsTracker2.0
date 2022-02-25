@@ -72,10 +72,13 @@ class pagination(commands.Cog):
                 player = await getPlayer(tag)
                 await res.send(content=f"Removed {player.name} from your Quick Check list.", hidden=True)
             else:
-                await profile_db.update_one({'discord_id': res.author.id},
-                                           {'$push': {"profile_tags": tag}})
-                player = await getPlayer(tag)
-                await res.send(content=f"Added {player.name} to your Quick Check list.", hidden=True)
+                if len(profile_tags) > 25:
+                    await res.send(content=f"Can only have 25 players on your Quick Check list. Please remove one.", hidden=True)
+                else:
+                    await profile_db.update_one({'discord_id': res.author.id},
+                                               {'$push': {"profile_tags": tag}})
+                    player = await getPlayer(tag)
+                    await res.send(content=f"Added {player.name} to your Quick Check list.", hidden=True)
 
 
     async def display_embed(self, results, stat_type, current_page, ctx):
