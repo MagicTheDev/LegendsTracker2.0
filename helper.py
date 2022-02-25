@@ -25,6 +25,7 @@ history_db = db_client.clan_tags
 ongoing_stats = legends_stats.ongoing_stats
 server_db = legends_stats.server
 locations = legends_stats.locations
+profile_db = legends_stats.profile_db
 
 
 async def addLegendsPlayer_GLOBAL(player, clan_name):

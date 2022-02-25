@@ -47,7 +47,8 @@ initial_extensions = (
             "legend_feed",
             "settings",
             "trophyChanges",
-            "country_leaderboards"
+            "country_leaderboards",
+            "quick_check"
         )
 
 

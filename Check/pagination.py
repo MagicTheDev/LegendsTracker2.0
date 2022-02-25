@@ -1,8 +1,8 @@
 from discord.ext import commands
 from discord_slash.utils.manage_components import create_button, create_actionrow, wait_for_component, create_select, create_select_option
-from helper import ongoing_stats
+from helper import ongoing_stats, profile_db, getPlayer
 
-stat_types = ["Yesterday Legends", "Legends Overview", "Graph & Stats", "Legends History"]
+stat_types = ["Yesterday Legends", "Legends Overview", "Graph & Stats", "Legends History", "Add to Quick Check"]
 
 class pagination(commands.Cog):
 
@@ -11,12 +11,9 @@ class pagination(commands.Cog):
 
     async def button_pagination(self, ctx, msg, results):
         check = self.bot.get_cog("CheckStats")
-
         current_page = 0
-
         stats_page = []
         trophy_results = []
-
         x=0
         for result in results:
             r = await ongoing_stats.find_one({"tag": result})
@@ -41,11 +38,14 @@ class pagination(commands.Cog):
 
             await res.edit_origin()
             if res.values[0] in stat_types:
-                current_stat = stat_types.index(res.values[0])
-                embed = await self.display_embed(results, stat_types[current_stat], current_page, ctx)
-                components = await self.create_components(results, trophy_results)
-                await msg.edit(embed=embed,
-                               components=components)
+                if res.values[0] == "Add to Quick Check":
+                    await self.add_profile(res, results[current_page])
+                else:
+                    current_stat = stat_types.index(res.values[0])
+                    embed = await self.display_embed(results, stat_types[current_stat], current_page, ctx)
+                    components = await self.create_components(results, trophy_results)
+                    await msg.edit(embed=embed,
+                                   components=components)
             else:
                 try:
                     current_page = int(res.values[0])
@@ -57,8 +57,25 @@ class pagination(commands.Cog):
                     continue
 
 
-
-
+    async def add_profile(self, res, tag):
+        results = await profile_db.find_one({'discord_id': res.author.id})
+        if results is None:
+            await profile_db.insert_one({'discord_id': res.author.id,
+                                         "profile_tags" : [f"{tag}"]})
+            player = await getPlayer(tag)
+            await res.send(content=f"Added {player.name} to your Quick Check list.")
+        else:
+            profile_tags = results.get("profile_tags")
+            if tag in profile_tags:
+                await profile_db.update_one({'discord_id': res.author.id},
+                                               {'$push': {"profile_tags": tag}})
+                player = await getPlayer(tag)
+                await res.send(content=f"Removed {player.name} from your Quick Check list.")
+            else:
+                await profile_db.update_one({'discord_id': res.author.id},
+                                           {'$push': {"profile_tags": tag}})
+                player = await getPlayer(tag)
+                await res.send(content=f"Added {player.name} to your Quick Check list.")
 
 
     async def display_embed(self, results, stat_type, current_page, ctx):
@@ -82,11 +99,14 @@ class pagination(commands.Cog):
         options = []
 
         for stat in stat_types:
-            options.append(create_select_option(label=f"{stat}", value=f"{stat}"))
+            if stat == "Add to Quick Check":
+                options.append(create_select_option(label=f"{stat}", value=f"{stat}", description="(If already added, will remove player instead)"))
+            else:
+                options.append(create_select_option(label=f"{stat}", value=f"{stat}"))
 
         stat_select  = create_select(
             options=options,
-            placeholder="Choose stat page",
+            placeholder="Stat Pages & Settings",
             min_values=1,  # the minimum number of options a user must select
             max_values=1  # the maximum number of options a user can select
         )
@@ -97,7 +117,7 @@ class pagination(commands.Cog):
 
         profile_select = create_select(
             options=trophy_results,
-            placeholder="Choose player",
+            placeholder="Player Results",
             min_values=1,  # the minimum number of options a user must select
             max_values=1  # the maximum number of options a user can select
         )
