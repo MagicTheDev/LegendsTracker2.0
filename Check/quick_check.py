@@ -23,10 +23,10 @@ class quick_check(commands.Cog):
             tags = results.get("profile_tags")
             if tags != []:
                 pagination = self.bot.get_cog("pagination")
-                return await pagination.button_pagination(ctx, msg, results)
+                return await pagination.button_pagination(ctx, msg, tags)
 
         embed = discord.Embed(
-            description="**No players saved to your profile. To save a player, look them up, and under `Stat Pages & Settings`, click `Add to Quick Check`.\nPicture Below.",
+            description="**No players saved to your profile.**\nTo save a player:\n- Look them up with `/check`\n- Under `Stat Pages & Settings`, click `Add to Quick Check`.\n- Picture Below.",
             color=discord.Color.red())
         embed.set_image(url="https://cdn.discordapp.com/attachments/843624785560993833/946687559826833428/unknown.png")
         return await msg.edit(content=None, embed=embed)
