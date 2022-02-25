@@ -4,7 +4,7 @@ import discord
 from helper import getPlayer, ongoing_stats
 import random
 
-tips = ["Join support server - `/server` for help.", "Stats only show up from the moment tracked & forward.", "New website - legendstracker.info"]
+tips = ["Check out new command - /quick_check"]
 
 class CheckStats(commands.Cog):
 
