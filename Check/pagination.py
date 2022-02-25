@@ -63,19 +63,19 @@ class pagination(commands.Cog):
             await profile_db.insert_one({'discord_id': res.author.id,
                                          "profile_tags" : [f"{tag}"]})
             player = await getPlayer(tag)
-            await res.send(content=f"Added {player.name} to your Quick Check list.")
+            await res.send(content=f"Added {player.name} to your Quick Check list.", hidden=True)
         else:
             profile_tags = results.get("profile_tags")
             if tag in profile_tags:
                 await profile_db.update_one({'discord_id': res.author.id},
-                                               {'$push': {"profile_tags": tag}})
+                                               {'$pull': {"profile_tags": tag}})
                 player = await getPlayer(tag)
-                await res.send(content=f"Removed {player.name} from your Quick Check list.")
+                await res.send(content=f"Removed {player.name} from your Quick Check list.", hidden=True)
             else:
                 await profile_db.update_one({'discord_id': res.author.id},
                                            {'$push': {"profile_tags": tag}})
                 player = await getPlayer(tag)
-                await res.send(content=f"Added {player.name} to your Quick Check list.")
+                await res.send(content=f"Added {player.name} to your Quick Check list.", hidden=True)
 
 
     async def display_embed(self, results, stat_type, current_page, ctx):
