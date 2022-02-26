@@ -50,7 +50,10 @@ class help(commands.Cog):
 
         topTen = ""
         for x in range(0, len(serverList)):
-            guild = await self.bot.fetch_guild(serverList[x])
+            try:
+                guild = await self.bot.fetch_guild(serverList[x])
+            except:
+                continue
             topTen += f"{guild.name} | {count[x]}\n"
 
         board = discord.Embed(title="**Numbers Tracked by Server**",
