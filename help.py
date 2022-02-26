@@ -36,6 +36,9 @@ class help(commands.Cog):
         for document in await tracked.to_list(length=limit):
 
             servers = document.get("servers")
+            if servers == None:
+                print(document.get("tag"))
+                continue
 
             for server in servers:
                 if server not in serverList:
