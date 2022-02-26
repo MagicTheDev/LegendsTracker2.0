@@ -37,7 +37,6 @@ class help(commands.Cog):
 
             servers = document.get("servers")
             if servers == None:
-                print(document.get("tag"))
                 continue
 
             for server in servers:
@@ -53,6 +52,7 @@ class help(commands.Cog):
             try:
                 guild = await self.bot.fetch_guild(serverList[x])
                 channel = await server_db.find_one({"server" : guild.id})
+                channel = channel.get("channel_id")
                 if channel == None:
                     continue
             except:
