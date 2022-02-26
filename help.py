@@ -26,6 +26,36 @@ class help(commands.Cog):
         await ctx.send(f"I left: {guild.name}!")
 
 
+    @commands.command(name="numbers")
+    @commands.is_owner()
+    async def numbers(self, ctx):
+        tracked = ongoing_stats.find()
+        limit = await ongoing_stats.count_documents(filter={})
+        serverList = []
+        count = []
+        for document in await tracked.to_list(length=limit):
+
+            servers = document.get("servers")
+
+            for server in servers:
+                if server not in serverList:
+                    serverList.append(server)
+                    count.append(1)
+                else:
+                    ind = serverList.index(server)
+                    count[ind] += 1
+
+        topTen = ""
+        for x in range(0, len(serverList)):
+            guild = await self.bot.fetch_guild(serverList[x])
+            topTen += f"{guild.name} | {count[x]}\n"
+
+        board = discord.Embed(title="**Numbers Tracked by Server**",
+                              description=topTen,
+                              color=discord.Color.blue())
+        await ctx.send(embed=board)
+
+
     @commands.command(name="migrate")
     @commands.is_owner()
     async def migrate(self, ctx):
