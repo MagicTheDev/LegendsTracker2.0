@@ -52,6 +52,9 @@ class help(commands.Cog):
         for x in range(0, len(serverList)):
             try:
                 guild = await self.bot.fetch_guild(serverList[x])
+                channel = await server_db.find_one({"server" : guild.id})
+                if channel == None:
+                    continue
             except:
                 continue
             topTen += f"{guild.name} | {count[x]}\n"
