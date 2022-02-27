@@ -234,7 +234,7 @@ class ctrack(commands.Cog):
                     description="Sorry this command cannot be used while you have more than 500 people tracked and have feed enabled.\n"
                                 "Please clear some members with `/clear_under`, sync members with `/clan_track sync`, or remove individual accounts with `/track remove`",
                     color=discord.Color.red())
-                return await ctx.send(embed=embed)
+                return await msg.edit(embed=embed, components=[])
 
             num_global_tracked = 0
             num_server_tracked = 0
@@ -255,7 +255,7 @@ class ctrack(commands.Cog):
                             f"{num_server_tracked} members added to server tracking.",
                 color=discord.Color.green())
             embed.set_thumbnail(url=ctx.guild.icon_url_as())
-            return await ctx.send(embed=embed)
+            return await msg.edit(embed=embed, components=[])
         else:
             num_global_tracked = 0
             num_server_tracked = 0
@@ -289,7 +289,7 @@ class ctrack(commands.Cog):
                             f"{remove_num} members removed from server tracking.",
                 color=discord.Color.green())
             embed.set_thumbnail(url=ctx.guild.icon_url_as())
-            return await ctx.send(embed=embed)
+            return await msg.edit(embed=embed, components=[])
 
 
 
