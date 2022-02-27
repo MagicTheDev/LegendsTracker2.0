@@ -3,6 +3,7 @@ import coc
 from coc.ext import discordlinks
 import motor.motor_asyncio
 from dotenv import load_dotenv
+import aiohttp
 
 load_dotenv()
 
@@ -11,6 +12,7 @@ COC_PASSWORD = os.getenv("COC_PASSWORD")
 DB_LOGIN = os.getenv("DB_LOGIN")
 LINK_API_USER = os.getenv("LINK_API_USER")
 LINK_API_PW = os.getenv("LINK_API_PW")
+PATREON_BEARER = os.getenv("PATREON_BEARER")
 
 coc_client = coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, key_count=10, key_names="DiscordBot", throttle_limit = 25)
 link_client = discordlinks.login(LINK_API_USER, LINK_API_PW)
@@ -27,6 +29,23 @@ server_db = legends_stats.server
 locations = legends_stats.locations
 profile_db = legends_stats.profile_db
 
+async def patreon_discord_ids():
+    ids = []
+    headers = {
+        "Authorization": f"Bearer {PATREON_BEARER}"}
+    url = f"https://www.patreon.com/api/oauth2/api/campaigns/8183553/pledges"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, headers=headers) as resp:
+            data = await resp.json(content_type=None)
+            inc = data['included']
+            for thing in inc:
+                if thing["type"] == "user":
+                  try:
+                    ids.append(int(thing["attributes"]["social_connections"]["discord"]["user_id"]))
+                  except:
+                    continue
+
+    return ids
 
 async def addLegendsPlayer_GLOBAL(player, clan_name):
       await ongoing_stats.insert_one({

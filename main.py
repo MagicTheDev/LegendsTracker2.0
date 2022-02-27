@@ -48,7 +48,9 @@ initial_extensions = (
             "settings",
             "trophyChanges",
             "country_leaderboards",
-            "Check.quick_check"
+            "Check.quick_check",
+            "patreon",
+            "ctrack"
         )
 
 
