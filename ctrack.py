@@ -63,9 +63,7 @@ class ctrack(commands.Cog):
             return await ctx.send(embed=embed)
 
         allowed_num = await self.sync_limit(ctx)
-        print(allowed_num)
-        print(len(tracked_clans))
-        if len(tracked_clans) == allowed_num:
+        if len(tracked_clans) >= allowed_num:
             embed = discord.Embed(
                 description="Sorry you have linked the max amount of clans.\n"
                             "All patreons can link up to 10 clans.",
@@ -174,7 +172,7 @@ class ctrack(commands.Cog):
 
         text = ""
         async for clan in coc_client.get_clans(tracked_clans):
-            text += f"{clan.name}\n"
+            text += f"{clan.name} | {clan.tag}\n"
 
         embed = discord.Embed(title=f"{ctx.guild.name} Linked Clans",
             description=text,
