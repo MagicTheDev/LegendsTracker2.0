@@ -63,6 +63,8 @@ class ctrack(commands.Cog):
             return await ctx.send(embed=embed)
 
         allowed_num = await self.sync_limit(ctx)
+        print(allowed_num)
+        print(len(tracked_clans))
         if len(tracked_clans) == allowed_num:
             embed = discord.Embed(
                 description="Sorry you have linked the max amount of clans.\n"
@@ -294,8 +296,9 @@ class ctrack(commands.Cog):
 
 
     async def sync_limit(self, ctx):
-        ids = await patreon_discord_ids()
-        if ctx.author.id in ids:
+        results = await server_db.find_one({"server": ctx.guild.id})
+        pat = results.get("patreon_sub")
+        if pat is not None:
             return 10
         return 5
 
