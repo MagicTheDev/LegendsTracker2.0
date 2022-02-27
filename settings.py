@@ -66,18 +66,18 @@ class bot_settings(commands.Cog):
         return await ctx.send(embed=embed)
 
     @cog_ext.cog_slash(name="clear_under",
-                       description="Top player stats - (hits, def, net).",
+                       description="Remove players under certain trophies from server tracking.",
                        options=[
                            create_option(
-                               name="previous",
-                               description="Previous Top Stats",
+                               name="trophies",
+                               description="Trophy Options",
                                option_type=3,
-                               required=False,
+                               required=True,
                                choices=["5000", "5100", "5200", "5300", "5400", "5500", "5600", "5700", "5800", "5900", "6000"]
                            )
                        ]
                        )
-    async def trophyLimit(self, ctx,  trophies):
+    async def trophyLimit(self, ctx, trophies):
         await ctx.defer()
         perms = ctx.author.guild_permissions.manage_guild
         if ctx.author.id == 706149153431879760:
