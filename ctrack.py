@@ -171,7 +171,7 @@ class ctrack(commands.Cog):
             return await ctx.send(embed=embed)
 
         text = ""
-        async for clan in await coc_client.get_clans(tracked_clans):
+        async for clan in coc_client.get_clans(tracked_clans):
             text += f"{clan.name}\n"
 
         embed = discord.Embed(title=f"{ctx.guild.name} Linked Clans",
