@@ -16,22 +16,22 @@ class Bot_Events(commands.Cog):
                        description="Redeem patreon subscription for this server.")
     async def redeem(self, ctx):
         ids = await patreon_discord_ids()
-        if ctx.user.id not in ids:
+        if ctx.author.id not in ids:
             return await ctx.send("Sorry, a patreon pledge was not found for this user.")
 
         results =  await server_db.find_one({"server": ctx.guild.id})
         pat = results.get("patreon_sub")
 
         if pat is not None:
-            if pat == ctx.user.id:
+            if pat == ctx.author.id:
                 return await ctx.send("You have already redeemed your pledge on this server.")
             else:
                 return await ctx.send("Someone else has already redeemed a pledge on this server.")
 
 
-        results = await server_db.find_one({"patreon_sub": ctx.user.id})
+        results = await server_db.find_one({"patreon_sub": ctx.author.id})
         if results == None:
-            await server_db.update_one({"server": ctx.guild.id}, {'$set': {"patreon_sub": ctx.user.id}})
+            await server_db.update_one({"server": ctx.guild.id}, {'$set': {"patreon_sub": ctx.author.id}})
             return await ctx.send("Pledge successfully linked to this server.")
         else:
             return await ctx.send("Sorry you have already redeemed your pledge on another server. Please join the support server `/server`, to get it switched.")

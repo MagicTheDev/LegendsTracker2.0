@@ -295,7 +295,7 @@ class ctrack(commands.Cog):
 
     async def sync_limit(self, ctx):
         ids = await patreon_discord_ids()
-        if ctx.user.id in ids:
+        if ctx.author.id in ids:
             return 10
         return 5
 

@@ -5,7 +5,7 @@ from discord_slash.utils.manage_commands import create_option
 from discord_slash.utils.manage_components import create_button, wait_for_component, create_select, create_select_option, create_actionrow
 from discord_slash.model import ButtonStyle
 
-from helper import server_db, coc_client
+from helper import server_db, coc_client, removeLegendsPlayer_SERVER
 
 
 class bot_settings(commands.Cog):
@@ -64,6 +64,56 @@ class bot_settings(commands.Cog):
             description=f"{extra.mention} set as feed channel.\nEnsure I have permission to send messages there.\nView current feed channel with `/stats`.",
             color=discord.Color.green())
         return await ctx.send(embed=embed)
+
+    @cog_ext.cog_slash(name="clear_under",
+                       description="Top player stats - (hits, def, net).",
+                       options=[
+                           create_option(
+                               name="previous",
+                               description="Previous Top Stats",
+                               option_type=3,
+                               required=False,
+                               choices=["5000", "5100", "5200", "5300", "5400", "5500", "5600", "5700", "5800", "5900", "6000"]
+                           )
+                       ]
+                       )
+    async def trophyLimit(self, ctx, *, trophies):
+        await ctx.defer()
+        perms = ctx.author.guild_permissions.manage_guild
+        if ctx.author.id == 706149153431879760:
+            perms = True
+        if not perms:
+            embed = discord.Embed(description="Command requires you to have `Manage Server` permissions.",
+                                  color=discord.Color.red())
+            return await ctx.send(embed=embed)
+
+        results = await server_db.find_one({"server": ctx.guild.id})
+
+        if results == None:
+            return
+
+        fchannel = results.get("channel_id")
+        if fchannel == None:
+            embed = discord.Embed(
+                description="Sorry this server does not have a legends feed. Those with Manage Server Perms can add one with **/feed set**.",
+                color=discord.Color.red())
+            return await ctx.send(embed=embed)
+        trophies = int(trophies)
+
+        tracked_members = results.get("tracked_members")
+
+        num_clear = 0
+        async for player in await coc_client.get_players(tracked_members):
+            if player.trophies < trophies:
+                num_clear +=1
+                await removeLegendsPlayer_SERVER(player=player, guild_id=ctx.guild.id)
+
+        embed = discord.Embed(
+            description=f"<a:check:861157797134729256> Trophies below {trophies} cleared.\n"
+                        f"{num_clear} accounts cleared.",
+            color=discord.Color.green())
+        return await ctx.send(embed=embed)
+
 
     @cog_ext.cog_subcommand(base='feed', name="remove",
                             description="Remove channel for attack/defense feed.")
