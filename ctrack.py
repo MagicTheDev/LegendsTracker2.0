@@ -238,7 +238,7 @@ class ctrack(commands.Cog):
 
             num_global_tracked = 0
             num_server_tracked = 0
-            async for clan in await coc_client.get_clans(tracked_clans):
+            async for clan in coc_client.get_clans(tracked_clans):
                 async for player in clan.get_detailed_members():
                     if str(player.league) == "Legend League":
                         is_global_tracked = await self.check_global_tracked(player=player)

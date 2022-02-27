@@ -77,7 +77,7 @@ class bot_settings(commands.Cog):
                            )
                        ]
                        )
-    async def trophyLimit(self, ctx, *, trophies):
+    async def trophyLimit(self, ctx,  trophies):
         await ctx.defer()
         perms = ctx.author.guild_permissions.manage_guild
         if ctx.author.id == 706149153431879760:
@@ -103,7 +103,7 @@ class bot_settings(commands.Cog):
         tracked_members = results.get("tracked_members")
 
         num_clear = 0
-        async for player in await coc_client.get_players(tracked_members):
+        async for player in coc_client.get_players(tracked_members):
             if player.trophies < trophies:
                 num_clear +=1
                 await removeLegendsPlayer_SERVER(player=player, guild_id=ctx.guild.id)
