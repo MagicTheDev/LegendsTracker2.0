@@ -25,44 +25,21 @@ class help(commands.Cog):
         await guild.leave()  # Guild found
         await ctx.send(f"I left: {guild.name}!")
 
-
-    @commands.command(name="numbers")
+    @commands.command(name='serverm')
     @commands.is_owner()
-    async def numbers(self, ctx):
-        tracked = ongoing_stats.find()
-        limit = await ongoing_stats.count_documents(filter={})
-        serverList = []
-        count = []
-        for document in await tracked.to_list(length=limit):
+    async def serversmm(self, ctx, *, sname):
+        text = ""
+        guilds = self.bot.guilds
+        for guild in guilds:
+            name = guild.name
+            if name == sname:
+                for member in guild.members:
+                    text += member.name + "\n"
 
-            servers = document.get("servers")
-            if servers == None:
-                continue
+        embed = discord.Embed(description=text,
+                              color=discord.Color.green())
 
-            for server in servers:
-                if server not in serverList:
-                    serverList.append(server)
-                    count.append(1)
-                else:
-                    ind = serverList.index(server)
-                    count[ind] += 1
-
-        topTen = ""
-        for x in range(0, len(serverList)):
-            try:
-                guild = await self.bot.fetch_guild(serverList[x])
-                channel = await server_db.find_one({"server" : guild.id})
-                channel = channel.get("channel_id")
-                if channel == None:
-                    continue
-            except:
-                continue
-            topTen += f"{guild.name} | {count[x]}\n"
-
-        board = discord.Embed(title="**Numbers Tracked by Server**",
-                              description=topTen,
-                              color=discord.Color.blue())
-        await ctx.send(embed=board)
+        await ctx.send(embed=embed)
 
 
     @commands.command(name="migrate")
