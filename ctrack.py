@@ -187,6 +187,12 @@ class ctrack(commands.Cog):
     async def ctrack_sync(self, ctx):
         await ctx.defer()
 
+        perms = ctx.author.guild_permissions.manage_guild
+        if not perms:
+            embed = discord.Embed(description="Command requires `Manage Server` permissions.",
+                                  color=discord.Color.red())
+            return await ctx.send(embed=embed)
+
         results = await server_db.find_one({"server": ctx.guild.id})
         tracked_clans = results.get("tracked_clans")
         if tracked_clans == None:

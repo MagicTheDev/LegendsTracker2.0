@@ -120,15 +120,21 @@ class help(commands.Cog):
         embed.add_field(name=f"**/track remove [#playerTag]**",
                         value="Use this command to remove an account from server tracking.",
                         inline=False)
-        embed.add_field(name=f"**/ctrack add [#clanTag]**",
-                        value="Manage Guild Required. Use this command to add a clan's accounts to your server.",
+        embed.add_field(name=f"**/clan_track add [#clanTag]**",
+                        value="Manage Guild Required. Use this command to link & add a clan's accounts to your server.",
                         inline=False)
-        embed.add_field(name=f"**/ctrack remove [#clanTag]**",
+        embed.add_field(name=f"**/clan_track remove [#clanTag]**",
                         value="Manage Guild Required. Use this command to remove a clan's accounts to your server.",
+                        inline=False)
+        embed.add_field(name=f"**/clan_track sync**",
+                        value="Manage Guild Required. Use this command to sync or add to your feed from your server's linked clans..",
+                        inline=False)
+        embed.add_field(name=f"**/clan_track list**",
+                        value="See server's linked clans.",
                         inline=False)
 
         embed.add_field(name="**/tracked_list [clans or players]**",
-                        value="List of clans or players linked in your feed.",
+                        value="List of clans found in your feed or players linked in your feed.",
                         inline=False)
 
         embeds.append(embed)
