@@ -44,6 +44,7 @@ class legends_feed(commands.Cog):
 
             if webhook is not None:
                 webhooks[server] = webhook
+            if thread is not None:
                 webhooks[webhook.id] = thread
 
 
