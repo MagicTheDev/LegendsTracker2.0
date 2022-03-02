@@ -4,7 +4,7 @@ from coc.ext import discordlinks
 import motor.motor_asyncio
 from dotenv import load_dotenv
 import aiohttp
-IS_BETA = False
+IS_BETA = True
 
 load_dotenv()
 
