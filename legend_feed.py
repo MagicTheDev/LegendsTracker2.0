@@ -74,21 +74,22 @@ class legends_feed(commands.Cog):
 
                 for server in servers:
                     webhook = webhooks.get(server)
+
                     if webhook is None:
                         continue
                     thread = webhooks.get(webhook.id)
 
-                    if "Defense Won" in change:
+                    if "-0" in change:
                         color = disnake.Color.green()
                         button_color = disnake.ButtonStyle.green
-                    elif "Defense" in change:
+                    elif "<:clash:877681427129458739>" in change:
                         color = disnake.Color.red()
                         button_color = disnake.ButtonStyle.red
                     else:
                         color = disnake.Color.green()
                         button_color = disnake.ButtonStyle.green
                     embed = disnake.Embed(title=f"{name} | {clan}",
-                                          description=change + f"{discord_time} | [profile]({link})",
+                                          description=f"{change}\n{discord_time} | [profile]({link})",
                                           color=color)
                     embed.set_footer(text=f"{tag}")
 
