@@ -142,7 +142,7 @@ class help(commands.Cog):
                               description="Legends Commands",
                               color=disnake.Color.blue())
 
-        embed.add_field(name=f"**/check_search**",
+        embed.add_field(name=f"**/check search**",
                         value="Check/Search a person's legends hits & defenses for today.\nSupports searching by name or player tag\n"
                               "- Uses autocomplete to return matches as you type"
                               "\nExamples:\n"
@@ -151,7 +151,7 @@ class help(commands.Cog):
                               "- /check #PGY2YRQ\n",
                         inline=False)
 
-        embed.add_field(name=f"**/check_user**",
+        embed.add_field(name=f"**/check user**",
                         value="Check/Search a person's legends hits & defenses for today.\nSupports searching by player tag, discord ID, or by name."
                               "\nExamples:\n"
                               "- /check magic\n"
