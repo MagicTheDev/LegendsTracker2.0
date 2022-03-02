@@ -101,26 +101,26 @@ class ctrack(commands.Cog):
 
 
     @ctrack.sub_command(name="remove", description="Remove players in a clan from legends tracking")
-    async def ctrack_remove(self,ctx, clan_tag: str):
+    async def ctrack_remove(self,ctx: disnake.ApplicationCommandInteraction, clan_tag: str):
         """
             Parameters
             ----------
             clan_tag: Clan to remove tracking from
         """
-        await ctx.defer()
+        await ctx.response.defer()
 
         perms = ctx.author.guild_permissions.manage_guild
         if not perms:
             embed = disnake.Embed(description="Command requires `Manage Server` permissions.",
                                   color=disnake.Color.red())
-            return await ctx.send(embed=embed)
+            return await ctx.edit_original_message(embed=embed)
 
         clan = await getClan(clan_tag)
 
         if clan is None:
             embed = disnake.Embed(description="Not a valid clan tag. Check the spelling or a different tag.",
                                   color=disnake.Color.red())
-            return await ctx.send(embed=embed)
+            return await ctx.edit_original_message(embed=embed)
 
         results = await server_db.find_one({"server": ctx.guild.id})
         tracked_clans = results.get("tracked_clans")
@@ -131,7 +131,7 @@ class ctrack(commands.Cog):
             embed = disnake.Embed(
                 description="Clan not tracked.\nUse `/clan_track add` to add this clan to your server.",
                 color=disnake.Color.red())
-            return await ctx.send(embed=embed)
+            return await ctx.edit_original_message(embed=embed)
 
         num_server_tracked = 0
         async for player in clan.get_detailed_members():
@@ -150,12 +150,12 @@ class ctrack(commands.Cog):
             description=f"{num_server_tracked} members removed from server tracking.",
             color=disnake.Color.green())
         embed.set_thumbnail(url=clan.badge.large)
-        return await ctx.send(embed=embed)
+        return await ctx.edit_original_message(embed=embed)
 
 
     @ctrack.sub_command(name="list", description="List of clans linked to server")
-    async def ctrack_list(self, ctx):
-        await ctx.defer()
+    async def ctrack_list(self, ctx: disnake.ApplicationCommandInteraction):
+        await ctx.response.defer()
 
         results = await server_db.find_one({"server": ctx.guild.id})
         tracked_clans = results.get("tracked_clans")
@@ -175,18 +175,18 @@ class ctrack(commands.Cog):
         embed = disnake.Embed(title=f"{ctx.guild.name} Linked Clans",
             description=text,
             color=disnake.Color.blue())
-        return await ctx.send(embed=embed)
+        return await ctx.edit_original_message(embed=embed)
 
 
     @ctrack.sub_command(name="sync", description="Sync players with the clans linked to server")
-    async def ctrack_sync(self, ctx):
-        await ctx.defer()
+    async def ctrack_sync(self, ctx: disnake.ApplicationCommandInteraction):
+        await ctx.response.defer()
 
         perms = ctx.author.guild_permissions.manage_guild
         if not perms:
             embed = disnake.Embed(description="Command requires `Manage Server` permissions.",
                                   color=disnake.Color.red())
-            return await ctx.send(embed=embed)
+            return await ctx.edit_original_message(embed=embed)
 
         results = await server_db.find_one({"server": ctx.guild.id})
         tracked_clans = results.get("tracked_clans")
@@ -197,33 +197,42 @@ class ctrack(commands.Cog):
             embed = disnake.Embed(
                 description="No clans linked to this server.\nUse `clan_track add` to get started.",
                 color=disnake.Color.red())
-            return await ctx.send(embed=embed)
+            return await ctx.edit_original_message(embed=embed)
 
         embed = disnake.Embed(description=f"**Would you like to remove tracked players outside of the linked clans?**\n"
                                           f"if **yes**, this will set your feed & leaderboard to just members of the clans in `/clan_track` list.\n",
                               color=disnake.Color.green())
 
-        select1 = create_select(
+        select1 = disnake.ui.Select(
             options=[
-                create_select_option("Yes", value=f"Yes", emoji="✅"),
-                create_select_option("No", value=f"No", emoji="❌")
+                disnake.SelectOption(label="Yes", value=f"Yes", emoji="✅"),
+                disnake.SelectOption(label="No", value=f"No", emoji="❌")
             ],
             placeholder="Choose your option",
             min_values=1,  # the minimum number of options a user must select
             max_values=1  # the maximum number of options a user can select
         )
-        action_row = create_actionrow(select1)
-        msg = await ctx.send(embed=embed, components=[action_row])
+        action_row = disnake.ui.ActionRow()
+        action_row.append_item(select1)
+
+        await ctx.edit_original_message(embed=embed, components=[action_row])
+        msg = await ctx.original_message()
 
         chose = False
+
+        def check(res: disnake.MessageInteraction):
+            return res.message.id == msg.id
+
         while chose == False:
             try:
-                res = await wait_for_component(self.bot, components=action_row, messages=msg, timeout=600)
+                res: disnake.MessageInteraction = await self.bot.wait_for("message_interaction", check=check,
+                                                                          timeout=600)
             except:
-                return await msg.edit(components=[])
+                await msg.edit(components=[])
+                break
 
-            if res.author_id != ctx.author.id:
-                await res.send(content="You must run the command to interact with components.", hidden=True)
+            if res.author.id != ctx.author.id:
+                await res.send(content="You must run the command to interact with components.", ephemeral=True)
                 continue
 
             chose = res.values[0]
@@ -257,7 +266,8 @@ class ctrack(commands.Cog):
                 description=f"{num_global_tracked} members added to global tracking.\n"
                             f"{num_server_tracked} members added to server tracking.",
                 color=disnake.Color.green())
-            embed.set_thumbnail(url=ctx.guild.icon_url_as())
+            if ctx.guild.icon is not None:
+                embed.set_thumbnail(url=ctx.guild.icon.url)
             return await msg.edit(embed=embed, components=[])
         else:
             num_global_tracked = 0
@@ -291,7 +301,8 @@ class ctrack(commands.Cog):
                             f"{num_server_tracked} members added to server tracking.\n"
                             f"{remove_num} members removed from server tracking.",
                 color=disnake.Color.green())
-            embed.set_thumbnail(url=ctx.guild.icon_url_as())
+            if ctx.guild.icon is not None:
+                embed.set_thumbnail(url=ctx.guild.icon.url)
             return await msg.edit(embed=embed, components=[])
 
 

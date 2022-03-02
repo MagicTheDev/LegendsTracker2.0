@@ -79,7 +79,8 @@ class Server_LB(commands.Cog):
             if x == 15:
                 embed = disnake.Embed(title=f"**{ctx.guild} Legend Leaderboard**",
                                       description=text)
-                embed.set_thumbnail(url=ctx.guild.icon.url)
+                if ctx.guild.icon is not None:
+                    embed.set_thumbnail(url=ctx.guild.icon.url)
                 x = 0
                 embeds.append(embed)
                 text = ""
@@ -87,7 +88,8 @@ class Server_LB(commands.Cog):
         if text != "":
             embed = disnake.Embed(title=f"**{ctx.guild} Legend Leaderboard**",
                                   description=text)
-            embed.set_thumbnail(url=ctx.guild.icon.url)
+            if ctx.guild.icon is not None:
+                embed.set_thumbnail(url=ctx.guild.icon.url)
             embeds.append(embed)
 
         current_page = 0
