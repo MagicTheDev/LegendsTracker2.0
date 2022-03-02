@@ -42,7 +42,7 @@ class help(commands.Cog):
                 has.append(i)
         return has
 
-    @commands.slash_command(name='reload', default_permission=False, guild_ids=[923764211845312533])
+    @commands.slash_command(name='reload', guild_ids=[923764211845312533])
     @commands.guild_permissions(923764211845312533, owner=True)
     @commands.is_owner()
     async def _reload(self,ctx, *, module: str = commands.Param(autocomplete=autocomp_names)):
