@@ -11,14 +11,15 @@ class pepe(commands.Cog):
 
     @commands.slash_command(name="pepe",
                        description="Fun Command. Create a pepe holding a sign w/ text.")
-    async def createPFP(self,ctx, sign_text : str):
+    async def createPFP(self,ctx, sign_text : str, hidden : str=commands.Param(choices=["Yes", "No"])):
         """
             Parameters
             ----------
             sign_text: Text to write on sign (up to 20 char)
+            hidden : If yes, message will be visible only to you
         """
         size = 40
-        if len(sign_text) > 20:
+        if len(sign_text) > 25:
             return await ctx.send("Too long, sorry :/")
 
         if len(sign_text) >= 11:
@@ -26,6 +27,10 @@ class pepe(commands.Cog):
 
         if len(sign_text) > 14:
             size = 23
+
+        if len(sign_text) > 19:
+            size = 16
+
 
         back = Image.open("Pepe/pepesign.png")
 
@@ -42,8 +47,10 @@ class pepe(commands.Cog):
         temp.seek(0)
         file = disnake.File(fp=temp, filename="filename.png")
 
-        await ctx.send(content="Save image or copy link & send wherever you like :)",file=file, hidden=True)
-
+        if hidden == "Yes":
+            await ctx.send(content="Save image or copy link & send wherever you like :)",file=file, ephemeral=True)
+        else:
+            await ctx.send(content="Save image or copy link & send wherever you like :)", file=file)
 
 
 def setup(bot: commands.Bot):
