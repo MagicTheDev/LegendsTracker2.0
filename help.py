@@ -33,8 +33,6 @@ class help(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-
-
     def autocomp_names(self, query: str):
         has = []
         for i in initial_extensions:

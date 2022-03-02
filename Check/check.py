@@ -55,7 +55,7 @@ class Check_Slash(commands.Cog):
         pass
 
 
-    @check.sub_command(name="search", description="Search by player tag or name to find a player", guild_ids=[923764211845312533])
+    @check.sub_command(name="search", description="Search by player tag or name to find a player")
     async def check_search2(self, ctx: disnake.ApplicationCommandInteraction,
                            smart_search: str = commands.Param(autocomplete=autocomp_names)):
         """
@@ -74,7 +74,7 @@ class Check_Slash(commands.Cog):
         await self.legends(ctx, msg, smart_search)
 
     @check.sub_command(name="user",
-                            description="Check a discord user's linked accounts (empty for your own)", guild_ids=[923764211845312533])
+                            description="Check a discord user's linked accounts (empty for your own)")
     async def check_user2(self, ctx: disnake.ApplicationCommandInteraction, discord_user: disnake.Member = None):
         """
             Parameters
