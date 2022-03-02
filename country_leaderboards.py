@@ -47,12 +47,12 @@ class country_leaderboard(commands.Cog):
                 continue
 
             # print(res.custom_id)
-            if res.custom_id == "Previous":
+            if res.data.custom_id == "Previous":
                 current_page -= 1
                 await res.response.edit_message(embed=embeds[current_page],
                                components=self.create_components(current_page, embeds))
 
-            elif res.custom_id == "Next":
+            elif res.data.custom_id == "Next":
                 current_page += 1
                 await res.response.edit_message(embed=embeds[current_page],
                                components=self.create_components(current_page, embeds))

@@ -99,7 +99,7 @@ class Server_LB(commands.Cog):
 
         while True:
             try:
-                res = await self.bot.wait_for("message_interaction", check=check, timeout=600)
+                res: disnake.MessageInteraction = await self.bot.wait_for("message_interaction", check=check, timeout=600)
             except:
                 await msg.edit(components=[])
                 break
@@ -109,12 +109,12 @@ class Server_LB(commands.Cog):
                 continue
 
             # print(res.custom_id)
-            if res.custom_id == "Previous":
+            if res.data.custom_id == "Previous":
                 current_page -= 1
                 await res.response.edit_message(embed=embeds[current_page],
                                components=self.create_components(current_page, embeds))
 
-            elif res.custom_id == "Next":
+            elif res.data.custom_id == "Next":
                 current_page += 1
                 await res.response.edit_message(embed=embeds[current_page],
                                components=self.create_components(current_page, embeds))
