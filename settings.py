@@ -60,13 +60,13 @@ class bot_settings(commands.Cog):
 
     @commands.slash_command(name="clear_under",
                        description="Remove players under certain trophies from server tracking.")
-    async def trophyLimit(self, ctx, trophies: str = commands.Param(choices=["5000", "5100", "5200", "5300", "5400", "5500", "5600", "5700", "5800", "5900", "6000"])):
+    async def trophyLimit(self, ctx: disnake.ApplicationCommandInteraction, trophies: str = commands.Param(choices=["5000", "5100", "5200", "5300", "5400", "5500", "5600", "5700", "5800", "5900", "6000"])):
         """
             Parameters
             ----------
             trophies: trophy bar to clear under
           """
-        await ctx.defer()
+        await ctx.response.defer()
         perms = ctx.author.guild_permissions.manage_guild
         if ctx.author.id == 706149153431879760:
             perms = True
@@ -85,7 +85,7 @@ class bot_settings(commands.Cog):
             embed = disnake.Embed(
                 description="Sorry this server does not have a legends feed. Those with Manage Server Perms can add one with **/feed set**.",
                 color=disnake.Color.red())
-            return await ctx.send(embed=embed)
+            return await ctx.edit_original_message(embed=embed)
         trophies = int(trophies)
 
         tracked_members = results.get("tracked_members")
@@ -100,7 +100,7 @@ class bot_settings(commands.Cog):
             description=f"<a:check:861157797134729256> Trophies below {trophies} cleared.\n"
                         f"{num_clear} accounts cleared.",
             color=disnake.Color.green())
-        return await ctx.send(embed=embed)
+        return await ctx.edit_original_message(embed=embed)
 
 
     @feed.sub_command(name="remove",
