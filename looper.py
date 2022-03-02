@@ -4,6 +4,8 @@ from datetime import datetime
 import time
 import os
 import motor.motor_asyncio
+from dotenv import load_dotenv
+load_dotenv()
 
 COC_EMAIL = os.getenv("LOOPER_COC_EMAIL")
 COC_PASSWORD = os.getenv("LOOPER_COC_PASSWORD")
