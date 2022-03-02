@@ -22,18 +22,29 @@ class help(commands.Cog):
     @commands.command(name="migrate")
     @commands.is_owner()
     async def migrate(self, ctx):
-        updated = ""
+        embed = disnake.Embed(title="Feed Changes.",
+                               description="As of 3/1/2022 all feeds have been switched to operating with webhooks\n"
+                                           "**Why?**\n"
+                                           "- Feed speed increase, and the bot will be able to handle the feeds of 200+ servers, that it is currently struggling with.\n"
+                                           "**What to do?**\n"
+                                           "- Got to the channel you have for your feed. Give the bot the `Manage Webhooks` permission. (If the bot has admin, you should be fine)\n"
+                                           "- Run `/feed set` (if you want the feed in a discord thread, run the command in a thread under that channel it has permissions in)\n"
+                                           "**Need help or have additional questions?**\n"
+                                           "- Join the support server - discord.gg/gChZm3XCrS",
+                               color=disnake.Color.green())
+
         tracked = server_db.find()
         limit = await server_db.count_documents(filter={})
-        # print(f"Loop 1 size {limit}")
         for document in await tracked.to_list(length=limit):
             channel = document.get("channel_id")
             if channel == None:
                 continue
-            channel = await self.bot.fetch_channel(channel)
+            try:
+                channel = await self.bot.fetch_channel(channel)
+                await channel.send(embed=embed)
+            except:
+                continue
 
-            print(channel.name)
-            print(channel.id)
 
 
 
