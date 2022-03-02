@@ -94,7 +94,8 @@ class legends_feed(commands.Cog):
                 button = disnake.ui.Button(label="All Stats", emoji="📊", style=button_color, custom_id=f"{tag}")
                 buttons = disnake.ui.ActionRow()
                 buttons.append_item(button)
-
+                print(webhook)
+                print(server)
                 try:
                     if thread is not None:
                         await webhook.send(embed=embed,  components=[buttons], username='Legends Tracker',
