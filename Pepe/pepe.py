@@ -50,7 +50,7 @@ class pepe(commands.Cog):
         if hidden == "Yes":
             await ctx.send(content="Save image or copy link & send wherever you like :)",file=file, ephemeral=True)
         else:
-            await ctx.send(content="Save image or copy link & send wherever you like :)", file=file)
+            await ctx.send(file=file)
 
 
 def setup(bot: commands.Bot):
