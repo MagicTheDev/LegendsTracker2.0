@@ -51,7 +51,7 @@ class help(commands.Cog):
     async def gitpull(self, ctx):
         os.system("cd LegendsTracker2.0")
         os.system("git pull https://github.com/MagicTheDev/LegendsTracker2.0.git")
-        await ctx.send("Bot using latest")
+        await ctx.send("Bot using latest changes.")
 
     @commands.slash_command(name='invite',
                        description="Invite for bot.")

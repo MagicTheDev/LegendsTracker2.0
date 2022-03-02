@@ -27,6 +27,8 @@ class country_leaderboard(commands.Cog):
     async def country_lb(self, ctx: disnake.ApplicationCommandInteraction , country: str = commands.Param(autocomplete=autocomp_names)):
         await ctx.response.defer()
         loc = await coc_client.get_location_named(country)
+        if loc is None:
+            return await ctx.edit_original_message(content="Not a valid country. Use the autocomplete to help select from the 100+ countries.")
         embeds = await self.create_lb(loc.id)
 
         current_page = 0
