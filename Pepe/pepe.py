@@ -15,7 +15,7 @@ class pepe(commands.Cog):
         """
             Parameters
             ----------
-            sign_text: Text to write on sign (up to 20 char)
+            sign_text: Text to write on sign (up to 25 char)
             hidden : If yes, message will be visible only to you
         """
         size = 40
