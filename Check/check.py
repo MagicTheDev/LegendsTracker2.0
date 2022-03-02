@@ -18,7 +18,7 @@ class Check_Slash(commands.Cog):
         """
             Parameters
             ----------
-            smart_search: Search by name or #tag
+            smart_search: Type a search, pick an option, or don't to get multiple results back
         """
         if smart_search == None:
             smart_search = str(ctx.author.id)
