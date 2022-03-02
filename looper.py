@@ -5,9 +5,11 @@ import time
 import os
 import motor.motor_asyncio
 
-COC_EMAIL = os.getenv("BETA_COC_EMAIL")
-COC_PASSWORD = os.getenv("BETA_COC_PASSWORD")
+COC_EMAIL = os.getenv("LOOPER_COC_EMAIL")
+COC_PASSWORD = os.getenv("LOOPER_COC_PASSWORD")
 DB_LOGIN = os.getenv("DB_LOGIN")
+
+print(COC_EMAIL)
 
 coc_client_two = coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, key_names="DiscordBot",
                            key_count=10, throttle_limit=25)
