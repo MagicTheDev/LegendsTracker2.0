@@ -31,6 +31,7 @@ class bot_settings(commands.Cog):
             else:
                 channel = ctx.channel
 
+
             bot_av = self.bot.user.avatar.read().close()
             webhook = await channel.create_webhook(name="Legends Tracker", avatar=bot_av, reason="Legends Feed")
         except Exception as e:
@@ -41,6 +42,7 @@ class bot_settings(commands.Cog):
             return await ctx.send(embed=embed)
 
         await server_db.update_one({"server": ctx.guild.id}, {'$set': {"webhook": webhook.id}})
+        await server_db.update_one({"server": ctx.guild.id}, {'$set': {"thread": None}})
         if is_thread:
             await server_db.update_one({"server": ctx.guild.id}, {'$set': {"thread": ctx.channel.id}})
             await webhook.send("Feed Successfully Setup", username='Legends Tracker',
