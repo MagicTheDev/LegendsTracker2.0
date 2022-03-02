@@ -64,7 +64,7 @@ class ctrack(commands.Cog):
         if len(tracked_clans) >= allowed_num:
             embed = disnake.Embed(
                 description="Sorry you have linked the max amount of clans.\n"
-                            "All patreons can link up to 10 clans.",
+                            "All patreons can link up to 20 clans.",
                 color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
@@ -311,8 +311,8 @@ class ctrack(commands.Cog):
         results = await server_db.find_one({"server": ctx.guild.id})
         pat = results.get("patreon_sub")
         if pat is not None:
-            return 10
-        return 5
+            return 20
+        return 10
 
     async def check_global_tracked(self,player):
         results = await ongoing_stats.find_one({"tag": f"{player.tag}"})
