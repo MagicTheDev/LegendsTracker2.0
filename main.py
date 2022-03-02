@@ -43,7 +43,7 @@ def autocomp_names(self, query: str):
             has.append(i)
     return has
 
-@bot.slash_command(name='reload', guild_ids=[923764211845312533])
+@bot.slash_command(name='reload', default_permission=False, guild_ids=[923764211845312533])
 @commands.is_owner()
 async def _reload(ctx, *, module : str = commands.Param(autocomplete=autocomp_names)):
     """Reloads a module."""
