@@ -4,30 +4,50 @@ from coc.ext import discordlinks
 import motor.motor_asyncio
 from dotenv import load_dotenv
 import aiohttp
+IS_BETA = True
 
 load_dotenv()
 
-COC_EMAIL = os.getenv("COC_EMAIL")
-COC_PASSWORD = os.getenv("COC_PASSWORD")
-DB_LOGIN = os.getenv("DB_LOGIN")
+if not IS_BETA:
+    COC_EMAIL = os.getenv("COC_EMAIL")
+    COC_PASSWORD = os.getenv("COC_PASSWORD")
+    DB_LOGIN = os.getenv("DB_LOGIN")
+else:
+    COC_EMAIL = os.getenv("BETA_COC_EMAIL")
+    COC_PASSWORD = os.getenv("BETA_COC_PASSWORD")
+    DB_LOGIN = os.getenv("BETA_DB_LOGIN")
+
 LINK_API_USER = os.getenv("LINK_API_USER")
 LINK_API_PW = os.getenv("LINK_API_PW")
 PATREON_BEARER = os.getenv("PATREON_BEARER")
+
 
 coc_client = coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, key_count=10, key_names="DiscordBot", throttle_limit = 25)
 link_client = discordlinks.login(LINK_API_USER, LINK_API_PW)
 
 db_client = motor.motor_asyncio.AsyncIOMotorClient(DB_LOGIN)
 
-#### DATABASES USED ####
-legends_stats = db_client.legends_stats
-history_db = db_client.clan_tags
+if not IS_BETA:
+    #### DATABASES USED ####
+    legends_stats = db_client.legends_stats
+    history_db = db_client.clan_tags
 
-### COLLECTIONS USED ###
-ongoing_stats = legends_stats.ongoing_stats
-server_db = legends_stats.server
-locations = legends_stats.locations
-profile_db = legends_stats.profile_db
+    ### COLLECTIONS USED ###
+    ongoing_stats = legends_stats.ongoing_stats
+    server_db = legends_stats.server
+    locations = legends_stats.locations
+    profile_db = legends_stats.profile_db
+else:
+    #### DATABASES USED ####
+    beta_legends_stats = db_client.beta_legends_stats
+    legends_stats = db_client.legends_stats
+    history_db = db_client.clan_tags
+
+    ### COLLECTIONS USED ###
+    ongoing_stats = beta_legends_stats.beta_ongoing_stats
+    server_db = beta_legends_stats.beta_server
+    locations = legends_stats.locations
+    profile_db = beta_legends_stats.beta_profile_db
 
 async def patreon_discord_ids():
     ids = []

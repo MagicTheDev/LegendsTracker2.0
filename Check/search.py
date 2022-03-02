@@ -1,6 +1,6 @@
 import re
-
-from discord.ext import commands
+from coc import utils
+from disnake.ext import commands
 from helper import getPlayer, getTags, ongoing_stats
 
 
@@ -45,6 +45,38 @@ class search(commands.Cog):
             tags.append(document.get("tag"))
         return tags
 
+    async def search_name(self, query):
+        names = []
+        #if search is a player tag, pull stats of the player tag
+
+        if utils.is_valid_tag(query) is True:
+            t = utils.correct_tag(tag=query)
+            query = query.lower()
+            query = re.escape(query)
+            results = ongoing_stats.find({"$and": [
+                {"tag": {"$regex": f"^(?i).*{t}.*$"}},
+                {"league": {"$eq": "Legend League"}}
+            ]})
+            for document in await results.to_list(length=25):
+                names.append(document.get("name"))
+            return names
+
+
+
+        #ignore capitalization
+        #results 3 or larger check for partial match
+        #results 2 or shorter must be exact
+        #await ongoing_stats.create_index([("name", "text")])
+
+        query = query.lower()
+        query = re.escape(query)
+        results = ongoing_stats.find({"$and" : [
+            {"name": {"$regex": f"^(?i).*{query}.*$"}},
+            {"league" : {"$eq" : "Legend League"}}
+        ]})
+        for document in await results.to_list(length=25):
+            names.append(document.get("name"))
+        return names
 
 def setup(bot: commands.Bot):
     bot.add_cog(search(bot))

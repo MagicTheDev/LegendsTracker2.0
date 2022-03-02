@@ -1,6 +1,7 @@
-from discord.ext import commands
-from discord_slash.utils.manage_components import create_button, create_actionrow, wait_for_component, create_select, create_select_option
+import disnake
+from disnake.ext import commands
 from helper import ongoing_stats, profile_db, getPlayer
+from disnake.ui import View
 
 stat_types = ["Yesterday Legends", "Legends Overview", "Graph & Stats", "Legends History", "Add to Quick Check"]
 
@@ -19,66 +20,68 @@ class pagination(commands.Cog):
             r = await ongoing_stats.find_one({"tag": result})
             name = r.get("name")
             trophies = r.get("trophies")
-            trophy_results.append(create_select_option(label=f"{name} | 🏆{trophies}", value=f"{x}"))
+            trophy_results.append(disnake.SelectOption(label=f"{name} | 🏆{trophies}", value=f"{x}"))
             embed = await check.checkEmbed(result, 0)
             stats_page.append(embed)
             x+=1
 
         components = await self.create_components(results, trophy_results)
-        await msg.edit(embed=stats_page[0], components=components,
-                       mention_author=False)
+        await msg.edit(embed=stats_page[0], components=components)
+
+        def check(res: disnake.MessageInteraction):
+            return res.message.id == msg.id
 
         while True:
             try:
-                res = await wait_for_component(self.bot, components=components,messages=msg, timeout=600)
+                res: disnake.MessageInteraction = await self.bot.wait_for("message_interaction", check=check, timeout=600)
             except:
                 await msg.edit(components=[])
                 break
 
 
-            await res.edit_origin()
+
             if res.values[0] in stat_types:
                 if res.values[0] == "Add to Quick Check":
-                    await self.add_profile(res, results[current_page])
+                    await self.add_profile(res, results[current_page], components, msg)
                 else:
                     current_stat = stat_types.index(res.values[0])
+                    await res.response.defer()
                     embed = await self.display_embed(results, stat_types[current_stat], current_page, ctx)
-                    components = await self.create_components(results, trophy_results)
                     await msg.edit(embed=embed,
                                    components=components)
             else:
                 try:
                     current_page = int(res.values[0])
                     embed = stats_page[current_page]
-                    components = await self.create_components(results, trophy_results)
-                    await msg.edit(embed=embed,
+                    await res.response.edit_message(embed=embed,
                                    components=components)
                 except:
                     continue
 
 
-    async def add_profile(self, res, tag):
+    async def add_profile(self, res, tag, components, msg):
         results = await profile_db.find_one({'discord_id': res.author.id})
+        await msg.edit(components=components)
         if results is None:
             await profile_db.insert_one({'discord_id': res.author.id,
                                          "profile_tags" : [f"{tag}"]})
             player = await getPlayer(tag)
-            await res.send(content=f"Added {player.name} to your Quick Check list.", hidden=True)
+            await res.send(content=f"Added {player.name} to your Quick Check list.", ephemeral=True)
         else:
             profile_tags = results.get("profile_tags")
             if tag in profile_tags:
                 await profile_db.update_one({'discord_id': res.author.id},
                                                {'$pull': {"profile_tags": tag}})
                 player = await getPlayer(tag)
-                await res.send(content=f"Removed {player.name} from your Quick Check list.", hidden=True)
+                await res.send(content=f"Removed {player.name} from your Quick Check list.", ephemeral=True)
             else:
                 if len(profile_tags) > 25:
-                    await res.send(content=f"Can only have 25 players on your Quick Check list. Please remove one.", hidden=True)
+                    await res.send(content=f"Can only have 25 players on your Quick Check list. Please remove one.", ephemeral=True)
                 else:
                     await profile_db.update_one({'discord_id': res.author.id},
                                                {'$push': {"profile_tags": tag}})
                     player = await getPlayer(tag)
-                    await res.send(content=f"Added {player.name} to your Quick Check list.", hidden=True)
+                    await res.send(content=f"Added {player.name} to your Quick Check list.", ephemeral=True)
 
 
     async def display_embed(self, results, stat_type, current_page, ctx):
@@ -103,30 +106,32 @@ class pagination(commands.Cog):
 
         for stat in stat_types:
             if stat == "Add to Quick Check":
-                options.append(create_select_option(label=f"{stat}", value=f"{stat}", description="(If already added, will remove player instead)"))
+                options.append(disnake.SelectOption(label=f"{stat}", value=f"{stat}", description="(If already added, will remove player instead)"))
             else:
-                options.append(create_select_option(label=f"{stat}", value=f"{stat}"))
+                options.append(disnake.SelectOption(label=f"{stat}", value=f"{stat}"))
 
-        stat_select  = create_select(
+        stat_select  = disnake.ui.Select(
             options=options,
             placeholder="Stat Pages & Settings",
             min_values=1,  # the minimum number of options a user must select
             max_values=1  # the maximum number of options a user can select
         )
-        stat_select = create_actionrow(stat_select)
+        st = disnake.ui.ActionRow()
+        st.append_item(stat_select)
 
         if length == 1:
-            return [stat_select]
+            return st
 
-        profile_select = create_select(
+        profile_select = disnake.ui.Select(
             options=trophy_results,
             placeholder="Player Results",
             min_values=1,  # the minimum number of options a user must select
             max_values=1  # the maximum number of options a user can select
         )
-        profile_select = create_actionrow(profile_select)
+        st2 = disnake.ui.ActionRow()
+        st2.append_item(profile_select)
 
-        return [stat_select, profile_select]
+        return[st, st2]
 
 
 def setup(bot: commands.Bot):

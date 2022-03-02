@@ -1,18 +1,16 @@
 
 
-from discord.ext import commands
-from discord_slash import cog_ext
-
+from disnake.ext import commands
 from helper import patreon_discord_ids, server_db
 
 
 
-class Bot_Events(commands.Cog):
+class Patreon(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @cog_ext.cog_slash(name='redeem',
+    @commands.slash_command(name='redeem',
                        description="Redeem patreon subscription for this server.")
     async def redeem(self, ctx):
         ids = await patreon_discord_ids()
@@ -40,4 +38,4 @@ class Bot_Events(commands.Cog):
 
 
 def setup(bot: commands.Bot):
-    bot.add_cog(Bot_Events(bot))
+    bot.add_cog(Patreon(bot))

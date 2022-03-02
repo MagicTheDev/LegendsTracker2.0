@@ -1,15 +1,14 @@
-import discord
-from discord.ext import commands
+import disnake
+from disnake.ext import commands
 import os
 os.system("pip install \"pymongo[srv]\"")
 import traceback
-from discord_slash import SlashCommand
+from helper import IS_BETA
 
-
-bot = commands.Bot(command_prefix=["do ", "Do "], help_command=None)
-slash = SlashCommand(bot, sync_commands=True, sync_on_cog_reload=True)
-
-
+bot = commands.Bot(command_prefix=commands.when_mentioned,
+    test_guilds=[923764211845312533],
+    sync_commands_debug=True,
+    help_command=None)
 
 
 @bot.command(name='reload', hidden=True)
@@ -26,6 +25,7 @@ async def _reload(ctx, *, module : str):
     else:
         await ctx.send("You aren't magic. <:PS_Noob:783126177970782228>")
 
+
 initial_extensions = (
             "Check.check",
             "Check.check_stats",
@@ -38,10 +38,8 @@ initial_extensions = (
             "track",
             "Pepe.pepe",
             "leaderboards",
-            "context_menus",
             "top",
             "server_leaderboard",
-            "link",
             "stats",
             "help",
             "legend_feed",
@@ -54,6 +52,7 @@ initial_extensions = (
         )
 
 
+
 for extension in initial_extensions:
     try:
         bot.load_extension(extension)
@@ -62,6 +61,9 @@ for extension in initial_extensions:
 
 
 
+if IS_BETA:
+    TOKEN = os.getenv("BETA_TOKEN")
+else:
+    TOKEN = os.getenv("TOKEN")
 
-TOKEN = os.getenv("TOKEN")
 bot.run(TOKEN)

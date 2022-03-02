@@ -1,8 +1,6 @@
-from discord.ext import commands
+from disnake.ext import commands
 from helper import getPlayer, history_db
-import discord
-from discord_slash import cog_ext
-from discord_slash.utils.manage_commands import create_option
+import disnake
 
 
 dates = ["2015-07", "2015-08", "2015-09", "2015-10", "2015-11", "2015-12",
@@ -27,31 +25,28 @@ class History(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @cog_ext.cog_slash(name="history",
-                            description="View a players historical legends data.",
-                            options=[
-                                create_option(
-                                    name="player_tag",
-                                    description="Player to search for",
-                                    option_type=3,
-                                    required=True,
-                                )]
-                            )
-    async def history_co(self, ctx, player_tag):
-      embed = discord.Embed(
+
+    @commands.slash_command(name="history", description="View a players historical legends data")
+    async def history_co(self, ctx: disnake.ApplicationCommandInteraction, player_tag : str):
+      """
+        Parameters
+        ----------
+        player_tag: Player to search for
+      """
+      embed = disnake.Embed(
             description="<a:loading:884400064313819146> Fetching Historical Data.",
-            color=discord.Color.green())
-      msg = await ctx.send(embed=embed)
+            color=disnake.Color.green())
+      await ctx.send(embed=embed)
       embed= await self.create_history(ctx, player_tag)
-      await msg.edit(embed=embed)
+      await ctx.edit_original_message(embed=embed)
 
     async def create_history(self, ctx, tag):
         stats = []
         names = []
         player = await getPlayer(tag)
         if player is None:
-            embed = discord.Embed(description="Not a valid player tag. Check the spelling or use a different tag.",
-                                  color=discord.Color.red())
+            embed = disnake.Embed(description="Not a valid player tag. Check the spelling or use a different tag.",
+                                  color=disnake.Color.red())
             return embed
 
         no_results = True
@@ -70,14 +65,14 @@ class History(commands.Cog):
                 stats.append("None")
 
         if no_results == True:
-          embed = discord.Embed(description="Player has never ended season in legends.",
-                                  color=discord.Color.red())
+          embed = disnake.Embed(description="Player has never ended season in legends.",
+                                  color=disnake.Color.red())
           return embed
 
 
         text = ""
         oldyear = "2015"
-        embed = discord.Embed(title=f"**{player.name}'s Legends History**",description="🏆= trophies, 🌎= global rank", color=discord.Color.blue())
+        embed = disnake.Embed(title=f"**{player.name}'s Legends History**",description="🏆= trophies, 🌎= global rank", color=disnake.Color.blue())
         if names != []:
           names = ", ".join(names)
           embed.add_field(name = "**Previous Names**", value=names, inline=False)

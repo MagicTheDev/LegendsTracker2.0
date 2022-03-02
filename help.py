@@ -1,45 +1,22 @@
 
-from discord.ext import commands
-import discord
-from discord_slash.utils.manage_components import create_select, create_select_option, create_actionrow, wait_for_component
-from discord_slash import cog_ext
-from helper import ongoing_stats, server_db
+from disnake.ext import commands
+import disnake
+from helper import server_db
 
 class help(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.command(name="check")
-    async def check(self, ctx):
-        await ctx.send("All commands have been moved to slash commands. Start with a `/` in the chat to view them.\n"
-                       "Slash commands not showing up? Reinvite me.\nNeed Help? Join the support server - discord.gg/gChZm3XCrS\nhttps://discord.com/api/oauth2/authorize?client_id=825324351016534036&permissions=2147747840&scope=bot%20applications.commands")
-
     @commands.command(name='leave')
     @commands.is_owner()
     async def leaveg(self, ctx, *, guild_name):
-        guild = discord.utils.get(self.bot.guilds, name=guild_name)  # Get the guild by name
+        guild = disnake.utils.get(self.bot.guilds, name=guild_name)  # Get the guild by name
         if guild is None:
             await ctx.send("No guild with that name found.")  # No guild found
             return
         await guild.leave()  # Guild found
         await ctx.send(f"I left: {guild.name}!")
-
-    @commands.command(name='serverm')
-    @commands.is_owner()
-    async def serversmm(self, ctx, *, sname):
-        text = ""
-        guilds = self.bot.guilds
-        for guild in guilds:
-            name = guild.name
-            if name == sname:
-                for member in guild.members:
-                    text += member.name + "\n"
-
-        embed = discord.Embed(description=text,
-                              color=discord.Color.green())
-
-        await ctx.send(embed=embed)
 
 
     @commands.command(name="migrate")
@@ -60,26 +37,26 @@ class help(commands.Cog):
 
 
 
-    @cog_ext.cog_slash(name='invite',
+    @commands.slash_command(name='invite',
                        description="Invite for bot.")
     async def invite(self, ctx):
         await ctx.send("https://discord.com/api/oauth2/authorize?client_id=825324351016534036&permissions=2147747840&scope=bot%20applications.commands")
 
-    @cog_ext.cog_slash(name='server',
+    @commands.slash_command(name='server',
                        description="Support server for bot.")
     async def serv(self, ctx):
         await ctx.send(
             "discord.gg/gChZm3XCrS")
 
-    @cog_ext.cog_slash(name="help", description="Help command")
-    async def help(self, ctx):
-        select = create_select(
+    @commands.slash_command(name="help", description="Help command")
+    async def help(self, ctx: disnake.ApplicationCommandInteraction):
+        select = disnake.ui.Select(
             options=[  # the options in your dropdown
-                create_select_option("Setup", value="1"),
-                create_select_option("Legends", value="2"),
-                create_select_option("Stats", value="3"),
-                create_select_option("Settings", value="4"),
-                create_select_option("Fun/Other", value="5")
+                disnake.SelectOption(label="Setup", value="1"),
+                disnake.SelectOption(label="Legends", value="2"),
+                disnake.SelectOption(label="Stats", value="3"),
+                disnake.SelectOption(label="Settings", value="4"),
+                disnake.SelectOption(label="Fun/Other", value="5")
             ],
             placeholder="Choose your option",  # the placeholder text to show when no options have been chosen
             min_values=1,  # the minimum number of options a user must select
@@ -88,22 +65,34 @@ class help(commands.Cog):
 
         embeds = []
 
-        embed5 = discord.Embed(title="Legends Tracker",
-                               description=f"**Quick Setup:**To set up a attack/defense feed use `/feed set #channel`\n"
-                                           f"To start tracking a player & add them to your server use `/track add #playerTag`\n"
-                                           f"To start tracking a player & add them to your server use `/track remove #playerTag`\n"
+        embed5  = disnake.Embed(title="Setup Tips",
+                               description=f"To set up a attack/defense feed use `/feed set`\n"
+                                           f"> Run the command in the channel (or thread) you want the bot to post in.\n"
+                                           f"> Must have `Manage Webhooks` Permission to do so.\n"
+                                           f"To track a player & add them to your server use `/track add #playerTag`\n"
+                                           f"To track a player & add them to your server use `/track remove #playerTag`\n"
+                                           f"Checking a player's stats has never been easier with `/check search`"
                                            f"For other commands & help check out `/help`\n"
                                            "**NOTE:** Players have to be tracked before you can view stats on them, after that stats will start to show as they are collected.",
-                               color=discord.Color.blue())
+                               color=disnake.Color.blue())
 
         embeds.append(embed5)
 
-        embed = discord.Embed(title="Legends Tracker",
+        embed = disnake.Embed(title="Legends Tracker",
                               description="Legends Commands",
-                              color=discord.Color.blue())
+                              color=disnake.Color.blue())
 
-        embed.add_field(name=f"**/check**",
-                        value="__\nCheck/Search a person's legends hits & defenses for today.\n Supports searching by player tag, discord ID, or by name."
+        embed.add_field(name=f"**/check_search**",
+                        value="Check/Search a person's legends hits & defenses for today.\nSupports searching by name or player tag\n"
+                              "- Uses autocomplete to return matches as you type"
+                              "\nExamples:\n"
+                              "- /check magic\n"
+                              f"- /check {ctx.author.mention}\n"
+                              "- /check #PGY2YRQ\n",
+                        inline=False)
+
+        embed.add_field(name=f"**/check_user**",
+                        value="Check/Search a person's legends hits & defenses for today.\nSupports searching by player tag, discord ID, or by name."
                               "\nExamples:\n"
                               "- /check magic\n"
                               f"- /check {ctx.author.mention}\n"
@@ -120,16 +109,16 @@ class help(commands.Cog):
         embed.add_field(name=f"**/track remove [#playerTag]**",
                         value="Use this command to remove an account from server tracking.",
                         inline=False)
-        embed.add_field(name=f"**/clan_track add [#clanTag]**",
+        embed.add_field(name=f"**/ctrack add [#clanTag]**",
                         value="Manage Guild Required. Use this command to link & add a clan's accounts to your server.",
                         inline=False)
-        embed.add_field(name=f"**/clan_track remove [#clanTag]**",
+        embed.add_field(name=f"**/ctrack remove [#clanTag]**",
                         value="Manage Guild Required. Use this command to remove a clan's accounts to your server.",
                         inline=False)
-        embed.add_field(name=f"**/clan_track sync**",
+        embed.add_field(name=f"**/ctrack sync**",
                         value="Manage Guild Required. Use this command to sync or add to your feed from your server's linked clans..",
                         inline=False)
-        embed.add_field(name=f"**/clan_track list**",
+        embed.add_field(name=f"**/ctrack list**",
                         value="See server's linked clans.",
                         inline=False)
 
@@ -139,9 +128,9 @@ class help(commands.Cog):
 
         embeds.append(embed)
 
-        embed2 = discord.Embed(title="Legends Tracker",
+        embed2 = disnake.Embed(title="Legends Tracker",
                                description="Stats Commands",
-                               color=discord.Color.blue())
+                               color=disnake.Color.blue())
 
         embed2.add_field(name=f"**/top**",
                          value="Use this command to get top hitters & defenders tracked.",
@@ -169,24 +158,20 @@ class help(commands.Cog):
                          inline=False)
         embeds.append(embed2)
 
-        embed3 = discord.Embed(title="Legends Tracker",
+        embed3 = disnake.Embed(title="Legends Tracker",
                                description="Settings Commands",
-                               color=discord.Color.blue())
-        embed3.add_field(name=f"**/feed set [channel]**",
-                         value="Manage Guild Required.*\nSet the channel where for updating legends feed",
+                               color=disnake.Color.blue())
+        embed3.add_field(name=f"**/feed set**",
+                         value="Manage Guild Required.*\nCreates a feed in the channel you run the command.",
                          inline=False)
         embed3.add_field(name=f"**/feed remove**",
                          value="Manage Guild Required.*\nRemove the channel for legends feed",
                          inline=False)
         embeds.append(embed3)
 
-        embed4 = discord.Embed(title="Legends Tracker",
+        embed4 = disnake.Embed(title="Legends Tracker",
                                description="Other Commands",
-                               color=discord.Color.blue())
-
-        embed4.add_field(name=f"**/link**",
-                         value="Link a player to your discord account.",
-                         inline=False)
+                               color=disnake.Color.blue())
 
         embed4.add_field(name=f"**/pepe [text]**",
                          value="Use this command to create a pepe holding a sign with the text.",
@@ -202,24 +187,29 @@ class help(commands.Cog):
 
         embeds.append(embed4)
 
-        dropdown = create_actionrow(select)
+        dropdown = disnake.ui.ActionRow()
+        dropdown.append_item(select)
 
-        msg = await ctx.send(embed=embed5, components=[dropdown])
+        await ctx.send(embed=embed5, components=[dropdown])
+        msg = await ctx.original_message()
+
+        def check(res: disnake.MessageInteraction):
+            return res.message.id == msg.id
 
         while True:
             try:
-                res = await wait_for_component(self.bot, components=select, messages=msg, timeout=600)
+                res: disnake.MessageInteraction = await self.bot.wait_for("message_interaction", check=check,
+                                                                          timeout=600)
             except:
-                await msg.edit(components=None)
+                await msg.edit(components=[])
                 break
 
-            if res.author_id != ctx.author.id:
-                await res.send(content="You must run the command to interact with components.", hidden=True)
+            if res.author.id != ctx.author.id:
+                await res.send(content="You must run the command to interact with components.", ephemeral=True)
                 continue
 
-            await res.edit_origin()
             # print(res.selected_options)
-            await msg.edit(embed=embeds[int(res.selected_options[0]) - 1])
+            await res.response.edit_message(embed=embeds[int(res.values[0]) - 1])
 
 
 

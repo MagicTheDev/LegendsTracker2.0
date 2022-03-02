@@ -1,6 +1,6 @@
 
-from discord.ext import commands
-import discord
+from disnake.ext import commands
+import disnake
 from helper import getPlayer, ongoing_stats
 import random
 
@@ -23,9 +23,9 @@ class CheckStats(commands.Cog):
 
         player = await getPlayer(results)
         if player == None:
-          embed = discord.Embed(title=f"{results}",
+          embed = disnake.Embed(title=f"{results}",
                                   description=f"Api is likely under maintenance.",
-                                  color=discord.Color.blue())
+                                  color=disnake.Color.blue())
           return embed
         
 
@@ -78,19 +78,19 @@ class CheckStats(commands.Cog):
             pass
 
         if league != "Legend League":
-            embed = discord.Embed(title=f"{player.name} ({player.tag}) | {clanName}",
+            embed = disnake.Embed(title=f"{player.name} ({player.tag}) | {clanName}",
                                   description=f"Player not currently in legends.",
-                                  color=discord.Color.blue())
+                                  color=disnake.Color.blue())
             return embed
 
-        embed = discord.Embed(
+        embed = disnake.Embed(
                               description=f"**Today's Legends Overview** | [Profile]({link})\n" +
                                           f"- Started: {legend_shield} {str(player.trophies - net)}, Current: {legend_shield} {str(player.trophies)}\n" +
                                           f"- {numHits} attacks for +{str(totalOff)} trophies\n" +
                                           f"- {numDefs} defenses for -{str(totalDef)} trophies\n"
                                           f"- Net Trophies: {str(net)} trophies\n{active_streak}",
 
-                              color=discord.Color.blue())
+                              color=disnake.Color.blue())
 
         embed.add_field(name= "**Stats**", value=f"- Rank: <a:earth:861321402909327370> {gspot} | {flag} {cou_spot}\n"+ country_name
                                 , inline=False)
@@ -134,9 +134,9 @@ class CheckStats(commands.Cog):
         playerTag = result.get("tag")
         player = await getPlayer(playerTag)
         if player == None:
-          embed = discord.Embed(title=f"{results}",
+          embed = disnake.Embed(title=f"{results}",
                                   description=f"Player is invalid, likely banned.",
-                                  color=discord.Color.blue())
+                                  color=disnake.Color.blue())
           return embed
         league = result.get("league")
         hits = result.get("previous_hits")
@@ -148,25 +148,25 @@ class CheckStats(commands.Cog):
             totalOff = sum(hits[-1])
             totalDef = sum(defs[-1])
         except:
-            embed = discord.Embed(title=f"{player.name} ({player.tag}) | {clanName}",
+            embed = disnake.Embed(title=f"{player.name} ({player.tag}) | {clanName}",
                                   description=f"No stats tracked for yesterday.",
-                                  color=discord.Color.blue())
+                                  color=disnake.Color.blue())
             return embed
 
         net = totalOff - totalDef
 
         if league != "Legend League":
-            embed = discord.Embed(title=f"{player.name} ({player.tag}) | {clanName}",
+            embed = disnake.Embed(title=f"{player.name} ({player.tag}) | {clanName}",
                                   description=f"Player not currently in legends.",
-                                  color=discord.Color.blue())
+                                  color=disnake.Color.blue())
             return embed
 
-        embed = discord.Embed(title=f"{player.name} ({player.tag}) | {clanName}",
+        embed = disnake.Embed(title=f"{player.name} ({player.tag}) | {clanName}",
                               description="**Legend's Overview Yesterday**\n" +
                                           f"- {str(len(hits[-1]))} attacks for +{str(totalOff)} trophies\n" +
                                           f"- {str(len(defs[-1]))} defenses for -{str(totalDef)} trophies\n"
                                           f"- Net Trophies: {str(net)} trophies",
-                              color=discord.Color.blue())
+                              color=disnake.Color.blue())
         off = ""
         for hit in hits[-1]:
             off += f"{sword} +{hit}\n"

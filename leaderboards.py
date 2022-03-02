@@ -1,5 +1,5 @@
 
-from discord.ext import commands, tasks
+from disnake.ext import commands, tasks
 from helper import coc_client
 
 locations = [32000007, 32000008, 32000009, 32000010, 32000011, 32000012, 32000013, 32000014, 32000015, 32000016, 32000017,

@@ -1,9 +1,9 @@
 
+from disnake.ext import commands
+import disnake
 
-from discord.ext import commands
-import discord
-
-from helper import getPlayer, ongoing_stats
+from helper import getPlayer, ongoing_stats, profile_db
+stat_types = ["Yesterday Legends", "Legends Overview", "Graph & Stats", "Add to Quick Check"]
 
 
 class trophy(commands.Cog):
@@ -13,76 +13,125 @@ class trophy(commands.Cog):
       
 
     @commands.Cog.listener()
-    async def on_component(self, ctx):
-        label = None
-        tag= None
-        try:
-            label = ctx.component["label"]
-            tag = ctx.component["custom_id"]
-        except:
-            pass
-        if label == "All Stats":
-            await ctx.edit_origin()
-            search = self.bot.get_cog("search")
-            results = await search.search_results(ctx, tag)
+    async def on_button_click(self, ctx: disnake.MessageInteraction):
+        if ctx.component.label == "All Stats":
+            tag = ctx.component.custom_id
+            results = []
+            results.append(tag)
 
-            emojis = self.bot.get_cog("emoji_dictionary")
-            legend_shield = emojis.fetch_emojis("legends_shield")
-            sword = emojis.fetch_emojis("sword")
-            shield = emojis.fetch_emojis("shield")
+            check = self.bot.get_cog("CheckStats")
+            current_page = 0
+            stats_page = []
+            trophy_results = []
+            x = 0
+            for result in results:
+                r = await ongoing_stats.find_one({"tag": result})
+                name = r.get("name")
+                trophies = r.get("trophies")
+                trophy_results.append(disnake.SelectOption(label=f"{name} | 🏆{trophies}", value=f"{x}"))
+                embed = await check.checkEmbed(result, 0)
+                stats_page.append(embed)
+                x += 1
 
-            for tag in results:
-                result = await ongoing_stats.find_one({"tag": tag})
+            components = await self.create_components(results, trophy_results)
+            await ctx.send(embed=stats_page[0], components=components, delete_after=300)
+            msg = await ctx.original_message()
+
+            def check(res: disnake.MessageInteraction):
+                return res.message.id == msg.id
+
+            while True:
+                try:
+                    res: disnake.MessageInteraction = await self.bot.wait_for("message_interaction", check=check,
+                                                                              timeout=120)
+                except:
+                    break
+
+
+                if res.values[0] in stat_types:
+                    if res.values[0] == "Add to Quick Check":
+                        await self.add_profile(res, results[current_page], components, msg)
+                    else:
+                        await res.response.defer()
+                        current_stat = stat_types.index(res.values[0])
+                        embed = await self.display_embed(results, stat_types[current_stat], current_page, ctx)
+                        await msg.edit(embed=embed,
+                                       components=components)
+
+
+    async def add_profile(self, res, tag, components, msg):
+        results = await profile_db.find_one({'discord_id': res.author.id})
+        await msg.edit(components=components)
+        if results is None:
+            await profile_db.insert_one({'discord_id': res.author.id,
+                                         "profile_tags" : [f"{tag}"]})
+            player = await getPlayer(tag)
+            await res.send(content=f"Added {player.name} to your Quick Check list.", ephemeral=True)
+        else:
+            profile_tags = results.get("profile_tags")
+            if tag in profile_tags:
+                await profile_db.update_one({'discord_id': res.author.id},
+                                               {'$pull': {"profile_tags": tag}})
                 player = await getPlayer(tag)
+                await res.send(content=f"Removed {player.name} from your Quick Check list.", ephemeral=True)
+            else:
+                if len(profile_tags) > 25:
+                    await res.send(content=f"Can only have 25 players on your Quick Check list. Please remove one.", ephemeral=True)
+                else:
+                    await profile_db.update_one({'discord_id': res.author.id},
+                                               {'$push': {"profile_tags": tag}})
+                    player = await getPlayer(tag)
+                    await res.send(content=f"Added {player.name} to your Quick Check list.", ephemeral=True)
 
-                hits = result.get("today_hits")
-                defenses = result.get("today_defenses")
-                numHits = result.get("num_today_hits")
-                numDefs = len(defenses)
-                totalOff = sum(hits)
-                totalDef = sum(defenses)
-                net = totalOff - totalDef
-                link = result.get("link")
 
-                clanName = "No Clan"
-                if player.clan != None:
-                    clanName = player.clan.name
+    async def display_embed(self, results, stat_type, current_page, ctx):
 
-                embed = discord.Embed(title=f"{player.name} ({player.tag}) | {clanName}",
-                                      description=f"**Legend's Overview** | [Profile]({link})\n" +
-                                                  f"- Started: {legend_shield} {str(player.trophies - net)}, Current: {legend_shield} {str(player.trophies)}\n" +
-                                                  f"- {numHits} attacks for +{str(totalOff)} trophies\n" +
-                                                  f"- {numDefs} defenses for -{str(totalDef)} trophies\n"
-                                                  f"- Net Trophies: {str(net)} trophies\n",
-                                      color=discord.Color.blue())
+        check = self.bot.get_cog("CheckStats")
+        graph = self.bot.get_cog("graph")
+        history = self.bot.get_cog("History")
 
-                if player.town_hall == 14:
-                    embed.set_thumbnail(
-                        url="https://cdn.discordapp.com/attachments/886889518890885141/911184447628513280/1_14_5.png")
-                elif player.town_hall == 13:
-                    embed.set_thumbnail(
-                        url="https://cdn.discordapp.com/attachments/886889518890885141/911184958293430282/786299624725545010.png")
+        if stat_type == "Legends Overview":
+            return await check.checkEmbed(results[current_page], 0)
+        elif stat_type == "Yesterday Legends":
+            return await check.checkYEmbed(results[current_page])
+        elif stat_type == "Graph & Stats":
+            return await graph.createGraphEmbed(results[current_page])
+        elif stat_type == "Legends History":
+            return await history.create_history(ctx, results[current_page])
 
-                off = ""
-                for hit in hits:
-                    off += f"{sword} +{hit}\n"
+    async def create_components(self, results, trophy_results):
+        length = len(results)
 
-                defi = ""
-                for d in defenses:
-                    defi += f"{shield} -{d}\n"
+        options = []
 
-                if off == "":
-                    off = "No Attacks Yet."
-                if defi == "":
-                    defi = "No Defenses Yet."
-                embed.add_field(name="**Offense**", value=off, inline=True)
-                embed.add_field(name="**Defense**", value=defi, inline=True)
+        for stat in stat_types:
+            if stat == "Add to Quick Check":
+                options.append(disnake.SelectOption(label=f"{stat}", value=f"{stat}", description="(If already added, will remove player instead)"))
+            else:
+                options.append(disnake.SelectOption(label=f"{stat}", value=f"{stat}"))
 
-                pers = ctx.author
-                embed.set_author(name=f"Requested by {pers.display_name}",
-                                 icon_url=pers.avatar_url)
-                embed.set_footer(text="Message auto-deletes after 120 seconds to reduce clutter.")
-                return await ctx.reply(embed=embed, delete_after=120)
+        stat_select  = disnake.ui.Select(
+            options=options,
+            placeholder="Stat Pages & Settings",
+            min_values=1,  # the minimum number of options a user must select
+            max_values=1  # the maximum number of options a user can select
+        )
+        st = disnake.ui.ActionRow()
+        st.append_item(stat_select)
+
+        if length == 1:
+            return st
+
+        profile_select = disnake.ui.Select(
+            options=trophy_results,
+            placeholder="Player Results",
+            min_values=1,  # the minimum number of options a user must select
+            max_values=1  # the maximum number of options a user can select
+        )
+        st2 = disnake.ui.ActionRow()
+        st2.append_item(profile_select)
+
+        return[st, st2]
 
 
 

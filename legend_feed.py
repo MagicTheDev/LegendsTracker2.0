@@ -1,15 +1,11 @@
 
-import discord
-from discord.ext import commands, tasks
-
-
-
+import disnake
+from disnake.ext import commands, tasks
+import aiohttp
 from datetime import datetime
-from discord_slash.utils.manage_components import create_button, create_actionrow, wait_for_component
-from discord_slash.model import ButtonStyle
 import pytz
 utc = pytz.utc
-
+from disnake import Webhook
 from helper import server_db, ongoing_stats
 
 
@@ -29,33 +25,27 @@ class legends_feed(commands.Cog):
     async def feed_update(self):
         tracked = server_db.find()
         limit = await server_db.count_documents(filter={})
+        webhooks = {}
 
-        channels = []
         for feed in await tracked.to_list(length=limit):
-            channel = feed.get("channel_id")
+            webhook = feed.get("webhook")
             server = feed.get("server")
-            if channel is not None:
-                try:
-                    channel = await self.bot.fetch_channel(channel)
-                    channels.append(server)
-                    channels.append(channel)
-                except (discord.NotFound, discord.Forbidden):
-                    tracked = ongoing_stats.find({})
-                    limit = await ongoing_stats.count_documents(filter={})
-                    for document in await tracked.to_list(length=limit):
-                        servers = document.get("servers")
-                        if servers == None:
-                            continue
-                        if server in servers:
-                            tag = document.get("tag")
-                            print(tag)
-                            await ongoing_stats.update_one({'tag': f"{tag}"},
-                                                           {'$pull': {'servers': server}})
-                    await server_db.update_one({"channel_id": channel}, {'$set': {"channel_id": None}})
-                except Exception as e:
-                    print(e)
-                    channel = await self.bot.fetch_channel(923767060977303552)
-                    await channel.send(f"{e}")
+            thread = feed.get("thread")
+            if webhook is None:
+                continue
+            try:
+                webhook = await self.bot.fetch_webhook(webhook)
+                if thread is not None:
+                    thread = await self.bot.fetch_channel(thread)
+            except disnake.NotFound:
+                await server_db.update_one({"server": server}, {'$set': {"webhook": None}})
+                await server_db.update_one({"server": server}, {'$set': {"thread": None}})
+                continue
+
+            if webhook is not None:
+                webhooks[server] = webhook
+                webhooks[webhook] = thread
+
 
 
         tracked = ongoing_stats.find({"change": {"$ne" : None}})
@@ -67,62 +57,48 @@ class legends_feed(commands.Cog):
         discord_time = f"<t:{int(utc_timestamp)}:R>"
 
 
+
         for document in await tracked.to_list(length=limit):
+            servers = document.get("servers")
+            if servers == None:
+                continue
+
             change = document.get("change")
             tag = document.get("tag")
             name = document.get("name")
             clan = document.get("clan")
             link = document.get("link")
-
             change = str(change)
-            if change != "None":
-                servers = document.get("servers")
-                if servers == None:
+
+            for server in servers:
+                webhook = webhooks.get(server)
+                thread = webhooks.get(webhook)
+
+                if webhook is None:
                     continue
-                for server in servers:
-                    if server in channels:
-                        index = channels.index(server)
-                        channel = channels[index + 1]
-                        color = None
-                        if "Defense Won" in change:
-                            color = discord.Color.green()
-                        elif "Defense" in change:
-                            color = discord.Color.red()
-                        else:
-                            color = discord.Color.green()
-                        embed = discord.Embed(title=f"{name} | {clan}",
-                                              description=change + f"{discord_time} | [profile]({link})",
-                                              color=color)
-                        embed.set_footer(text=f"{tag}")
-                        # print("here")
+                if "Defense Won" in change:
+                    color = disnake.Color.green()
+                    button_color = disnake.ButtonStyle.green
+                elif "Defense" in change:
+                    color = disnake.Color.red()
+                    button_color = disnake.ButtonStyle.red
+                else:
+                    color = disnake.Color.green()
+                    button_color = disnake.ButtonStyle.green
+                embed = disnake.Embed(title=f"{name} | {clan}",
+                                      description=change + f"{discord_time} | [profile]({link})",
+                                      color=color)
+                embed.set_footer(text=f"{tag}")
 
-                        page_buttons = [
-                            create_button(label="All Stats", emoji="📊", style=ButtonStyle.blue,
-                                          custom_id=f"{tag}")]
-                        page_buttons = create_actionrow(*page_buttons)
+                button = disnake.ui.Button(label="All Stats", emoji="📊", style=button_color, custom_id=f"{tag}")
+                buttons = disnake.ui.ActionRow()
+                buttons.append_item(button)
 
-
-                        try:
-                            await channel.send(embed=embed, components=[page_buttons])
-                        except (discord.Forbidden):
-                            tracked = ongoing_stats.find({})
-                            limit = await ongoing_stats.count_documents(filter={})
-                            for document in await tracked.to_list(length=limit):
-                                servers = document.get("servers")
-                                if servers == None:
-                                    continue
-                                if server in servers:
-                                    tag = document.get("tag")
-                                    await ongoing_stats.update_one({'tag': f"{tag}"},
-                                                                   {'$pull': {'servers': server}})
-                            await server_db.update_one({"channel_id": channel.id}, {'$set': {"channel_id": None}})
-                        except Exception as e:
-                            print(e)
-                            channel = await self.bot.fetch_channel(923767060977303552)
-                            await channel.send(f"{e}")
+                await webhook.send(embed=embed,  components=[buttons], username='Legends Tracker',
+                                   avatar_url="https://cdn.discordapp.com/attachments/843624785560993833/938961364100190269/796f92a51db491f498f6c76fea759651_1.png", thread=thread)
 
                 await ongoing_stats.update_one({'tag': tag},
-                                               {'$set': {'change': None}})
+                                       {'$set': {'change': None}})
 
 
     @feed_update.before_loop

@@ -2,15 +2,15 @@
 import asyncio
 import contextlib
 import aiohttp
+import disnake
 import psutil
 import logging
 
-from discord import Client as DiscordClient
+from disnake import Client as DiscordClient
 from typing import Any, Optional, Coroutine, Union, List, Dict, Iterable
 
 # this could be relative, but apparently Python doesn't like it
 from statcord import exceptions
-import discord_slash
 
 class Client:
     """Client for using the statcord API"""
@@ -182,12 +182,12 @@ class Client:
         print("here")
         self.bot.loop.create_task(self.__loop())
 
-    def command_run(self, ctx: discord_slash.SlashContext) -> None:
+    def command_run(self, ctx: disnake.ApplicationCommandInteraction) -> None:
         self.commands += 1
         if ctx.author.id not in self.active:
             self.active.append(ctx.author.id)
 
-        command = ctx.name
+        command = ctx.data.name
         self.logger.debug(f"Command {command} has been run by {ctx.author.id}")
         for cmd in filter(lambda x: x["name"] == command, self.popular):
             cmd["count"] = str(int(cmd["count"]) + 1)

@@ -37,9 +37,9 @@ class legends(commands.Cog):
             search_query = str(user.id)
         else:
             search_query = str(ctx.author.id)
-        embed = discord.Embed(
+        embed = disnake.Embed(
             description="<a:loading:884400064313819146> Fetching Stats.",
-            color=discord.Color.green())
+            color=disnake.Color.green())
         msg = await ctx.reply(embed=embed)
         await self.legends(ctx, msg,search_query)
 
@@ -48,9 +48,9 @@ class legends(commands.Cog):
     async def prefix_legends(self,ctx, *, search_query = None):
         if search_query == None:
             search_query = str(ctx.message.author.id)
-        embed = discord.Embed(
+        embed = disnake.Embed(
             description="<a:loading:884400064313819146> Fetching Stats. | Searches of 10+ players can take a few seconds, refine your search or use playertag if needed.",
-            color=discord.Color.green())
+            color=disnake.Color.green())
         msg = await ctx.reply(embed=embed, mention_author = False)
         await self.legends(ctx, msg, search_query)
 

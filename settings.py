@@ -1,10 +1,5 @@
-from discord.ext import commands
-import discord
-from discord_slash import cog_ext
-from discord_slash.utils.manage_commands import create_option
-from discord_slash.utils.manage_components import create_button, wait_for_component, create_select, create_select_option, create_actionrow
-from discord_slash.model import ButtonStyle
-
+from disnake.ext import commands
+import disnake
 from helper import server_db, coc_client, removeLegendsPlayer_SERVER
 
 
@@ -13,78 +8,71 @@ class bot_settings(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @cog_ext.cog_subcommand(base='feed', name="set",
-                       description="Set channel for attack/defense feed.",
-                       options=[create_option(name="channel", option_type=7, description="Choose channel for feed.", required=True)])
-    async def setfeed(self, ctx, channel=None):
-        extra = channel.id
+    @commands.slash_command(name="feed", description="Check a player's legends stats")
+    async def feed(self, ctx):
+        pass
+
+
+    @feed.sub_command(name= "set", description="Set channel for attack/defense feed.")
+    async def setfeed(self, ctx):
+
         perms = ctx.author.guild_permissions.manage_guild
         if ctx.author.id == 706149153431879760:
             perms = True
         if not perms:
-            embed = discord.Embed(description="Command requires you to have `Manage Guild` permissions.",
-                                  color=discord.Color.red())
+            embed = disnake.Embed(description="Command requires **you** to have `Manage Guild` permissions.",
+                                  color=disnake.Color.red())
             return await ctx.send(embed=embed)
-
-        results = await server_db.find_one({"server": ctx.guild.id})
-
-        if results == None:
-            return
-
-        typeC = str(channel.type)
-        if typeC != "text":
-            embed = discord.Embed(description=f"Must be a text channel, not {typeC} channel.",
-                                  color=discord.Color.red())
-            return await ctx.send(embed=embed)
-
+        is_thread = False
         try:
-            extra = await self.bot.fetch_channel(extra)
-            c = extra
-            g = ctx.guild
-            r = await g.fetch_member(825324351016534036)
-            perms = c.permissions_for(r)
-            send_msg = perms.send_messages
-            external_emoji = perms.use_external_emojis
-            if send_msg == False or external_emoji == False:
-                embed = discord.Embed(
-                    description=f"Feed channel creation canceled. Missing Permissions in that channel.\nMust have `Send Messages` and `Use External Emojis` perms in the feed channel.\n `do setfeed none` to remove feed.",
-                    color=discord.Color.red())
-                return await ctx.send(embed=embed)
-        except:
-            embed = discord.Embed(
-                description=f"Invalid Channel or Missing Access to view channel.\n`/feed remove` to remove feed.",
-                color=discord.Color.red())
+            if "thread" in str(ctx.channel.type):
+                is_thread = True
+                channel = ctx.channel.parent
+            else:
+                channel = ctx.channel
+
+            bot_av = self.bot.user.avatar.read().close()
+            webhook = await channel.create_webhook(name="Legends Tracker", avatar=bot_av, reason="Legends Feed")
+        except Exception as e:
+            e = str(e)[0:1000]
+            embed = disnake.Embed(title="Error",
+                description="Likely Missing Permissions\nEnsure the bot has both `Manage Webhooks` and `Send Messages` Perms for this channel.\nError Output: " + e,
+                color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
-        channel = extra.id
+        await server_db.update_one({"server": ctx.guild.id}, {'$set': {"webhook": webhook.id}})
+        if is_thread:
+            await server_db.update_one({"server": ctx.guild.id}, {'$set': {"thread": ctx.channel.id}})
+            await webhook.send("Feed Successfully Setup", username='Legends Tracker',
+                               avatar_url="https://cdn.discordapp.com/attachments/843624785560993833/938961364100190269/796f92a51db491f498f6c76fea759651_1.png", thread=ctx.channel)
 
-        await server_db.update_one({"server": ctx.guild.id}, {'$set': {"channel_id": channel}})
+        else:
+            await webhook.send("Feed Successfully Setup", username='Legends Tracker',
+                                   avatar_url="https://cdn.discordapp.com/attachments/843624785560993833/938961364100190269/796f92a51db491f498f6c76fea759651_1.png")
 
-        embed = discord.Embed(
-            description=f"{extra.mention} set as feed channel.\nEnsure I have permission to send messages there.\nView current feed channel with `/stats`.",
-            color=discord.Color.green())
+
+        embed = disnake.Embed(
+            description=f"Feed channel setup.\nView status of feed with `/stats`",
+            color=disnake.Color.green())
         return await ctx.send(embed=embed)
 
-    @cog_ext.cog_slash(name="clear_under",
-                       description="Remove players under certain trophies from server tracking.",
-                       options=[
-                           create_option(
-                               name="trophies",
-                               description="Trophy Options",
-                               option_type=3,
-                               required=True,
-                               choices=["5000", "5100", "5200", "5300", "5400", "5500", "5600", "5700", "5800", "5900", "6000"]
-                           )
-                       ]
-                       )
-    async def trophyLimit(self, ctx, trophies):
+
+
+    @commands.slash_command(name="clear_under",
+                       description="Remove players under certain trophies from server tracking.")
+    async def trophyLimit(self, ctx, trophies: str = commands.Param(choices=["5000", "5100", "5200", "5300", "5400", "5500", "5600", "5700", "5800", "5900", "6000"])):
+        """
+            Parameters
+            ----------
+            trophies: trophy bar to clear under
+          """
         await ctx.defer()
         perms = ctx.author.guild_permissions.manage_guild
         if ctx.author.id == 706149153431879760:
             perms = True
         if not perms:
-            embed = discord.Embed(description="Command requires you to have `Manage Server` permissions.",
-                                  color=discord.Color.red())
+            embed = disnake.Embed(description="Command requires you to have `Manage Server` permissions.",
+                                  color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
         results = await server_db.find_one({"server": ctx.guild.id})
@@ -94,9 +82,9 @@ class bot_settings(commands.Cog):
 
         fchannel = results.get("channel_id")
         if fchannel == None:
-            embed = discord.Embed(
+            embed = disnake.Embed(
                 description="Sorry this server does not have a legends feed. Those with Manage Server Perms can add one with **/feed set**.",
-                color=discord.Color.red())
+                color=disnake.Color.red())
             return await ctx.send(embed=embed)
         trophies = int(trophies)
 
@@ -108,54 +96,42 @@ class bot_settings(commands.Cog):
                 num_clear +=1
                 await removeLegendsPlayer_SERVER(player=player, guild_id=ctx.guild.id)
 
-        embed = discord.Embed(
+        embed = disnake.Embed(
             description=f"<a:check:861157797134729256> Trophies below {trophies} cleared.\n"
                         f"{num_clear} accounts cleared.",
-            color=discord.Color.green())
+            color=disnake.Color.green())
         return await ctx.send(embed=embed)
 
 
-    @cog_ext.cog_subcommand(base='feed', name="remove",
+    @feed.sub_command(name="remove",
                             description="Remove channel for attack/defense feed.")
     async def feed_remove(self, ctx):
         perms = ctx.author.guild_permissions.manage_guild
         if ctx.author.id == 706149153431879760:
             perms = True
         if not perms:
-            embed = discord.Embed(description="Command requires you to have `Manage Server` permissions.",
-                                  color=discord.Color.red())
+            embed = disnake.Embed(description="Command requires you to have `Manage Server` permissions.",
+                                  color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
-        results = await server_db.find_one({"server": ctx.guild.id})
-
-        await server_db.update_one({"server": ctx.guild.id}, {'$set': {"channel_id": None}})
-        embed = discord.Embed(description=f"Feed channel removed.",
-                              color=discord.Color.green())
+        await server_db.update_one({"server": ctx.guild.id}, {'$set': {"webhook": None}})
+        await server_db.update_one({"server": ctx.guild.id}, {'$set': {"thread": None}})
+        embed = disnake.Embed(description=f"Feed removed.",
+                              color=disnake.Color.green())
         return await ctx.send(embed=embed)
 
 
 
-
-
-    @cog_ext.cog_slash(name='tracked_list',
-                       description="List of clans or players tracked in server.",
-                       options=[
-                           create_option(
-                               name="list_type",
-                               description="Choose clan or player tracked list",
-                               option_type=3,
-                               required=True,
-                               choices=["Clan list", "Player list"]
-                           )
-                       ])
-    async def tracked_list(self, ctx, list_type):
-        await ctx.defer()
+    @commands.slash_command(name='tracked_list',
+                       description="List of clans or players tracked in server.")
+    async def tracked_list(self, ctx: disnake.ApplicationCommandInteraction, list_type: str = commands.Param(choices=["Clan list", "Player list"])):
+        await ctx.response.defer()
         list = []
         results = await server_db.find_one({"server": ctx.guild.id})
         tags = results.get("tracked_members")
         if tags == []:
-            embed = discord.Embed(description="No players tracked on this server.",
-                                  color=discord.Color.red())
+            embed = disnake.Embed(description="No players tracked on this server.",
+                                  color=disnake.Color.red())
             return await ctx.send(embed=embed)
         async for player in coc_client.get_players(tags):
             if list_type == "Clan list":
@@ -172,44 +148,45 @@ class bot_settings(commands.Cog):
             text += f"{l.name} | {l.tag}\n"
             x += 1
             if x == 25:
-                embed = discord.Embed(title=f"Tracked List ({len(list)} results)",description=f"{text}",
-                                      color=discord.Color.blue())
+                embed = disnake.Embed(title=f"Tracked List ({len(list)} results)",description=f"{text}",
+                                      color=disnake.Color.blue())
                 x = 0
                 embeds.append(embed)
                 text = ""
 
         if text != "":
-            embed = discord.Embed(title=f"Tracked List ({len(list)} results)", description=f"{text}",
-                                  color=discord.Color.blue())
+            embed = disnake.Embed(title=f"Tracked List ({len(list)} results)", description=f"{text}",
+                                  color=disnake.Color.blue())
             embeds.append(embed)
 
         current_page = 0
-        msg = await ctx.send(embed=embeds[0], components=self.create_components(current_page, embeds))
+        await ctx.edit_original_message(embed=embeds[0], components=self.create_components(current_page, embeds))
+
+        msg = await ctx.original_message()
+
+        def check(res: disnake.MessageInteraction):
+            return res.message.id == msg.id
 
         while True:
             try:
-                res = await wait_for_component(self.bot, components=self.create_components(current_page, embeds),
-                                               messages=msg, timeout=600)
+                res = await self.bot.wait_for("message_interaction", check=check, timeout=600)
             except:
-                await msg.edit(components=[])
+                await ctx.edit_original_message(components=[])
                 break
 
-            if res.author_id != ctx.author.id:
-                await res.send(content="You must run the command to interact with components.", hidden=True)
+            if res.author.id != ctx.author.id:
+                await res.send(content="You must run the command to interact with components.", ephemeral=True)
                 continue
 
-            await res.edit_origin()
-
-            # print(res.custom_id)
             if res.custom_id == "Previous":
                 current_page -= 1
-                await msg.edit(embed=embeds[current_page],
-                               components=self.create_components(current_page, embeds))
+                await res.response.edit_message(embed=embeds[current_page],
+                                                components=self.create_components(current_page, embeds))
 
             elif res.custom_id == "Next":
                 current_page += 1
-                await msg.edit(embed=embeds[current_page],
-                               components=self.create_components(current_page, embeds))
+                await res.response.edit_message(embed=embeds[current_page],
+                                                components=self.create_components(current_page, embeds))
 
 
     def create_components(self, current_page, embeds):
@@ -217,22 +194,19 @@ class bot_settings(commands.Cog):
         if length == 1:
             return []
 
-        page_buttons = [create_button(label="", emoji="◀️", style=ButtonStyle.blue, disabled=(current_page == 0),
-                                      custom_id="Previous"),
-                        create_button(label=f"Page {current_page + 1}/{length}", style=ButtonStyle.grey,
-                                      disabled=True),
-                        create_button(label="", emoji="▶️", style=ButtonStyle.blue,
-                                      disabled=(current_page == length - 1), custom_id="Next")
-                        ]
-        page_buttons = create_actionrow(*page_buttons)
+        page_buttons = [
+            disnake.ui.Button(label="", emoji="◀️", style=disnake.ButtonStyle.blurple, disabled=(current_page == 0),
+                              custom_id="Previous"),
+            disnake.ui.Button(label=f"Page {current_page + 1}/{length}", style=disnake.ButtonStyle.grey,
+                              disabled=True),
+            disnake.ui.Button(label="", emoji="▶️", style=disnake.ButtonStyle.blurple,
+                              disabled=(current_page == length - 1), custom_id="Next")
+            ]
+        buttons = disnake.ui.ActionRow()
+        for button in page_buttons:
+            buttons.append_item(button)
 
-        return [page_buttons]
-
-
-
-
-
-
+        return [buttons]
 
 
 

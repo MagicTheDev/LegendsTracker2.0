@@ -1,9 +1,7 @@
-from discord.ext import commands
+from disnake.ext import commands
 from PIL import Image, ImageDraw, ImageFont
 import io
-import discord
-from discord_slash import cog_ext
-from discord_slash.utils.manage_commands import create_option
+import disnake
 
 
 class pepe(commands.Cog):
@@ -11,18 +9,14 @@ class pepe(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @cog_ext.cog_slash(name="pepe",
-                       description="Fun Command. Create a pepe holding a sign w/ text.",
-                       options=[
-                           create_option(
-                               name="sign_text",
-                               description="Text to write on sign",
-                               option_type=3,
-                               required=True,
-                           )]
-                       )
-    async def createPFP(self,ctx, sign_text):
-
+    @commands.slash_command(name="pepe",
+                       description="Fun Command. Create a pepe holding a sign w/ text.")
+    async def createPFP(self,ctx, sign_text : str):
+        """
+            Parameters
+            ----------
+            sign_text: Text to write on sign (up to 20 char)
+        """
         size = 40
         if len(sign_text) > 20:
             return await ctx.send("Too long, sorry :/")
@@ -46,7 +40,7 @@ class pepe(commands.Cog):
         back.save(temp, format="png")
 
         temp.seek(0)
-        file = discord.File(fp=temp, filename="filename.png")
+        file = disnake.File(fp=temp, filename="filename.png")
 
         await ctx.send(content="Save image or copy link & send wherever you like :)",file=file, hidden=True)
 

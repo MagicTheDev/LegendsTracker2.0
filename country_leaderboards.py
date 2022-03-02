@@ -1,133 +1,60 @@
 
-from discord.ext import commands, tasks
+from disnake.ext import commands, tasks
 from helper import coc_client, locations, ongoing_stats
-from discord_slash import cog_ext
-from thefuzz import fuzz
-from discord_slash.utils.manage_commands import create_option
 SUPER_SCRIPTS=["⁰","¹","²","³","⁴","⁵","⁶", "⁷","⁸", "⁹"]
 import emoji
-import discord
-from discord_slash.utils.manage_components import create_button, wait_for_component, create_select, create_select_option, create_actionrow
-from discord_slash.model import ButtonStyle
+import disnake
+import re
+
 
 class country_leaderboard(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @cog_ext.cog_slash(name="country_leaderboards",
-                       description="Search country leaderboards.",
-                       options=[
-                           create_option(
-                               name="country",
-                               description="Search by name or country code (\"global\" for global lb).",
-                               option_type=3,
-                               required=True,
-                           ) ]
-                       )
-    async def country_lb(self, ctx, country):
-        await ctx.defer()
-        search = country.upper()
-        results = await locations.find_one({"country_code" : search})
 
-        msg = None
-        embeds = []
-        if country.lower() == "global":
-            embeds = await self.create_lb("global")
-        elif results != None:
-            location_id = results.get("location_id")
-            embeds = await self.create_lb(location_id)
-        else:
-            search = country.lower()
-            results = locations.find({
-                "$text": {
-                    "$search": str(self.make_ngrams(search))
-                }
-            },
-            {
-                "country_name": True,
-                "location_id" : True,
-                "score": {
-                    "$meta": "textScore"
-                }
-            }
-            ).sort([("score", {"$meta": "textScore"})])
-
-            names = ""
-            option_list = []
-            for document in await results.to_list(length=5):
-                name = document.get("country_name")
-                location_id = document.get("location_id")
-                match = fuzz.partial_ratio(search, name.lower())
-                if name.lower() == country.lower():
-                    embeds = await self.create_lb(location_id)
-                    break
-                if int(match) >=50:
-                    names+= f"{name} - {match}% Match\n"
-                    option_list.append(create_select_option(f"{name}", value=f"{location_id}"))
+    async def autocomp_names(self, query: str):
+        query = query.lower()
+        query = re.escape(query)
+        names = []
+        results = locations.find({"country_name": {"$regex": f"^(?i).*{query}.*$"}})
+        for document in await results.to_list(length=25):
+            names.append(document.get("country_name"))
+        return names
 
 
-            if embeds == []:
-                select = create_select(
-                    options=option_list,
-                    placeholder="Choose a country",  # the placeholder text to show when no options have been chosen
-                    min_values=1,  # the minimum number of options a user must select
-                    max_values=1,  # the maximum number of options a user can select
-                )
-                dropdown = [create_actionrow(select)]
-                embed = discord.Embed(
-                    description=f"**Country Not Found.**\nSimilar Matches Found, Choose from Dropdown List.\n\n{names}",
-                    color=discord.Color.blue())
-
-                msg = await ctx.send(embed=embed, components=dropdown)
-                value = None
-                while value is None:
-
-                    try:
-                        res = await wait_for_component(self.bot, components=dropdown,
-                                                       messages=msg, timeout=600)
-                    except:
-                        return await msg.edit(components=[])
-
-                    if res.author_id != ctx.author.id:
-                        await res.send(content="You must run the command to interact with components.", hidden=True)
-                        continue
-
-                    await res.edit_origin()
-                    value = res.selected_options[0]
-
-                location_id = int(value)
-                embeds = await self.create_lb(location_id)
+    @commands.slash_command(name="country_leaderboards", description="Search country leaderboards.")
+    async def country_lb(self, ctx: disnake.ApplicationCommandInteraction , country: str = commands.Param(autocomplete=autocomp_names)):
+        await ctx.response.defer()
+        loc = await coc_client.get_location_named(country)
+        embeds = await self.create_lb(loc.id)
 
         current_page = 0
-        if msg is None:
-            msg = await ctx.send(embed=embeds[0], components=self.create_components(current_page, embeds))
-        else:
-            await msg.edit(embed=embeds[0], components=self.create_components(current_page, embeds))
+        await ctx.edit_original_message(embed=embeds[0], components=self.create_components(current_page, embeds))
+        msg = await ctx.original_message()
+        def check(res: disnake.MessageInteraction):
+            return res.message.id == msg.id
 
         while True:
             try:
-                res = await wait_for_component(self.bot, components=self.create_components(current_page, embeds),
-                                               messages=msg, timeout=600)
+                res = await self.bot.wait_for("message_interaction", check=check, timeout=600)
             except:
-                await msg.edit(components=[])
+                await ctx.edit_original_message(components=[])
                 break
 
-            if res.author_id != ctx.author.id:
-                await res.send(content="You must run the command to interact with components.", hidden=True)
+            if res.author.id != ctx.author.id:
+                await res.send(content="You must run the command to interact with components.", ephemeral=True)
                 continue
-
-            await res.edit_origin()
 
             # print(res.custom_id)
             if res.custom_id == "Previous":
                 current_page -= 1
-                await msg.edit(embed=embeds[current_page],
+                await res.response.edit_message(embed=embeds[current_page],
                                components=self.create_components(current_page, embeds))
 
             elif res.custom_id == "Next":
                 current_page += 1
-                await msg.edit(embed=embeds[current_page],
+                await res.response.edit_message(embed=embeds[current_page],
                                components=self.create_components(current_page, embeds))
 
 
@@ -173,27 +100,24 @@ class country_leaderboard(commands.Cog):
             text += f"`{rank}`\u200e**<:trophyy:849144172698402817>\u200e{member.trophies} | \u200e{name}**{hit_text}\n"
             y += 1
             if y == 20:
-                embed = discord.Embed(title=f"**{country_name} Legend Leaderboard**",
+                embed = disnake.Embed(title=f"**{country_name} Legend Leaderboard**",
                                       description=text)
                 y = 0
                 embeds.append(embed)
                 text = ""
 
         if text != "":
-            embed = discord.Embed(title=f"**{country_name} Legend Leaderboard**",
+            embed = disnake.Embed(title=f"**{country_name} Legend Leaderboard**",
                                   description=text)
             embeds.append(embed)
 
         if text == "" and embeds == []:
             text = "No Players"
-            embed = discord.Embed(title=f"**{country_name} Legend Leaderboard**",
+            embed = disnake.Embed(title=f"**{country_name} Legend Leaderboard**",
                                   description=text)
             embeds.append(embed)
 
         return embeds
-
-
-
 
 
 
@@ -202,36 +126,18 @@ class country_leaderboard(commands.Cog):
         if length == 1:
             return []
 
-        page_buttons = [create_button(label="", emoji="◀️", style=ButtonStyle.blue, disabled=(current_page == 0),
+        page_buttons = [disnake.ui.Button(label="", emoji="◀️", style=disnake.ButtonStyle.blurple, disabled=(current_page == 0),
                                       custom_id="Previous"),
-                        create_button(label=f"Page {current_page + 1}/{length}", style=ButtonStyle.grey,
+                        disnake.ui.Button(label=f"Page {current_page + 1}/{length}", style=disnake.ButtonStyle.grey,
                                       disabled=True),
-                        create_button(label="", emoji="▶️", style=ButtonStyle.blue,
+                        disnake.ui.Button(label="", emoji="▶️", style=disnake.ButtonStyle.blurple,
                                       disabled=(current_page == length - 1), custom_id="Next")
                         ]
-        page_buttons = create_actionrow(*page_buttons)
+        buttons = disnake.ui.ActionRow()
+        for button in page_buttons:
+            buttons.append_item(button)
 
-        return [page_buttons]
-
-
-    def make_ngrams(self, word, min_size=2, prefix_only=False):
-        """
-        basestring          word: word to split into ngrams
-               int      min_size: minimum size of ngrams
-              bool   prefix_only: Only return ngrams from start of word
-        """
-        length = len(word)
-        size_range = range(min_size, max(length, min_size) + 1)
-        if prefix_only:
-            return [
-                word[0:size]
-                for size in size_range
-            ]
-        return list(set(
-            word[i:i + size]
-            for size in size_range
-            for i in range(0, max(0, length - size) + 1)
-        ))
+        return [buttons]
 
 
 

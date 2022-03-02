@@ -1,5 +1,5 @@
-from discord.ext import commands
-import discord
+from disnake.ext import commands
+import disnake
 import matplotlib.pyplot as plt
 import io
 from helper import ongoing_stats, createTimeStats
@@ -22,9 +22,9 @@ class graph(commands.Cog):
 
 
         if len(y) < 2:
-            embed = discord.Embed(
+            embed = disnake.Embed(
                 description=f"Not enough data collected to make a graph for {name}. {str(len(y))} day collected, minimum 2 required.",
-                color=discord.Color.red())
+                color=disnake.Color.red())
             return embed
 
         x = []
@@ -58,10 +58,10 @@ class graph(commands.Cog):
         buf.seek(0)
 
         desc = await createTimeStats(result)
-        embed = discord.Embed(title=f"{name}'s Stats Over Time",
+        embed = disnake.Embed(title=f"{name}'s Stats Over Time",
                               description=desc,
-                              color=discord.Color.blue())
-        file = discord.File(fp=buf, filename="filename.png")
+                              color=disnake.Color.blue())
+        file = disnake.File(fp=buf, filename="filename.png")
         pic_channel = await self.bot.fetch_channel(884951195406458900)
         msg = await pic_channel.send(file=file)
         pic = msg.attachments[0].url

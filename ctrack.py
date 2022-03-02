@@ -1,9 +1,7 @@
-from discord.ext import commands
-from helper import patreon_discord_ids, getClan, ongoing_stats, server_db, addLegendsPlayer_SERVER, addLegendsPlayer_GLOBAL, removeLegendsPlayer_SERVER, coc_client
-import discord
-from discord_slash import cog_ext
-from discord_slash.utils.manage_commands import create_option
-from discord_slash.utils.manage_components import wait_for_component, create_select, create_select_option, create_actionrow
+from disnake.ext import commands
+from helper import getClan, ongoing_stats, server_db, addLegendsPlayer_SERVER, addLegendsPlayer_GLOBAL, removeLegendsPlayer_SERVER, coc_client
+import disnake
+
 
 ### SERVER MODEL###
 """
@@ -18,29 +16,29 @@ class ctrack(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @cog_ext.cog_subcommand(base="clan_track", name="add",
-                            description="Add players in a clan to legends tracking.",
-                            options=[
-                                create_option(
-                                    name="clan_tag",
-                                    description="Tag to track",
-                                    option_type=3,
-                                    required=True,
-                                )]
-                            )
-    async def ctrack_add(self,ctx, clan_tag):
-        await ctx.defer()
+    @commands.slash_command(name="ctrack", description="Clan tracking")
+    async def ctrack(self, ctx):
+        pass
+
+
+    @ctrack.sub_command(name="add", description="Add players in a clan to legends tracking" )
+    async def ctrack_add(self,ctx: disnake.ApplicationCommandInteraction, clan_tag: str):
+        """
+            Parameters
+            ----------
+            clan_tag: Clan to track
+          """
 
         perms = ctx.author.guild_permissions.manage_guild
         if not perms:
-            embed = discord.Embed(description="Command requires `Manage Server` permissions.",
-                                  color=discord.Color.red())
+            embed = disnake.Embed(description="Command requires `Manage Server` permissions.",
+                                  color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
         clan = await getClan(clan_tag)
         if clan is None:
-            embed = discord.Embed(description="Not a valid clan tag. Check the spelling or a different tag.",
-                                  color=discord.Color.red())
+            embed = disnake.Embed(description="Not a valid clan tag. Check the spelling or a different tag.",
+                                  color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
         results = await server_db.find_one({"server": ctx.guild.id})
@@ -49,26 +47,32 @@ class ctrack(commands.Cog):
             tracked_clans = []
 
         if clan.tag in tracked_clans:
-            embed = discord.Embed(description="Clan already tracked.\nUse `/clan_track sync` to sync your feed with players from this clan.",
-                                  color=discord.Color.red())
+            embed = disnake.Embed(description="Clan already tracked.\nUse `/clan_track sync` to sync your feed with players from this clan.",
+                                  color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
         tracked_members = results.get("tracked_members")
         feed = results.get("channel_id")
         if len(tracked_members) > 500 and feed is not None:
-            embed = discord.Embed(
+            embed = disnake.Embed(
                 description="Sorry this command cannot be used while you have more than 500 people tracked and have feed enabled.\n"
                             "Please clear some members with `/clear_under`, sync members with `/clan_track sync`, or remove individual accounts with `/track remove`",
-                color=discord.Color.red())
+                color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
         allowed_num = await self.sync_limit(ctx)
         if len(tracked_clans) >= allowed_num:
-            embed = discord.Embed(
+            embed = disnake.Embed(
                 description="Sorry you have linked the max amount of clans.\n"
                             "All patreons can link up to 10 clans.",
-                color=discord.Color.red())
+                color=disnake.Color.red())
             return await ctx.send(embed=embed)
+
+        embed = disnake.Embed(
+            description="<a:loading:884400064313819146> Adding players...",
+            color=disnake.Color.green())
+        await ctx.send(embed=embed)
+        msg = await ctx.original_message()
 
         num_global_tracked = 0
         num_server_tracked = 0
@@ -87,39 +91,35 @@ class ctrack(commands.Cog):
         await server_db.update_one({'server': ctx.guild.id},
                                    {'$push': {"tracked_clans": clan.tag}})
 
-        embed = discord.Embed(
+        embed = disnake.Embed(
                 title=f"{clan.name} linked to your server.",
                 description=f"{num_global_tracked} members added to global tracking.\n"
                             f"{num_server_tracked} members added to server tracking.",
-                color=discord.Color.green())
+                color=disnake.Color.green())
         embed.set_thumbnail(url=clan.badge.large)
-        return await ctx.send(embed=embed)
+        return await msg.edit(embed=embed)
 
 
-    @cog_ext.cog_subcommand(base="clan_track", name="remove",
-                            description="Remove players in a clan from legends tracking.",
-                            options=[
-                                create_option(
-                                    name="clan_tag",
-                                    description="Tag to remove",
-                                    option_type=3,
-                                    required=True,
-                                )]
-                            )
-    async def ctrack_remove(self,ctx, clan_tag):
+    @ctrack.sub_command(name="remove", description="Remove players in a clan from legends tracking")
+    async def ctrack_remove(self,ctx, clan_tag: str):
+        """
+            Parameters
+            ----------
+            clan_tag: Clan to remove tracking from
+        """
         await ctx.defer()
 
         perms = ctx.author.guild_permissions.manage_guild
         if not perms:
-            embed = discord.Embed(description="Command requires `Manage Server` permissions.",
-                                  color=discord.Color.red())
+            embed = disnake.Embed(description="Command requires `Manage Server` permissions.",
+                                  color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
         clan = await getClan(clan_tag)
 
         if clan is None:
-            embed = discord.Embed(description="Not a valid clan tag. Check the spelling or a different tag.",
-                                  color=discord.Color.red())
+            embed = disnake.Embed(description="Not a valid clan tag. Check the spelling or a different tag.",
+                                  color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
         results = await server_db.find_one({"server": ctx.guild.id})
@@ -128,9 +128,9 @@ class ctrack(commands.Cog):
             tracked_clans = []
 
         if clan.tag not in tracked_clans:
-            embed = discord.Embed(
+            embed = disnake.Embed(
                 description="Clan not tracked.\nUse `/clan_track add` to add this clan to your server.",
-                color=discord.Color.red())
+                color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
         num_server_tracked = 0
@@ -145,17 +145,15 @@ class ctrack(commands.Cog):
                                    {'$pull': {"tracked_clans": clan.tag}})
 
 
-        embed = discord.Embed(
+        embed = disnake.Embed(
             title=f"{clan.name}",
             description=f"{num_server_tracked} members removed from server tracking.",
-            color=discord.Color.green())
+            color=disnake.Color.green())
         embed.set_thumbnail(url=clan.badge.large)
         return await ctx.send(embed=embed)
 
 
-    @cog_ext.cog_subcommand(base="clan_track", name="list",
-                            description="List of clans linked to server.",
-                            )
+    @ctrack.sub_command(name="list", description="List of clans linked to server")
     async def ctrack_list(self, ctx):
         await ctx.defer()
 
@@ -165,30 +163,29 @@ class ctrack(commands.Cog):
             tracked_clans = []
 
         if tracked_clans == []:
-            embed = discord.Embed(
+            embed = disnake.Embed(
                 description="No clans linked to this server.\nUse `clan_track add` to get started.",
-                color=discord.Color.red())
+                color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
         text = ""
         async for clan in coc_client.get_clans(tracked_clans):
             text += f"{clan.name} | {clan.tag}\n"
 
-        embed = discord.Embed(title=f"{ctx.guild.name} Linked Clans",
+        embed = disnake.Embed(title=f"{ctx.guild.name} Linked Clans",
             description=text,
-            color=discord.Color.blue())
+            color=disnake.Color.blue())
         return await ctx.send(embed=embed)
 
-    @cog_ext.cog_subcommand(base="clan_track", name="sync",
-                            description="Sync players with the clans linked to server.",
-                            )
+
+    @ctrack.sub_command(name="sync", description="Sync players with the clans linked to server")
     async def ctrack_sync(self, ctx):
         await ctx.defer()
 
         perms = ctx.author.guild_permissions.manage_guild
         if not perms:
-            embed = discord.Embed(description="Command requires `Manage Server` permissions.",
-                                  color=discord.Color.red())
+            embed = disnake.Embed(description="Command requires `Manage Server` permissions.",
+                                  color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
         results = await server_db.find_one({"server": ctx.guild.id})
@@ -197,14 +194,14 @@ class ctrack(commands.Cog):
             tracked_clans = []
 
         if tracked_clans == []:
-            embed = discord.Embed(
+            embed = disnake.Embed(
                 description="No clans linked to this server.\nUse `clan_track add` to get started.",
-                color=discord.Color.red())
+                color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
-        embed = discord.Embed(description=f"**Would you like to remove tracked players outside of the linked clans?**\n"
+        embed = disnake.Embed(description=f"**Would you like to remove tracked players outside of the linked clans?**\n"
                                           f"if **yes**, this will set your feed & leaderboard to just members of the clans in `/clan_track` list.\n",
-                              color=discord.Color.green())
+                              color=disnake.Color.green())
 
         select1 = create_select(
             options=[
@@ -236,10 +233,10 @@ class ctrack(commands.Cog):
             tracked_members = results.get("tracked_members")
             feed = results.get("channel_id")
             if len(tracked_members) > 500 and feed is not None:
-                embed = discord.Embed(
+                embed = disnake.Embed(
                     description="Sorry this command cannot be used while you have more than 500 people tracked and have feed enabled.\n"
                                 "Please clear some members with `/clear_under`, sync members with `/clan_track sync`, or remove individual accounts with `/track remove`",
-                    color=discord.Color.red())
+                    color=disnake.Color.red())
                 return await msg.edit(embed=embed, components=[])
 
             num_global_tracked = 0
@@ -256,10 +253,10 @@ class ctrack(commands.Cog):
                             num_server_tracked += 1
                             await addLegendsPlayer_SERVER(player=player, guild_id=ctx.guild.id)
 
-            embed = discord.Embed(
+            embed = disnake.Embed(
                 description=f"{num_global_tracked} members added to global tracking.\n"
                             f"{num_server_tracked} members added to server tracking.",
-                color=discord.Color.green())
+                color=disnake.Color.green())
             embed.set_thumbnail(url=ctx.guild.icon_url_as())
             return await msg.edit(embed=embed, components=[])
         else:
@@ -289,11 +286,11 @@ class ctrack(commands.Cog):
                     await server_db.update_one({'server': ctx.guild.id},
                                                {'$pull': {"tracked_members": mem}})
 
-            embed = discord.Embed(
+            embed = disnake.Embed(
                 description=f"{num_global_tracked} members added to global tracking.\n"
                             f"{num_server_tracked} members added to server tracking.\n"
                             f"{remove_num} members removed from server tracking.",
-                color=discord.Color.green())
+                color=disnake.Color.green())
             embed.set_thumbnail(url=ctx.guild.icon_url_as())
             return await msg.edit(embed=embed, components=[])
 
@@ -328,14 +325,14 @@ class ctrack(commands.Cog):
 
     async def valid_player_check(self, ctx, player):
         if player is None:
-            embed = discord.Embed(description="Not a valid player tag. Check the spelling or a different tag.",
-                                  color=discord.Color.red())
+            embed = disnake.Embed(description="Not a valid player tag. Check the spelling or a different tag.",
+                                  color=disnake.Color.red())
             await ctx.send(embed=embed)
             return False
 
         if str(player.league) != "Legend League":
-            embed = discord.Embed(description="Sorry, cannot track players that are not in legends.",
-                                  color=discord.Color.red())
+            embed = disnake.Embed(description="Sorry, cannot track players that are not in legends.",
+                                  color=disnake.Color.red())
             await ctx.send(embed=embed)
             return False
 
