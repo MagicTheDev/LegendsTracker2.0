@@ -40,6 +40,8 @@ class Check_Slash(commands.Cog):
         """
         if discord_user == None:
             discord_user = str(ctx.author.id)
+        else:
+            discord_user = str(discord_user.id)
 
         embed = disnake.Embed(
             description="<a:loading:884400064313819146> Fetching Stats. | Searches of 10+ players can take a few seconds, refine your search or use playertag if needed.",
