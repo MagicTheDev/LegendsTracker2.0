@@ -36,29 +36,6 @@ initial_extensions = (
         )
 
 
-def autocomp_names(self, query: str):
-    has = []
-    for i in initial_extensions:
-        if query in i:
-            has.append(i)
-    return has
-
-@bot.slash_command(name='reload', default_permission=False, guild_ids=[923764211845312533])
-@commands.guild_permissions(923764211845312533, owner=True)
-@commands.is_owner()
-async def _reload(ctx, *, module : str = commands.Param(autocomplete=autocomp_names)):
-    """Reloads a module."""
-    try:
-        bot.unload_extension(module)
-        bot.load_extension(module)
-    except:
-        await ctx.send('<a:no:862552093324083221> Could not reload module.')
-    else:
-        await ctx.send('<a:check:861157797134729256> Reloaded module successfully')
-
-
-
-
 for extension in initial_extensions:
     try:
         bot.load_extension(extension)

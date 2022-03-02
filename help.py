@@ -3,11 +3,57 @@ from disnake.ext import commands
 import disnake
 from helper import server_db
 import os
+initial_extensions = (
+        "Check.check",
+        "Check.check_stats",
+        "Check.search",
+        "Check.graph",
+        "Check.pagination",
+        "Check.history",
+        "on_events",
+        "emojis",
+        "track",
+        "Pepe.pepe",
+        "leaderboards",
+        "top",
+        "server_leaderboard",
+        "stats",
+        "help",
+        "legend_feed",
+        "settings",
+        "trophyChanges",
+        "country_leaderboards",
+        "Check.quick_check",
+        "patreon",
+        "ctrack"
+    )
 
 class help(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+
+
+
+    def autocomp_names(self, query: str):
+        has = []
+        for i in initial_extensions:
+            if query in i:
+                has.append(i)
+        return has
+
+    @commands.slash_command(name='reload', default_permission=False, guild_ids=[923764211845312533])
+    @commands.guild_permissions(923764211845312533, owner=True)
+    @commands.is_owner()
+    async def _reload(self,ctx, *, module: str = commands.Param(autocomplete=autocomp_names)):
+        """Reloads a module."""
+        try:
+            self.bot.unload_extension(module)
+            self.bot.load_extension(module)
+        except:
+            await ctx.send('<a:no:862552093324083221> Could not reload module.')
+        else:
+            await ctx.send('<a:check:861157797134729256> Reloaded module successfully')
 
     @commands.command(name='leave')
     @commands.is_owner()

@@ -50,7 +50,7 @@ class Check_Slash(commands.Cog):
         msg = await ctx.original_message()
         await self.legends(ctx, msg, discord_user)
 
-    @commands.slash_command(name="check", guild_ids=[923764211845312533])
+    @commands.slash_command(name="check")
     async def check(self, ctx):
         pass
 
