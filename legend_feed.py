@@ -96,15 +96,14 @@ class legends_feed(commands.Cog):
                 buttons.append_item(button)
                 print(webhook)
                 print(server)
-                try:
-                    if thread is not None:
-                        await webhook.send(embed=embed,  components=[buttons], username='Legends Tracker',
-                                       avatar_url="https://cdn.discordapp.com/attachments/843624785560993833/938961364100190269/796f92a51db491f498f6c76fea759651_1.png", thread=thread)
-                    else:
-                        await webhook.send(embed=embed, components=[buttons], username='Legends Tracker',
-                                           avatar_url="https://cdn.discordapp.com/attachments/843624785560993833/938961364100190269/796f92a51db491f498f6c76fea759651_1.png")
-                except:
-                    continue
+
+                if thread is not None:
+                    await webhook.send(embed=embed,  components=[buttons], username='Legends Tracker',
+                                   avatar_url="https://cdn.discordapp.com/attachments/843624785560993833/938961364100190269/796f92a51db491f498f6c76fea759651_1.png", thread=thread)
+                else:
+                    await webhook.send(embed=embed, components=[buttons], username='Legends Tracker',
+                                       avatar_url="https://cdn.discordapp.com/attachments/843624785560993833/938961364100190269/796f92a51db491f498f6c76fea759651_1.png")
+
                 await ongoing_stats.update_one({'tag': tag},
                                        {'$set': {'change': None}})
 
