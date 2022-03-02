@@ -13,7 +13,7 @@ class bot_settings(commands.Cog):
         pass
 
 
-    @feed.sub_command(name= "set", description="Set channel for attack/defense feed.")
+    @feed.sub_command(name= "set", description="Sets feed in the channel you run this command.")
     async def setfeed(self, ctx):
 
         perms = ctx.author.guild_permissions.manage_guild
