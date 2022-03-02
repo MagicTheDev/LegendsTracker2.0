@@ -50,6 +50,49 @@ class Check_Slash(commands.Cog):
         msg = await ctx.original_message()
         await self.legends(ctx, msg, discord_user)
 
+    @commands.slash_command(name="check", guild_ids=[923764211845312533])
+    async def check(self, ctx):
+        pass
+
+
+    @check.sub_command(name="search", description="Search by player tag or name to find a player", guild_ids=[923764211845312533])
+    async def check_search2(self, ctx: disnake.ApplicationCommandInteraction,
+                           smart_search: str = commands.Param(autocomplete=autocomp_names)):
+        """
+            Parameters
+            ----------
+            smart_search: Type a search, pick an option, or don't to get multiple results back
+        """
+        if smart_search == None:
+            smart_search = str(ctx.author.id)
+
+        embed = disnake.Embed(
+            description="<a:loading:884400064313819146> Fetching Stats. | Searches of 10+ players can take a few seconds, refine your search or use playertag if needed.",
+            color=disnake.Color.green())
+        await ctx.send(embed=embed)
+        msg = await ctx.original_message()
+        await self.legends(ctx, msg, smart_search)
+
+    @check.sub_command(name="user",
+                            description="Check a discord user's linked accounts (empty for your own)", guild_ids=[923764211845312533])
+    async def check_user2(self, ctx: disnake.ApplicationCommandInteraction, discord_user: disnake.Member = None):
+        """
+            Parameters
+            ----------
+            discord_user: Search by @discordUser
+        """
+        if discord_user == None:
+            discord_user = str(ctx.author.id)
+        else:
+            discord_user = str(discord_user.id)
+
+        embed = disnake.Embed(
+            description="<a:loading:884400064313819146> Fetching Stats. | Searches of 10+ players can take a few seconds, refine your search or use playertag if needed.",
+            color=disnake.Color.green())
+        await ctx.send(embed=embed)
+        msg = await ctx.original_message()
+        await self.legends(ctx, msg, discord_user)
+
 
     async def legends(self, ctx, msg, search_query):
 
