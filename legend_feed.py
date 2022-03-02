@@ -88,8 +88,8 @@ class legends_feed(commands.Cog):
                     else:
                         color = disnake.Color.green()
                         button_color = disnake.ButtonStyle.green
-                    embed = disnake.Embed(title=f"{name} | {clan}",
-                                          description=f"{change}\n{discord_time} | [profile]({link})",
+                    embed = disnake.Embed(title=f"",
+                                          description=f"[{name}]({link}) | {clan}\n{change}",
                                           color=color)
                     embed.set_footer(text=f"{tag}")
 
