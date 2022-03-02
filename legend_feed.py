@@ -74,11 +74,11 @@ class legends_feed(commands.Cog):
 
                 for server in servers:
                     webhook = webhooks.get(server)
+                    if server == 923764211845312533:
+                        print(webhook)
                     if webhook is None:
                         continue
                     thread = webhooks.get(webhook.id)
-                    if server == 923764211845312533:
-                        print(thread)
 
                     if "Defense Won" in change:
                         color = disnake.Color.green()
