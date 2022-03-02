@@ -44,7 +44,7 @@ class legends_feed(commands.Cog):
 
             if webhook is not None:
                 webhooks[server] = webhook
-                webhooks[webhook] = thread
+                webhooks[webhook.id] = thread
 
 
 
@@ -59,53 +59,58 @@ class legends_feed(commands.Cog):
 
 
         for document in await tracked.to_list(length=limit):
-            servers = document.get("servers")
-            if servers == None:
-                continue
-
-            change = document.get("change")
-            tag = document.get("tag")
-            name = document.get("name")
-            clan = document.get("clan")
-            link = document.get("link")
-            change = str(change)
-
-            for server in servers:
-                webhook = webhooks.get(server)
-                thread = webhooks.get(webhook)
-
-                if webhook is None:
+            try:
+                servers = document.get("servers")
+                if servers == None:
                     continue
 
-                if "Defense Won" in change:
-                    color = disnake.Color.green()
-                    button_color = disnake.ButtonStyle.green
-                elif "Defense" in change:
-                    color = disnake.Color.red()
-                    button_color = disnake.ButtonStyle.red
-                else:
-                    color = disnake.Color.green()
-                    button_color = disnake.ButtonStyle.green
-                embed = disnake.Embed(title=f"{name} | {clan}",
-                                      description=change + f"{discord_time} | [profile]({link})",
-                                      color=color)
-                embed.set_footer(text=f"{tag}")
+                change = document.get("change")
+                tag = document.get("tag")
+                name = document.get("name")
+                clan = document.get("clan")
+                link = document.get("link")
+                change = str(change)
 
-                button = disnake.ui.Button(label="All Stats", emoji="📊", style=button_color, custom_id=f"{tag}")
-                buttons = disnake.ui.ActionRow()
-                buttons.append_item(button)
-                print(webhook)
-                print(server)
+                for server in servers:
+                    webhook = webhooks.get(server)
+                    thread = webhooks.get(webhook.id)
 
-                if thread is not None:
-                    await webhook.send(embed=embed,  components=[buttons], username='Legends Tracker',
-                                   avatar_url="https://cdn.discordapp.com/attachments/843624785560993833/938961364100190269/796f92a51db491f498f6c76fea759651_1.png", thread=thread)
-                else:
-                    await webhook.send(embed=embed, components=[buttons], username='Legends Tracker',
-                                       avatar_url="https://cdn.discordapp.com/attachments/843624785560993833/938961364100190269/796f92a51db491f498f6c76fea759651_1.png")
+                    if webhook is None:
+                        continue
 
-                await ongoing_stats.update_one({'tag': tag},
-                                       {'$set': {'change': None}})
+                    if "Defense Won" in change:
+                        color = disnake.Color.green()
+                        button_color = disnake.ButtonStyle.green
+                    elif "Defense" in change:
+                        color = disnake.Color.red()
+                        button_color = disnake.ButtonStyle.red
+                    else:
+                        color = disnake.Color.green()
+                        button_color = disnake.ButtonStyle.green
+                    embed = disnake.Embed(title=f"{name} | {clan}",
+                                          description=change + f"{discord_time} | [profile]({link})",
+                                          color=color)
+                    embed.set_footer(text=f"{tag}")
+
+                    button = disnake.ui.Button(label="All Stats", emoji="📊", style=button_color, custom_id=f"{tag}")
+                    buttons = disnake.ui.ActionRow()
+                    buttons.append_item(button)
+
+
+                    if thread is not None:
+                        await webhook.send(embed=embed,  components=[buttons], username='Legends Tracker',
+                                       avatar_url="https://cdn.discordapp.com/attachments/843624785560993833/938961364100190269/796f92a51db491f498f6c76fea759651_1.png", thread=thread)
+                    else:
+                        await webhook.send(embed=embed, components=[buttons], username='Legends Tracker',
+                                           avatar_url="https://cdn.discordapp.com/attachments/843624785560993833/938961364100190269/796f92a51db491f498f6c76fea759651_1.png")
+            except Exception as e:
+                c = await self.bot.fetch_channel(923767060977303552)
+                e = str(e)
+                e = e[0:2000]
+                await c.send(content=e)
+
+            await ongoing_stats.update_one({'tag': tag},
+                                   {'$set': {'change': None}})
 
 
     @feed_update.before_loop
