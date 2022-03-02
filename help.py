@@ -27,7 +27,7 @@ class help(commands.Cog):
                                            "**Why?**\n"
                                            "- Feed speed increase, and the bot will be able to handle the feeds of 200+ servers, that it is currently struggling with.\n"
                                            "**What to do?**\n"
-                                           "- Got to the channel you have for your feed. Give the bot the `Manage Webhooks` permission. (If the bot has admin, you should be fine)\n"
+                                           "- Go to the channel you have for your feed. Give the bot the `Manage Webhooks` permission. (If the bot has admin, you should be fine)\n"
                                            "- Run `/feed set` (if you want the feed in a discord thread, run the command in a thread under that channel it has permissions in)\n"
                                            "**Need help or have additional questions?**\n"
                                            "- Join the support server - discord.gg/gChZm3XCrS",
