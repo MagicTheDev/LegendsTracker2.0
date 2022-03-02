@@ -37,7 +37,6 @@ class legends_feed(commands.Cog):
                 webhook = await self.bot.fetch_webhook(webhook)
                 if thread is not None:
                     thread = await self.bot.fetch_channel(thread)
-                    print(thread.name)
             except disnake.NotFound:
                 await server_db.update_one({"server": server}, {'$set': {"webhook": None}})
                 await server_db.update_one({"server": server}, {'$set': {"thread": None}})
