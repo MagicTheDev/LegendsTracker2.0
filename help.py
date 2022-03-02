@@ -2,6 +2,7 @@
 from disnake.ext import commands
 import disnake
 from helper import server_db
+import os
 
 class help(commands.Cog):
 
@@ -45,8 +46,11 @@ class help(commands.Cog):
             except:
                 continue
 
-
-
+    @commands.command(name="gitpull")
+    @commands.is_owner()
+    async def gitpull(self):
+        os.system("cd LegendsTracker2.0")
+        os.system("git pull https://github.com/MagicTheDev/LegendsTracker2.0.git")
 
     @commands.slash_command(name='invite',
                        description="Invite for bot.")
