@@ -12,7 +12,7 @@ COC_PASSWORD = os.getenv("LOOPER_COC_PASSWORD")
 DB_LOGIN = os.getenv("DB_LOGIN")
 
 coc_client_two = coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, key_names="DiscordBot",
-                           key_count=10, throttle_limit=25)
+                           key_count=10, throttle_limit=25, cache_max_size=None)
 
 
 client = motor.motor_asyncio.AsyncIOMotorClient(DB_LOGIN)
@@ -20,8 +20,6 @@ client = motor.motor_asyncio.AsyncIOMotorClient(DB_LOGIN)
 ongoing_db = client.legends_stats
 ongoing_stats = ongoing_db.ongoing_stats
 
-tags = client.clan_tags
-clan_tags = tags.tags_db
 
 moved = False
 
@@ -41,7 +39,6 @@ async def stats_update():
 
     tags = []
     tracked = ongoing_stats.find()
-
     # await ongoing_stats.create_index([("tag", 1)], unique = True)
 
     limit = await ongoing_stats.count_documents(filter={})
@@ -53,10 +50,7 @@ async def stats_update():
 
     w = 0
     rtime = time.time()
-    #print(f"{len(tags)} player tags")
 
-    average_time = 0
-    loops = 0
     went_thru = tags
     async for clash_player in coc_client_two.get_players(tags):
         if w == 0:
