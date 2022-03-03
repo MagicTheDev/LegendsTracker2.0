@@ -82,6 +82,7 @@ class Check_Slash(commands.Cog):
             return await ctx.edit_original_message(content=None, embed=embed)
 
         results = results[0]
+        print(results)
         ranking =[]
         for member in results.members:
             person = await ongoing_stats.find_one({'tag': member.tag})

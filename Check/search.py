@@ -116,6 +116,7 @@ class search(commands.Cog):
         for document in await results.to_list(length=1):
             tag = document.get("tag")
             player = await getPlayer(tag)
+            print(player.clan.name)
             names.append(player.clan)
         if names != []:
             return names
