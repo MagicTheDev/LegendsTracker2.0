@@ -1,6 +1,6 @@
 import disnake
 from disnake.ext import commands
-from helper import ongoing_stats, profile_db, getPlayer
+from helper import ongoing_stats, profile_db, getPlayer, coc_client
 from disnake.ui import View
 
 stat_types = ["Yesterday Legends", "Legends Overview", "Graph & Stats", "Legends History", "Add to Quick Check"]
@@ -16,12 +16,12 @@ class pagination(commands.Cog):
         stats_page = []
         trophy_results = []
         x=0
-        for result in results:
-            r = await ongoing_stats.find_one({"tag": result})
+        async for player in coc_client.get_players(results):
+            r = await ongoing_stats.find_one({"tag": player.tag})
             name = r.get("name")
             trophies = r.get("trophies")
             trophy_results.append(disnake.SelectOption(label=f"{name} | 🏆{trophies}", value=f"{x}"))
-            embed = await check.checkEmbed(result, 0)
+            embed = await check.checkEmbed(player.tag, r, player)
             stats_page.append(embed)
             x+=1
 

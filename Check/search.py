@@ -13,21 +13,22 @@ class search(commands.Cog):
     async def search_results(self, ctx, query):
         tags = []
         #if search is a player tag, pull stats of the player tag
-        player = await getPlayer(query)
-        if player is not None:
-            result = await ongoing_stats.find_one({"tag": player.tag})
+        if utils.is_valid_tag(query) is True:
+            t = utils.correct_tag(tag=query)
+            result = await ongoing_stats.find_one({"tag": t})
             if result is not None:
-                tags.append(player.tag)
+                tags.append(t)
             return tags
 
-
-        ttt = await getTags(ctx, query)
-        for tag in ttt:
-            result = await ongoing_stats.find_one({"tag": tag})
-            if result is not None:
-                tags.append(tag)
-        if tags != []:
-            return tags
+        is_discord_id = query.isdigit()
+        if is_discord_id:
+            ttt = await getTags(ctx, query)
+            for tag in ttt:
+                result = await ongoing_stats.find_one({"tag": tag})
+                if result is not None:
+                    tags.append(tag)
+            if tags != []:
+                return tags
 
 
         #ignore capitalization

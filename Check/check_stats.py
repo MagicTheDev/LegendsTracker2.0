@@ -11,7 +11,7 @@ class CheckStats(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    async def checkEmbed(self, results, start):
+    async def checkEmbed(self, results, pre_results=None, player=None):
         emojis = self.bot.get_cog("emoji_dictionary")
         legend_shield = emojis.fetch_emojis("legends_shield")
         sword = emojis.fetch_emojis("sword")
@@ -19,9 +19,14 @@ class CheckStats(commands.Cog):
 
         from leaderboards import rankings
 
-        result = await ongoing_stats.find_one({"tag": results})
+        if pre_results is None:
+            result = await ongoing_stats.find_one({"tag": results})
+        else:
+            result = pre_results
 
-        player = await getPlayer(results)
+        if player is None:
+            player = await getPlayer(results)
+
         if player == None:
           embed = disnake.Embed(title=f"{results}",
                                   description=f"Api is likely under maintenance.",
