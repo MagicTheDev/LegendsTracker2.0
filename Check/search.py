@@ -1,7 +1,7 @@
 import re
 from coc import utils
 from disnake.ext import commands
-from helper import getPlayer, getTags, ongoing_stats
+from helper import getPlayer, getTags, ongoing_stats, getClan
 
 
 class search(commands.Cog):
@@ -77,6 +77,50 @@ class search(commands.Cog):
         for document in await results.to_list(length=25):
             names.append(document.get("name"))
         return names
+
+    async def search_clans(self, query):
+        names = []
+
+        query = query.lower()
+        query = re.escape(query)
+        results = ongoing_stats.find({"$and" : [
+            {"clan": {"$regex": f"^(?i).*{query}.*$"}},
+            {"league" : {"$eq" : "Legend League"}}
+        ]})
+        for document in await results.to_list(length=25):
+            names.append(document.get("clan"))
+        if names != []:
+            return names
+
+        if utils.is_valid_tag(query) is True:
+            clan = await getClan(query)
+            if clan is None:
+                return names
+            names.append(clan.name)
+            return names
+
+    async def search_clan_tag(self, query):
+        names = []
+
+        query = query.lower()
+        query = re.escape(query)
+        results = ongoing_stats.find({"$and" : [
+            {"clan": {"$regex": f"^(?i).*{query}.*$"}},
+            {"league" : {"$eq" : "Legend League"}}
+        ]})
+        for document in await results.to_list(length=1):
+            tag = document.get("tag")
+            player = await getPlayer(tag)
+            names.append(player.clan)
+        if names != []:
+            return names
+
+        if utils.is_valid_tag(query) is True:
+            clan = await getClan(query)
+            if clan is None:
+                return names
+            names.append(clan)
+            return names
 
 def setup(bot: commands.Bot):
     bot.add_cog(search(bot))

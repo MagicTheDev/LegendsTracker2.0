@@ -107,7 +107,7 @@ class Server_LB(commands.Cog):
                 break
 
             if res.author.id != ctx.author.id:
-                await res.send(content="You must run the command yourself to interact with components.", hidden=True)
+                await res.send(content="You must run the command yourself to interact with components.", ephemeral=True)
                 continue
 
             # print(res.custom_id)
