@@ -81,14 +81,20 @@ class search(commands.Cog):
     async def search_clans(self, query):
         names = []
 
-        query = query.lower()
         query = re.escape(query)
         results = ongoing_stats.find({"$and" : [
             {"clan": {"$regex": f"^(?i).*{query}.*$"}},
             {"league" : {"$eq" : "Legend League"}}
         ]})
-        for document in await results.to_list(length=25):
-            names.append(document.get("clan"))
+        found = 0
+        limit = await ongoing_stats.count_documents(filter={"$and" : [
+            {"clan": {"$regex": f"^(?i).*{query}.*$"}},
+            {"league" : {"$eq" : "Legend League"}}
+        ]})
+        for document in await results.to_list(length=limit):
+            c = document.get("clan")
+            if c not in names:
+                names.append(c)
         if names != []:
             return names
 
@@ -102,7 +108,6 @@ class search(commands.Cog):
     async def search_clan_tag(self, query):
         names = []
 
-        query = query.lower()
         query = re.escape(query)
         results = ongoing_stats.find({"$and" : [
             {"clan": {"$regex": f"^(?i).*{query}.*$"}},
