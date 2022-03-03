@@ -66,12 +66,12 @@ class Check_Slash(commands.Cog):
     @check.sub_command(name="clan", description="Search by name or tag to find a clan.")
     async def check_clan(self, ctx: disnake.ApplicationCommandInteraction,
                            smart_search: str = commands.Param(autocomplete=autocomp_clans)):
-        await ctx.response.defer()
         """
             Parameters
             ----------
             smart_search: Autocompletes clans using clans tracked members are in
         """
+        await ctx.response.defer()
         search = self.bot.get_cog("search")
         results:coc.Clan = await search.search_clan_tag(smart_search)
 
