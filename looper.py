@@ -12,7 +12,7 @@ COC_PASSWORD = os.getenv("LOOPER_COC_PASSWORD")
 DB_LOGIN = os.getenv("DB_LOGIN")
 
 coc_client_two = coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, key_names="DiscordBot",
-                           key_count=10, throttle_limit=25, cache_max_size=None)
+                           key_count=10, throttle_limit=25)
 
 
 client = motor.motor_asyncio.AsyncIOMotorClient(DB_LOGIN)
