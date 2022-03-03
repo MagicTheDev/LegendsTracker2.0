@@ -83,12 +83,11 @@ class search(commands.Cog):
 
         query = re.escape(query)
         results = ongoing_stats.find({"clan": {"$regex": f"^(?i).*{query}.*$"}})
-        found = 0
         limit = await ongoing_stats.count_documents(filter={"clan": {"$regex": f"^(?i).*{query}.*$"}})
         for document in await results.to_list(length=limit):
             c = document.get("clan")
             names.add(c)
-            if found == 25:
+            if len(names) == 25:
                 return list(names)
         if list(names) != []:
             return list(names)
