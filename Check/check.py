@@ -137,7 +137,7 @@ class Check_Slash(commands.Cog):
             numHits = SUPER_SCRIPTS[numHits]
             numDefs = SUPER_SCRIPTS[numDefs]
             trophies = player[6]
-            text += f"\u200e**<:trophyy:849144172698402817>{trophies} | \u200e{name}**\n➼ <a:swords:944894455633297418> {hits}{numHits} <:clash:877681427129458739> {defs}{numDefs}\n"
+            text += f"\u200e**<:trophyy:849144172698402817>{trophies} | \u200e{name}**\n➼ <:bs:948831682423828540> {hits}{numHits} <:clash:877681427129458739> {defs}{numDefs}\n"
             x += 1
             if x == 25:
                 embed = disnake.Embed(title=f"__**{results.name} Legends Check**__",
