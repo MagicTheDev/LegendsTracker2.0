@@ -209,7 +209,7 @@ class Check_Slash(commands.Cog):
                 await res.send(embed=embed, ephemeral=True)
 
                 num_global_tracked = 0
-                for player in results.members:
+                async for player in results.get_detailed_members():
                     if str(player.league) == "Legend League":
                         is_global_tracked = await self.check_global_tracked(player=player)
                         if not is_global_tracked:
