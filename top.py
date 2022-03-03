@@ -258,6 +258,7 @@ class top(commands.Cog):
 
         elif stat_type == "Defenses":
             ranking = sorted(ranking, key=lambda l: l[2], reverse=False)
+            print(ranking)
             list = ""
             found = 0
             for x in range(0, length):
