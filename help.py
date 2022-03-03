@@ -146,17 +146,17 @@ class help(commands.Cog):
                         value="Check/Search a person's legends hits & defenses for today.\nSupports searching by name or player tag\n"
                               "- Uses autocomplete to return matches as you type"
                               "\nExamples:\n"
-                              "- /check magic\n"
-                              f"- /check {ctx.author.mention}\n"
-                              "- /check #PGY2YRQ\n",
+                              "-/check search magic\n"
+                              "- /check search #PGY2YRQ\n",
                         inline=False)
 
         embed.add_field(name=f"**/check user**",
-                        value="Check/Search a person's legends hits & defenses for today.\nSupports searching by player tag, discord ID, or by name."
-                              "\nExamples:\n"
-                              "- /check magic\n"
-                              f"- /check {ctx.author.mention}\n"
-                              "- /check #PGY2YRQ\n",
+                        value="Check/Search a person's legends hits & defenses for today.",
+                        inline=False)
+
+        embed.add_field(name=f"**/check clan**",
+                        value="Leaderboard results of how everyone in a clan is doing.\n"
+                              "If players are missing, lets you globally track the missing ones.",
                         inline=False)
 
         embed.add_field(name=f"**/quick_check**",
