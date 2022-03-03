@@ -17,7 +17,7 @@ class dm(commands.Cog):
         self.dm_check.cancel()
 
 
-    @commands.slash_command(name="daily report", description="Opt in/out of daily report on tracked players sent to your dm.", guild_ids=[923764211845312533])
+    @commands.slash_command(name="daily_report", description="Opt in/out of daily report on tracked players sent to your dm.", guild_ids=[923764211845312533])
     async def daily_report(self, ctx: disnake.ApplicationCommandInteraction, opt = commands.Param(description="Opt In/Out",choices=["Opt-In", "Opt-Out"])):
         results = await profile_db.find_one({'discord_id': ctx.author.id})
         if results is None:
