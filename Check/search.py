@@ -24,7 +24,10 @@ class search(commands.Cog):
         if is_discord_id:
             ttt = await getTags(ctx, query)
             for tag in ttt:
-                result = await ongoing_stats.find_one({"tag": tag})
+                result = await ongoing_stats.find_one({"$and": [
+                {"tag": tag},
+                {"league": {"$eq": "Legend League"}}
+                ]})
                 if result is not None:
                     tags.append(tag)
             if tags != []:
