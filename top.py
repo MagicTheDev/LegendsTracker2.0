@@ -263,7 +263,7 @@ class top(commands.Cog):
             return embed
 
         elif stat_type == "Defenses":
-            ranking = sorted(ranking, key=lambda l: l[2], reverse=False)
+            ranking = sorted(ranking, key=lambda l: l[2], reverse=True)
             list = ""
             found = 0
             print(length)
