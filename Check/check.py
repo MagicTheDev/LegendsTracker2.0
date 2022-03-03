@@ -137,7 +137,7 @@ class Check_Slash(commands.Cog):
             numHits = SUPER_SCRIPTS[numHits]
             numDefs = SUPER_SCRIPTS[numDefs]
             trophies = player[6]
-            text += f"\u200e**<:trophyy:849144172698402817>{trophies} | \u200e{name}**\n➼ <:bs:948831682423828540> {hits}{numHits} <:clash:877681427129458739> {defs}{numDefs}\n"
+            text += f"\u200e**<:trophyy:849144172698402817>{trophies} | \u200e{name}**\n➼ <:cw:948845649229647952> {hits}{numHits} <:sh:948845842809360424> {defs}{numDefs}\n"
             x += 1
             if x == 25:
                 embed = disnake.Embed(title=f"__**{results.name} Legends Check**__",
@@ -231,7 +231,7 @@ class Check_Slash(commands.Cog):
                     options.append(disnake.SelectOption(label="Page 2 (25-50)", value=f"1", emoji="📄"))
 
                 if options == []:
-                    await ctx.edit_original_message(embed=embeds[0])
+                    await ctx.edit_original_message(embed=embeds[0], components=[])
                 else:
                     select1 = disnake.ui.Select(
                         options=options,

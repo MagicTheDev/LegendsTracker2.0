@@ -25,7 +25,8 @@ initial_extensions = (
         "country_leaderboards",
         "Check.quick_check",
         "patreon",
-        "ctrack"
+        "ctrack",
+        "dm_update"
     )
 
 class help(commands.Cog):
@@ -130,7 +131,7 @@ class help(commands.Cog):
                                            f"> Run the command in the channel (or thread) you want the bot to post in.\n"
                                            f"> Must have `Manage Webhooks` Permission to do so.\n"
                                            f"To track a player & add them to your server use `/track add #playerTag`\n"
-                                           f"To track a player & add them to your server use `/track remove #playerTag`\n"
+                                           f"To add entire clans - use `/ctrack add #playerTag`\n"
                                            f"Checking a player's stats has never been easier with `/check search`"
                                            f"For other commands & help check out `/help`\n"
                                            "**NOTE:** Players have to be tracked before you can view stats on them, after that stats will start to show as they are collected.",

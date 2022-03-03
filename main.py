@@ -32,7 +32,8 @@ initial_extensions = (
             "country_leaderboards",
             "Check.quick_check",
             "patreon",
-            "ctrack"
+            "ctrack",
+            "dm_update"
         )
 
 

@@ -47,7 +47,7 @@ class Bot_Events(commands.Cog):
                                            f"> Run the command in the channel (or thread) you want the bot to post in."
                                            f"> Must have `Manage Webhooks` Permission to do so."
                                            f"To track a player & add them to your server use `/track add #playerTag`\n"
-                                           f"To track a player & add them to your server use `/track remove #playerTag`\n"
+                                           f"To add entire clans - use `/ctrack add #playerTag`\n"
                                            f"Checking a player's stats has never been easier with `/check search`"
                                            f"For other commands & help check out `/help`\n"
                                            "**NOTE:** Players have to be tracked before you can view stats on them, after that stats will start to show as they are collected.",

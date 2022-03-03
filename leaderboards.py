@@ -39,7 +39,7 @@ class leaderboards(commands.Cog):
         self.feed_update.cancel()
 
 
-    @tasks.loop(seconds=120)
+    @tasks.loop(seconds=300)
     async def feed_update(self):
         glob = await coc_client.get_location_players()
         x = 1
