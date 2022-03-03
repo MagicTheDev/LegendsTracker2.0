@@ -91,7 +91,7 @@ class pagination(commands.Cog):
         history = self.bot.get_cog("History")
 
         if stat_type == "Legends Overview":
-            return await check.checkEmbed(results[current_page], 0)
+            return await check.checkEmbed(results[current_page])
         elif stat_type == "Yesterday Legends":
             return await check.checkYEmbed(results[current_page])
         elif stat_type == "Graph & Stats":
