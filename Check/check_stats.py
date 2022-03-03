@@ -90,7 +90,7 @@ class CheckStats(commands.Cog):
 
         embed = disnake.Embed(
                               description=f"**Legends Overview** | [Profile]({link})\n" +
-                                          f"- Start: {legend_shield} {str(player.trophies - net)}, End: {legend_shield} {str(player.trophies)}\n" +
+                                          f"- Start: {legend_shield} {str(player.trophies - net)}, Now: {legend_shield} {str(player.trophies)}\n" +
                                           f"- {numHits} attacks for +{str(totalOff)} trophies\n" +
                                           f"- {numDefs} defenses for -{str(totalDef)} trophies\n"
                                           f"- Net Trophies: {str(net)} trophies\n{active_streak}",
