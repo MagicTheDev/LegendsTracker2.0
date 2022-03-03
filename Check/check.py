@@ -86,7 +86,7 @@ class Check_Slash(commands.Cog):
         for member in results.members:
             person = await ongoing_stats.find_one({'tag': member.tag})
             if person is None:
-                if member.league == "Legend League":
+                if str(member.league) == "Legend League":
                     num_not += 1
                 continue
 
@@ -159,8 +159,8 @@ class Check_Slash(commands.Cog):
 
         options = []
         if len(embeds) == 2:
-            options.append(disnake.SelectOption(label="Page 1 (1-25)", value=f"1", emoji="📄"))
-            options.append(disnake.SelectOption(label="Page 2 (25-50)", value=f"2", emoji="📄"))
+            options.append(disnake.SelectOption(label="Page 1 (1-25)", value=f"0", emoji="📄"))
+            options.append(disnake.SelectOption(label="Page 2 (25-50)", value=f"1", emoji="📄"))
 
         if num_not != 0:
             options.append(disnake.SelectOption(label="Track Missing Players", value=f"{results.tag}", emoji="🔀"))
@@ -197,7 +197,7 @@ class Check_Slash(commands.Cog):
                 continue
 
             # print(res.custom_id)
-            if res.values[0] == "1" or res.values[0] == "2":
+            if res.values[0] == "0" or res.values[0] == "1":
                 current_page = int(res.values[0])
                 await res.response.edit_message(embed=embeds[current_page],
                                                 components=[action_row])
