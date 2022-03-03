@@ -79,9 +79,16 @@ class search(commands.Cog):
         return names
 
     async def search_clans(self, query):
-        if len(query) < 3:
-            return []
         names = set()
+        if len(query) == 1:
+            results = ongoing_stats.find({})
+            limit = await ongoing_stats.count_documents(filter={})
+            for document in await results.to_list(length=limit):
+                c = document.get("clan")
+                names.add(c)
+                if len(names) == 25:
+                    return list(names)
+
         query = re.escape(query)
         results = ongoing_stats.find({"clan": {"$regex": f"^(?i).*{query}.*$"}})
         limit = await ongoing_stats.count_documents(filter={"clan": {"$regex": f"^(?i).*{query}.*$"}})
