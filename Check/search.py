@@ -80,7 +80,7 @@ class search(commands.Cog):
 
     async def search_clans(self, query):
         names = set()
-        if len(query) == 1:
+        if len(query) == 0:
             results = ongoing_stats.find({})
             limit = await ongoing_stats.count_documents(filter={})
             for document in await results.to_list(length=limit):
