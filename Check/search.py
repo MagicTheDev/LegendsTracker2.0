@@ -114,7 +114,8 @@ class search(commands.Cog):
         for document in await results.to_list(length=1):
             tag = document.get("tag")
             player = await getPlayer(tag)
-            return player.clan
+            clan = await player.get_detailed_clan()
+            return clan
 
         if utils.is_valid_tag(query) is True:
             clan = await getClan(query)
