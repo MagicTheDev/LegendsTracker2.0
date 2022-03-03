@@ -70,7 +70,7 @@ class CheckStats(commands.Cog):
         active_streak = result.get("row_triple")
 
         if highest_streak != 0:
-            highest_streak = f", Highest Streak: {highest_streak}"
+            highest_streak = f", Highest: {highest_streak}"
         else:
             highest_streak = ""
 
@@ -90,7 +90,7 @@ class CheckStats(commands.Cog):
 
         embed = disnake.Embed(
                               description=f"**Legends Overview** | [Profile]({link})\n" +
-                                          f"- Start: {legend_shield} {str(player.trophies - net)}, Now: {legend_shield} {str(player.trophies)}\n" +
+                                          f"- Start:{legend_shield} {str(player.trophies - net)}, Now:{legend_shield} {str(player.trophies)}\n" +
                                           f"- {numHits} attacks for +{str(totalOff)} trophies\n" +
                                           f"- {numDefs} defenses for -{str(totalDef)} trophies\n"
                                           f"- Net Trophies: {str(net)} trophies\n{active_streak}",
