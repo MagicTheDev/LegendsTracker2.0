@@ -4,7 +4,7 @@ import disnake
 from helper import getPlayer, ongoing_stats
 import random
 
-tips = ["Check out new command - /quick_check"]
+tips = ["Check out new command - /daily_report", "Check out new command - /check clan"]
 
 class CheckStats(commands.Cog):
 

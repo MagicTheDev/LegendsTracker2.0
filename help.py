@@ -164,6 +164,10 @@ class help(commands.Cog):
                         value="Save up to 25 players to your profile to easily check them with **no** hassle.",
                         inline=False)
 
+        embed.add_field(name=f"**/daily_report**",
+                        value="If opted in, get a daily end of day report of the players you have added to `/quick_check`.",
+                        inline=False)
+
         embed.add_field(name=f"**/track add [#playerTag]**",
                         value="Use this command to start tracking statistics on an account.",
                         inline=False)
