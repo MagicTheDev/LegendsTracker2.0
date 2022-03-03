@@ -10,6 +10,12 @@ class top(commands.Cog):
     @commands.slash_command(name="top",
                             description="Top player stats - (hits, def, net).")
     async def top_server(self,ctx: disnake.ApplicationCommandInteraction, previous: str = commands.Param(default=None,choices=["Yesterday", "2 Days Ago", "3 Days Ago"])):
+        """
+            Parameters
+            ----------
+            previous: (Optional) previous 3 days
+        """
+
         scope_type = "All"
         stat_type = "Hits"
         limit = 5000
@@ -258,16 +264,18 @@ class top(commands.Cog):
 
         elif stat_type == "Defenses":
             ranking = sorted(ranking, key=lambda l: l[2], reverse=False)
-            print(ranking)
             list = ""
             found = 0
+            print(length)
             for x in range(0, length):
                 name = ranking[x][0]
                 defs = ranking[x][2]
                 numDef = ranking[x][3]
+                print(numDef)
                 if int(numDef) < 8:
                     continue
                 else:
+                    print("here")
                     list += f"{str(found + 1)}. {name} | **-{defs}**\n"
                     found += 1
 
