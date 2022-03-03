@@ -82,19 +82,16 @@ class search(commands.Cog):
         names = []
 
         query = re.escape(query)
-        results = ongoing_stats.find({"$and" : [
-            {"clan": {"$regex": f"^(?i).*{query}.*$"}},
-            {"league" : {"$eq" : "Legend League"}}
-        ]})
+        results = ongoing_stats.find({"clan": {"$regex": f"^(?i).*{query}.*$"}})
         found = 0
-        limit = await ongoing_stats.count_documents(filter={"$and" : [
-            {"clan": {"$regex": f"^(?i).*{query}.*$"}},
-            {"league" : {"$eq" : "Legend League"}}
-        ]})
+        limit = await ongoing_stats.count_documents(filter={"clan": {"$regex": f"^(?i).*{query}.*$"}})
         for document in await results.to_list(length=limit):
             c = document.get("clan")
             if c not in names:
+                found += 1
                 names.append(c)
+            if found == 25:
+                return names
         if names != []:
             return names
 
@@ -105,8 +102,9 @@ class search(commands.Cog):
             names.append(clan.name)
             return names
 
+        return names
+
     async def search_clan_tag(self, query):
-        names = []
 
         query = re.escape(query)
         results = ongoing_stats.find({"$and" : [
@@ -116,17 +114,15 @@ class search(commands.Cog):
         for document in await results.to_list(length=1):
             tag = document.get("tag")
             player = await getPlayer(tag)
-            print(player.clan.name)
-            names.append(player.clan)
-        if names != []:
-            return names
+            return player.clan
 
         if utils.is_valid_tag(query) is True:
             clan = await getClan(query)
             if clan is None:
-                return names
-            names.append(clan)
-            return names
+                return None
+            return clan
+
+        return None
 
 def setup(bot: commands.Bot):
     bot.add_cog(search(bot))

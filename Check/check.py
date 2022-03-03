@@ -73,16 +73,16 @@ class Check_Slash(commands.Cog):
             smart_search: Autocompletes clans using clans tracked members are in
         """
         search = self.bot.get_cog("search")
-        results = await search.search_clan_tag(smart_search)
+        results:coc.Clan = await search.search_clan_tag(smart_search)
 
-        if results == []:
+        if results == None:
             embed = disnake.Embed(
                 description=f"Not a valid clan tag.",
                 color=disnake.Color.red())
             return await ctx.edit_original_message(content=None, embed=embed)
 
-        results = results[0]
-        print(results)
+
+        print(results.members)
         ranking =[]
         for member in results.members:
             person = await ongoing_stats.find_one({'tag': member.tag})
