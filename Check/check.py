@@ -63,7 +63,7 @@ class Check_Slash(commands.Cog):
         await self.legends(ctx, msg, discord_user)
 
 
-    @commands.slash_command(name="clan", description="Search by name or tag to find a clan.",guild_ids=[923764211845312533])
+    @check.sub_command(name="clan", description="Search by name or tag to find a clan.")
     async def check_clan(self, ctx: disnake.ApplicationCommandInteraction,
                            smart_search: str = commands.Param(autocomplete=autocomp_clans)):
         await ctx.response.defer()
