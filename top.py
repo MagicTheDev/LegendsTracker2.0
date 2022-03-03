@@ -263,21 +263,21 @@ class top(commands.Cog):
             return embed
 
         elif stat_type == "Defenses":
-            ranking = sorted(ranking, key=lambda l: l[2], reverse=True)
+            ranking = sorted(ranking, key=lambda l: l[2], reverse=False)
             list = ""
             found = 0
-            print(length)
-            for x in range(0, length):
-                name = ranking[x][0]
-                defs = ranking[x][2]
-                numDef = ranking[x][3]
-                print(numDef)
+            for x in ranking:
+                name = x[0]
+                defs = x[2]
+                numDef = x[3]
                 if int(numDef) < 8:
                     continue
                 else:
                     print("here")
                     list += f"{str(found + 1)}. {name} | **-{defs}**\n"
                     found += 1
+                if found == 25:
+                    break
 
             if list == "":
                 list = "No one tracked has reached 8 defenses yet."
