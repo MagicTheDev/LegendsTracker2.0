@@ -46,6 +46,7 @@ class dm(commands.Cog):
             elif opt == "Opt-In":
                 try:
                     await ctx.author.send(content=f"Opted you in for daily DM reports")
+                    await ctx.send(content=f"Opted you in for daily DM reports",ephemeral=True)
                 except:
                     return await ctx.send(content="Could not send you a dm. Make sure you have dm's enabled.\n"
                                            "`User Settings> Privacy & Safety> Toggle “Allow DMs from server members”`", ephemeral=True)
