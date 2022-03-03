@@ -137,9 +137,9 @@ class Check_Slash(commands.Cog):
             numHits = SUPER_SCRIPTS[numHits]
             numDefs = SUPER_SCRIPTS[numDefs]
             trophies = player[6]
-            text += f"\u200e**🏆{trophies} | \u200e{name}**\n➼ +{hits}{numHits} -{defs}{numDefs}\n"
+            text += f"\u200e**<:trophyy:849144172698402817>{trophies} | \u200e{name}**\n➼ <a:swords:944894455633297418> {hits}{numHits} <:clash:877681427129458739> {defs}{numDefs}\n"
             x += 1
-            if x == 50:
+            if x == 25:
                 embed = disnake.Embed(title=f"__**{results.name} Legends Check**__",
                                       description=text)
                 embed.set_thumbnail(url=results.badge.large)
@@ -153,10 +153,32 @@ class Check_Slash(commands.Cog):
             embed = disnake.Embed(title=f"__**{results.name} Legends Check**__",
                                   description=text)
             embed.set_thumbnail(url=results.badge.large)
+            if num_not != 0:
+                embed.set_footer(text=f"{num_not} players untracked.")
             embeds.append(embed)
 
+        options = []
+        if len(embeds) == 2:
+            options.append(disnake.SelectOption(label="Page 1 (1-25)", value=f"1", emoji="📄"))
+            options.append(disnake.SelectOption(label="Page 2 (25-50)", value=f"2", emoji="📄"))
+
+        if num_not != 0:
+            options.append(disnake.SelectOption(label="Track Missing Players", value=f"{results.tag}", emoji="🔀"))
+
+        if options == []:
+            return await ctx.edit_original_message(embed=embeds[0])
+
+        select1 = disnake.ui.Select(
+            options=options,
+            placeholder="Page Navigation",
+            min_values=1,  # the minimum number of options a user must select
+            max_values=1  # the maximum number of options a user can select
+        )
+        action_row = disnake.ui.ActionRow()
+        action_row.append_item(select1)
+
         current_page = 0
-        await ctx.edit_original_message(embed=embeds[0], components=self.create_components(current_page, embeds))
+        await ctx.edit_original_message(embed=embeds[0], components=[action_row])
         msg = await ctx.original_message()
 
         def check(res: disnake.MessageInteraction):
@@ -175,15 +197,33 @@ class Check_Slash(commands.Cog):
                 continue
 
             # print(res.custom_id)
-            if res.data.custom_id == "Previous":
-                current_page -= 1
+            if res.values[0] == "1" or res.values[0] == "2":
+                current_page = int(res.values[0])
                 await res.response.edit_message(embed=embeds[current_page],
-                                                components=self.create_components(current_page, embeds))
+                                                components=[action_row])
 
-            elif res.data.custom_id == "Next":
-                current_page += 1
-                await res.response.edit_message(embed=embeds[current_page],
-                                                components=self.create_components(current_page, embeds))
+            else:
+                embed = disnake.Embed(
+                    description="<a:loading:884400064313819146> Adding players...",
+                    color=disnake.Color.green())
+                await res.send(embed=embed, ephemeral=True)
+
+                num_global_tracked = 0
+                for player in results.members:
+                    if str(player.league) == "Legend League":
+                        is_global_tracked = await self.check_global_tracked(player=player)
+                        if not is_global_tracked:
+                            num_global_tracked += 1
+                            await addLegendsPlayer_GLOBAL(player=player, clan_name=results.name)
+
+
+                embed = disnake.Embed(
+                    title=f"{results.name}",
+                    description=f"{num_global_tracked} members added to global tracking.",
+                    color=disnake.Color.green())
+                embed.set_thumbnail(url=results.badge.large)
+                og = await res.original_message()
+                return await og.edit(embed=embed)
 
 
     async def legends(self, ctx, msg, search_query):
@@ -219,25 +259,10 @@ class Check_Slash(commands.Cog):
         pagination = self.bot.get_cog("pagination")
         await pagination.button_pagination(ctx, msg, results)
 
+    async def check_global_tracked(self,player):
+        results = await ongoing_stats.find_one({"tag": f"{player.tag}"})
+        return results != None
 
-    def create_components(self, current_page, embeds):
-        length = len(embeds)
-        if length == 1:
-            return []
-
-        page_buttons = [
-            disnake.ui.Button(label="", emoji="◀️", style=disnake.ButtonStyle.blurple, disabled=(current_page == 0),
-                              custom_id="Previous"),
-            disnake.ui.Button(label=f"Page {current_page + 1}/{length}", style=disnake.ButtonStyle.grey,
-                              disabled=True),
-            disnake.ui.Button(label="", emoji="▶️", style=disnake.ButtonStyle.blurple,
-                              disabled=(current_page == length - 1), custom_id="Next")
-        ]
-        buttons = disnake.ui.ActionRow()
-        for button in page_buttons:
-            buttons.append_item(button)
-
-        return [buttons]
 
 def setup(bot):
     bot.add_cog(Check_Slash(bot))
