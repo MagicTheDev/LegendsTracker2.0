@@ -84,9 +84,12 @@ class Check_Slash(commands.Cog):
 
         print(results.members)
         ranking =[]
+        num_not = 0
         for member in results.members:
             person = await ongoing_stats.find_one({'tag': member.tag})
             if person is None:
+                if member.league == "Legend League":
+                    num_not += 1
                 continue
 
             league = person.get("league")
@@ -136,12 +139,14 @@ class Check_Slash(commands.Cog):
             numHits = SUPER_SCRIPTS[numHits]
             numDefs = SUPER_SCRIPTS[numDefs]
             trophies = player[6]
-            text += f"\u200e**<:trophyy:849144172698402817>\u200e{trophies} | \u200e{name}**\n➼ <:sword_coc:940713893926428782> {hits}{numHits} <:clash:877681427129458739> {defs}{numDefs}\n"
+            text += f"\u200e**<:trophyy:849144172698402817>{trophies} | \u200e{name}**\n➼ <:sword_coc:940713893926428782> {hits}{numHits} <:clash:877681427129458739> {defs}{numDefs}\n"
             x += 1
-            if x == 25:
+            if x == 50:
                 embed = disnake.Embed(title=f"__**{results.name} Legends Check**__",
                                       description=text)
                 embed.set_thumbnail(url=results.badge.large)
+                if num_not != 0:
+                    embed.set_footer(text=f"{num_not} players untracked.")
                 x = 0
                 embeds.append(embed)
                 text = ""
