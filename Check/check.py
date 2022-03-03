@@ -223,7 +223,26 @@ class Check_Slash(commands.Cog):
                     color=disnake.Color.green())
                 embed.set_thumbnail(url=results.badge.large)
                 og = await res.original_message()
-                return await og.edit(embed=embed)
+                await og.edit(embed=embed)
+
+                options = []
+                if len(embeds) == 2:
+                    options.append(disnake.SelectOption(label="Page 1 (1-25)", value=f"0", emoji="📄"))
+                    options.append(disnake.SelectOption(label="Page 2 (25-50)", value=f"1", emoji="📄"))
+
+                if options == []:
+                    await ctx.edit_original_message(embed=embeds[0])
+                else:
+                    select1 = disnake.ui.Select(
+                        options=options,
+                        placeholder="Page Navigation",
+                        min_values=1,  # the minimum number of options a user must select
+                        max_values=1  # the maximum number of options a user can select
+                    )
+                    action_row = disnake.ui.ActionRow()
+                    action_row.append_item(select1)
+
+                    await ctx.edit_original_message(embed=embeds[0], components=[action_row])
 
 
     async def legends(self, ctx, msg, search_query):
