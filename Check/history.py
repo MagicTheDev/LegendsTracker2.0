@@ -95,6 +95,7 @@ class History(commands.Cog):
             
         embed.add_field(name = f"**{oldyear}**", value=text, inline=False)           
 
+        embed.set_footer(text="Tip: `/check` commands have legends history as well")
         return embed
         
 
