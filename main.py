@@ -6,7 +6,7 @@ import traceback
 from helper import IS_BETA
 
 bot = commands.Bot(command_prefix=commands.when_mentioned,
-    sync_commands_debug=True,
+    sync_commands_debug=True, sync_permissions=True,
     help_command=None)
 
 
