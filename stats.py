@@ -1,11 +1,13 @@
 from disnake.ext import commands
-from helper import getPlayer, ongoing_stats, server_db, IS_BETA
+from helper import ongoing_stats, server_db, IS_BETA
 import disnake
 import emoji
 import time
 import statcord
 import psutil
-
+from matplotlib import pyplot as plt
+import itertools
+import numpy as np
 
 class legend_stats(commands.Cog):
 
@@ -88,8 +90,6 @@ class legend_stats(commands.Cog):
 
         await ctx.send(embed=embed)
 
-
-
     @commands.slash_command(name="streaks",description="View the top 3 star streak statistics.")
     async def streaks(self, ctx: disnake.ApplicationCommandInteraction):
         fire = "<a:fireflame:946369467561172993>"
@@ -132,7 +132,6 @@ class legend_stats(commands.Cog):
                 break
 
             await res.response.edit_message(embed=embeds[int(res.values[0]) - 1])
-
 
     async def streaks_local(self, ctx):
         results = await server_db.find_one({"server": ctx.guild.id})
@@ -249,8 +248,6 @@ class legend_stats(commands.Cog):
                               color=disnake.Color.blue())
         return board
 
-
-
     @commands.slash_command(name="popular", description="View popular tracked players")
     async def popular(self, ctx):
         tracked = ongoing_stats.find()
@@ -312,6 +309,50 @@ class legend_stats(commands.Cog):
         board = disnake.Embed(title="Trophy Breakdown for players tracked.", description=text,
                               color=disnake.Color.blue())
         await ctx.send(embed=board)
+
+
+    @commands.slash_command(name="plot",description="Plot of defense", guild_ids=[923764211845312533])
+    async def plot(self, ctx):
+        points = []
+        tracked = ongoing_stats.find()
+        limit = await ongoing_stats.count_documents(filter={})
+        for document in await tracked.to_list(length=limit):
+            previous_defs= document.get("previous_defenses")
+            end_of_days = document.get("end_of_day")
+            previous_defs = previous_defs[:-1]
+            previous_defs = previous_defs[1:]
+            end_of_days = end_of_days[:-2]
+            for (defs, day) in zip(previous_defs, end_of_days):
+                if defs == []:
+                    continue
+                day = str(day)
+                day = day[:2] + "00"
+                day = int(day)
+                p = [day, sum(defs)]
+                points.append(p)
+
+        points = np.array(points)
+        x = points[:, 0].reshape(points.shape[0], 1)
+        X = np.append(x, np.ones((points.shape[0], 1)), axis=1)
+        y = points[:, 1].reshape(points.shape[0], 1)
+
+        # Calculating the parameters using the least square method
+        theta = np.linalg.inv(X.T.dot(X)).dot(X.T).dot(y)
+
+        print(f'The parameters of the line: {theta}')
+
+        # Now, calculating the y-axis values against x-values according to
+        # the parameters theta0 and theta1
+        y_line = X.dot(theta)
+
+        # Plotting the data points and the best fit line
+        plt.scatter(x, y)
+        plt.plot(x, y_line, 'r')
+        plt.title('Best fit line using regression method')
+        plt.xlabel('x-axis')
+        plt.ylabel('y-axis')
+
+        plt.show()
 
 
 
