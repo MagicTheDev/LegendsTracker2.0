@@ -6,7 +6,7 @@ import time
 import statcord
 import psutil
 from matplotlib import pyplot as plt
-import itertools
+import io
 import numpy as np
 
 class legend_stats(commands.Cog):
@@ -352,7 +352,21 @@ class legend_stats(commands.Cog):
         plt.xlabel('x-axis')
         plt.ylabel('y-axis')
 
-        plt.show()
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+
+
+        embed = disnake.Embed(title=f"Best fit line",
+                              color=disnake.Color.blue())
+        file = disnake.File(fp=buf, filename="filename.png")
+        pic_channel = await self.bot.fetch_channel(884951195406458900)
+        msg = await pic_channel.send(file=file)
+        pic = msg.attachments[0].url
+        embed.set_image(url=pic)
+        plt.clf()
+        plt.close("all")
+        await ctx.send(embed=embed)
 
 
 
