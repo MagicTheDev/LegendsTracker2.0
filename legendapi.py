@@ -25,7 +25,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
 @app.get("/player/{player_tag}")
-@limiter.limit("30/second")
+@limiter.limit("60/second")
 async def player(player_tag: str, request : Request, response: Response):
     result = await ongoing_stats.find_one({"tag": player_tag})
     tag = result.get("tag")
@@ -55,42 +55,6 @@ async def player(player_tag: str, request : Request, response: Response):
         "previous_defs" : previous_defs,
         "end_of_days" : end_of_days
     }
-
-@app.get("/all_data")
-@limiter.limit("10/minute")
-async def all_tags(request : Request, response: Response):
-    tags = []
-    tracked = ongoing_stats.find({"league" : {"$eq" : "Legend League"}})
-    limit = await ongoing_stats.count_documents(filter={"league" : {"$eq" : "Legend League"}})
-    for result in await tracked.to_list(length=limit):
-        tag = result.get("tag")
-        trophies = result.get("trophies")
-        num_season_hits = result.get("num_season_hits")
-        streak = result.get("row_triple")
-        todays_hits = result.get("today_hits")
-        todays_defs = result.get("today_defenses")
-        num_today_hits = result.get("num_today_hits")
-        num_yesterday_hits = result.get("num_yesterday_hits")
-        previous_hits = result.get("previous_hits")
-        previous_defs = result.get("previous_defenses")
-        end_of_days = result.get("end_of_day")
-        highest_streak = result.get("highest_streak")
-
-        tags.append({tag : {
-            "trophies": trophies,
-            "num_season_hits": num_season_hits,
-            "current_streak": streak,
-            "highest_streak": highest_streak,
-            "todays_hits": todays_hits,
-            "todays_defs": todays_defs,
-            "num_today_hits": num_today_hits,
-            "num_yesterday_hits": num_yesterday_hits,
-            "previous_hits": previous_hits,
-            "previous_defs": previous_defs,
-            "end_of_days": end_of_days
-        }})
-    return tags
-
 
 @app.get("/all_tags")
 @limiter.limit("10/minute")
