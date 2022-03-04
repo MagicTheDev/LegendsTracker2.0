@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-DB_LOGIN = os.getenv("DB_LOGIN")
+DB_LOGIN = os.getenv("BETA_DB_LOGIN")
 
 db_client = motor.motor_asyncio.AsyncIOMotorClient(DB_LOGIN)
 legends_stats = db_client.legends_stats
