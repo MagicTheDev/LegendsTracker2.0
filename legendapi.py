@@ -28,7 +28,10 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 @limiter.limit("60/second")
 async def player(player_tag: str, request : Request, response: Response):
     result = await ongoing_stats.find_one({"tag": player_tag})
+    name = result.get("name")
     tag = result.get("tag")
+    clan = result.get("clan")
+    league = result.get("league")
     trophies = result.get("trophies")
     num_season_hits = result.get("num_season_hits")
     streak = result.get("row_triple")
@@ -42,8 +45,11 @@ async def player(player_tag: str, request : Request, response: Response):
     highest_streak = result.get("highest_streak")
 
     return{
+        "name" : name,
         "tag" : tag,
+        "clan" : clan,
         "trophies" : trophies,
+        "league" : league,
         "num_season_hits" : num_season_hits,
         "current_streak" : streak,
         "highest_streak": highest_streak,
