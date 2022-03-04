@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-DB_LOGIN = os.getenv("BETA_DB_LOGIN")
+DB_LOGIN = os.getenv("DB_LOGIN")
 
 db_client = motor.motor_asyncio.AsyncIOMotorClient(DB_LOGIN)
 legends_stats = db_client.legends_stats
@@ -117,4 +117,4 @@ async def _ordered(request : Request, response: Response):
     return tags
 
 if __name__ == '__main__':
-    uvicorn.run("legendapi:app", debug=True, reload=True)
+    uvicorn.run("legendapi:app", port=8000, host='45.33.3.218')
