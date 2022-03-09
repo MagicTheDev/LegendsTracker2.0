@@ -73,6 +73,8 @@ class help(commands.Cog):
         limit = await ongoing_stats.count_documents(filter={})
         for document in await tracked.to_list(length=limit):
             servers = document.get("servers")
+            if servers is None:
+                continue
             tag = document.get("tag")
             if 923764211845312533 in servers:
                 await ongoing_stats.update_one({'tag': tag},
