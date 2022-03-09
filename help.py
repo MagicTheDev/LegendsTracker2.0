@@ -180,6 +180,9 @@ class help(commands.Cog):
         embed.add_field(name="**/tracked_list [clans or players]**",
                         value="List of clans found in your feed or players linked in your feed.",
                         inline=False)
+        embed.add_field(name=f"**/country track**",
+                        value="Add the top # of players from a country leaderboard to your feed.",
+                        inline=False)
 
         embeds.append(embed)
 
@@ -208,7 +211,7 @@ class help(commands.Cog):
         embed2.add_field(name=f"**/leaderboard**",
                          value="Display server leaderboard of tracked players.",
                          inline=False)
-        embed2.add_field(name=f"**/country_leaderboards**",
+        embed2.add_field(name=f"**/country leaderboards**",
                          value="Top 200 Leaderboard of a country.",
                          inline=False)
         embeds.append(embed2)
