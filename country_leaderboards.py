@@ -68,7 +68,7 @@ class country_leaderboard(commands.Cog):
 
 
     @commands.slash_command(name="country_track", description="Add players from country (or global) leaderboards", guild_ids=[923764211845312533])
-    async def country_track(self,ctx: disnake.ApplicationCommandInteraction, country: str = commands.Param(autocomplete=autocomp_names), top: int=commands.Range[1, 200]):
+    async def country_track(self,ctx: disnake.ApplicationCommandInteraction, country: str = commands.Param(autocomplete=autocomp_names), top=commands.Range[1, 200]):
         """
             Parameters
             ----------
@@ -104,11 +104,12 @@ class country_leaderboard(commands.Cog):
                 return await ctx.edit_original_message(
                     content="Not a valid country. Use the autocomplete to help select from the 100+ countries.")
 
-        country = await coc_client.get_location_players(location_id=location_id)
         if country == "Global":
             country_name = "Global"
         else:
             country_name = await coc_client.get_location(location_id)
+
+        country = await coc_client.get_location_players(location_id=location_id)
 
         embed = disnake.Embed(description=f"**Would you like to remove tracked players outside of this location?**\n"
                                           f"if **yes**, this will set your feed & leaderboard to just players in this location.\n",
