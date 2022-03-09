@@ -281,5 +281,3 @@ class Check(commands.Cog):
         return results != None
 
 
-def setup(bot):
-    bot.add_cog(Check_Slash(bot))

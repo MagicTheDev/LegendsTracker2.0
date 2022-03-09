@@ -2,7 +2,7 @@ from disnake.ext import commands
 import disnake
 from utils.helper import ongoing_stats, server_db
 
-class top(commands.Cog):
+class Top(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -308,11 +308,3 @@ class top(commands.Cog):
 
 
 
-
-
-
-
-
-
-def setup(bot: commands.Bot):
-    bot.add_cog(top(bot))

@@ -5,7 +5,7 @@ import io
 from utils.helper import ongoing_stats, createTimeStats
 import gc
 
-class graph(commands.Cog):
+class Graph(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -152,6 +152,3 @@ class graph(commands.Cog):
 
         return embed
 
-
-def setup(bot: commands.Bot):
-    bot.add_cog(graph(bot))

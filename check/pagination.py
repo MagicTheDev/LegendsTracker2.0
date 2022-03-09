@@ -4,7 +4,7 @@ from utils.helper import ongoing_stats, profile_db, getPlayer, coc_client
 
 stat_types = ["Yesterday Legends", "Legends Overview", "Graph & Stats", "Legends History", "Add to Quick Check"]
 
-class pagination(commands.Cog):
+class Pagination(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -132,6 +132,3 @@ class pagination(commands.Cog):
 
         return[st, st2]
 
-
-def setup(bot: commands.Bot):
-    bot.add_cog(pagination(bot))

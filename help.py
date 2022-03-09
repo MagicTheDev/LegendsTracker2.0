@@ -4,30 +4,17 @@ import disnake
 from utils.helper import ongoing_stats
 import os
 initial_extensions = (
-        "Check.check",
-        "Check.check_stats",
-        "Check.search",
-        "Check.graph",
-        "Check.pagination",
-        "Check.history",
-        "on_events",
-        "emojis",
-        "track",
-        "Pepe.pepe",
-        "leaderboards",
-        "top",
-        "server_leaderboard",
-        "stats",
-        "help",
-        "legend_feed",
-        "settings",
-        "trophyChanges",
-        "country_leaderboards",
-        "Check.quick_check",
-        "patreon",
-        "ctrack",
-        "dm_update"
-    )
+            "check.maincheck",
+            "feeds.feeds",
+            "leaderboards.leaderboard",
+            "stats.mainstats"
+            "track.track"            
+            "on_events",
+            "pepe.pepe",
+            "help",
+            "settings",
+            "patreon"
+        )
 
 class help(commands.Cog):
 

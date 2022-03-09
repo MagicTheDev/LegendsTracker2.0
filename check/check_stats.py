@@ -193,10 +193,3 @@ class CheckStats(commands.Cog):
 
 
 
-
-
-
-
-
-def setup(bot: commands.Bot):
-    bot.add_cog(CheckStats(bot))

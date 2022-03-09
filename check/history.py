@@ -99,6 +99,3 @@ class History(commands.Cog):
         embed.set_footer(text="Tip: `/check` commands have legends history as well")
         return embed
         
-
-def setup(bot: commands.Bot):
-    bot.add_cog(History(bot))

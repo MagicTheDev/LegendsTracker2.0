@@ -8,28 +8,16 @@ bot = commands.Bot(command_prefix=commands.when_mentioned,
 
 
 initial_extensions = (
-            "Check.check",
-            "Check.check_stats",
-            "Check.search",
-            "Check.graph",
-            "Check.pagination",
-            "Check.history",
+            "check.maincheck",
+            "feeds.feeds",
+            "leaderboards.leaderboard",
+            "stats.mainstats"
+            "track.track"            
             "on_events",
-            "emojis",
-            "MainTrack",
-            "Pepe.pepe",
-            "leaderboards",
-            "top",
-            "server_leaderboard",
-            "stats",
+            "pepe.pepe",
             "help",
-            "legend_feed",
             "settings",
-            "trophyChanges",
-            "country_leaderboards",
-            "Check.quick_check",
-            "patreon",
-            "dm_update"
+            "patreon"
         )
 
 

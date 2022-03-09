@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 import io
 import numpy as np
 
-class legend_stats(commands.Cog):
+class LegendStats(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
@@ -310,7 +310,3 @@ class legend_stats(commands.Cog):
                               color=disnake.Color.blue())
         await ctx.send(embed=board)
 
-
-
-def setup(bot: commands.Bot):
-    bot.add_cog(legend_stats(bot))

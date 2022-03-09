@@ -3,7 +3,7 @@ from utils.helper import profile_db
 import disnake
 
 
-class quick_check(commands.Cog):
+class QuickCheck(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -31,7 +31,3 @@ class quick_check(commands.Cog):
         return await msg.edit(content=None, embed=embed)
 
 
-
-
-def setup(bot: commands.Bot):
-    bot.add_cog(quick_check(bot))
