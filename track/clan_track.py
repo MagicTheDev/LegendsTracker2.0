@@ -1,7 +1,7 @@
 from disnake.ext import commands
-from helper import getClan, ongoing_stats, server_db, addLegendsPlayer_SERVER, addLegendsPlayer_GLOBAL, removeLegendsPlayer_SERVER, coc_client
+from utils.helper import getClan, ongoing_stats, server_db, coc_client
+from utils.db import addLegendsPlayer_SERVER, addLegendsPlayer_GLOBAL, removeLegendsPlayer_SERVER
 import disnake
-
 
 ### SERVER MODEL###
 """
@@ -11,7 +11,7 @@ server_db.insert_one({
 })
 """
 
-class ctrack(commands.Cog):
+class ClanTrack(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -19,7 +19,6 @@ class ctrack(commands.Cog):
     @commands.slash_command(name="ctrack", description="Clan tracking")
     async def ctrack(self, ctx):
         pass
-
 
     @ctrack.sub_command(name="add", description="Add players in a clan to legends tracking" )
     async def ctrack_add(self,ctx: disnake.ApplicationCommandInteraction, clan_tag: str):
@@ -306,7 +305,6 @@ class ctrack(commands.Cog):
             return await msg.edit(embed=embed, components=[])
 
 
-
     async def sync_limit(self, ctx):
         results = await server_db.find_one({"server": ctx.guild.id})
         pat = results.get("patreon_sub")
@@ -350,5 +348,3 @@ class ctrack(commands.Cog):
         return True
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(ctrack(bot))

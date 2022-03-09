@@ -1,7 +1,7 @@
 
 from disnake.ext import commands
 import disnake
-from helper import server_db, ongoing_stats
+from utils.helper import ongoing_stats
 import os
 initial_extensions = (
         "Check.check",

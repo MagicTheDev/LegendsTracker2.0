@@ -1,6 +1,6 @@
 
 from disnake.ext import commands, tasks
-from helper import coc_client
+from utils.helper import coc_client
 
 locations = [32000007, 32000008, 32000009, 32000010, 32000011, 32000012, 32000013, 32000014, 32000015, 32000016, 32000017,
              32000018, 32000019, 32000020, 32000021, 32000022, 32000023, 32000024, 32000025, 32000026, 32000027, 32000028,
@@ -28,19 +28,19 @@ locations = [32000007, 32000008, 32000009, 32000010, 32000011, 32000012, 3200001
 
 rankings = []
 
-class leaderboards(commands.Cog):
+class LeaderboardLoop(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.feed_update.start()
+        self.loop.start()
 
 
     def cog_unload(self):
-        self.feed_update.cancel()
+        self.loop.cancel()
 
 
     @tasks.loop(seconds=300)
-    async def feed_update(self):
+    async def loop(self):
         glob = await coc_client.get_location_players()
         x = 1
         global rankings
@@ -82,14 +82,12 @@ class leaderboards(commands.Cog):
                 rr.append(player.name)
                 x += 1
         rankings = rr
-        #print("lb rank done")
 
 
-    @feed_update.before_loop
+    @loop.before_loop
     async def before_printer(self):
-        print('waiting...')
         await self.bot.wait_until_ready()
 
 
 def setup(bot: commands.Bot):
-    bot.add_cog(leaderboards(bot))
+    bot.add_cog(LeaderboardLoop(bot))

@@ -1,16 +1,12 @@
 
 import disnake
 from disnake.ext import commands, tasks
-import aiohttp
 from datetime import datetime
 import pytz
 utc = pytz.utc
-from disnake import Webhook
-from helper import server_db, ongoing_stats
+from utils.helper import server_db, ongoing_stats
 
-
-
-class legends_feed(commands.Cog):
+class LegendsFeed(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -122,11 +118,5 @@ class legends_feed(commands.Cog):
 
     @feed_update.before_loop
     async def before_printer(self):
-        print('waiting...')
         await self.bot.wait_until_ready()
 
-
-
-
-def setup(bot: commands.Bot):
-    bot.add_cog(legends_feed(bot))

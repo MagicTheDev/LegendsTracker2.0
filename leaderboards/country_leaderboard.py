@@ -1,6 +1,8 @@
 
-from disnake.ext import commands, tasks
-from helper import coc_client, locations, ongoing_stats, server_db, addLegendsPlayer_SERVER, addLegendsPlayer_GLOBAL
+from disnake.ext import commands
+from utils.helper import coc_client, locations
+from utils.db import *
+from utils.components import create_components
 SUPER_SCRIPTS=["⁰","¹","²","³","⁴","⁵","⁶", "⁷","⁸", "⁹"]
 import emoji
 import disnake
@@ -11,7 +13,6 @@ class country_leaderboard(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-
 
     async def autocomp_names(self, query: str):
         query = query.lower()
@@ -26,8 +27,6 @@ class country_leaderboard(commands.Cog):
     async def country(self, ctx):
         pass
 
-
-
     @country.sub_command(name="leaderboards", description="Search country (or global) leaderboards")
     async def country_lb(self, ctx: disnake.ApplicationCommandInteraction , country: str = commands.Param(autocomplete=autocomp_names)):
         await ctx.response.defer()
@@ -40,7 +39,7 @@ class country_leaderboard(commands.Cog):
             embeds = await self.create_lb(loc.id)
 
         current_page = 0
-        await ctx.edit_original_message(embed=embeds[0], components=self.create_components(current_page, embeds))
+        await ctx.edit_original_message(embed=embeds[0], components=create_components(current_page, embeds))
         msg = await ctx.original_message()
         def check(res: disnake.MessageInteraction):
             return res.message.id == msg.id
@@ -60,12 +59,12 @@ class country_leaderboard(commands.Cog):
             if res.data.custom_id == "Previous":
                 current_page -= 1
                 await res.response.edit_message(embed=embeds[current_page],
-                               components=self.create_components(current_page, embeds))
+                               components=create_components(current_page, embeds))
 
             elif res.data.custom_id == "Next":
                 current_page += 1
                 await res.response.edit_message(embed=embeds[current_page],
-                               components=self.create_components(current_page, embeds))
+                               components=create_components(current_page, embeds))
 
 
 
@@ -172,8 +171,8 @@ class country_leaderboard(commands.Cog):
         for player in country:
             if str(player.league) == "Legend League":
                 players_to_be.append(player.tag)
-                is_global_tracked = await self.check_global_tracked(player=player)
-                is_server_tracked = await self.check_server_tracked(player=player, server_id=ctx.guild.id)
+                is_global_tracked = await check_global_tracked(player=player)
+                is_server_tracked = await check_server_tracked(player=player, server_id=ctx.guild.id)
                 if is_global_tracked:
                     num_global_alr +=1
                 if is_server_tracked:
@@ -271,42 +270,6 @@ class country_leaderboard(commands.Cog):
 
 
 
-    def create_components(self, current_page, embeds):
-        length = len(embeds)
-        if length == 1:
-            return []
-
-        page_buttons = [disnake.ui.Button(label="", emoji="◀️", style=disnake.ButtonStyle.blurple, disabled=(current_page == 0),
-                                      custom_id="Previous"),
-                        disnake.ui.Button(label=f"Page {current_page + 1}/{length}", style=disnake.ButtonStyle.grey,
-                                      disabled=True),
-                        disnake.ui.Button(label="", emoji="▶️", style=disnake.ButtonStyle.blurple,
-                                      disabled=(current_page == length - 1), custom_id="Next")
-                        ]
-        buttons = disnake.ui.ActionRow()
-        for button in page_buttons:
-            buttons.append_item(button)
-
-        return [buttons]
-
-    async def check_global_tracked(self,player):
-        results = await ongoing_stats.find_one({"tag": f"{player.tag}"})
-        return results != None
-
-    async def check_server_tracked(self,player, server_id):
-        results = await server_db.find_one({"server": server_id})
-        tracked_members = results.get("tracked_members")
-
-        results = await ongoing_stats.find_one({"tag": player.tag})
-        if results != None:
-            servers = []
-            servers = results.get("servers")
-            if servers == None:
-                servers = []
-        else:
-            servers = []
-
-        return ((player.tag in tracked_members) or (server_id in servers))
 
 
 

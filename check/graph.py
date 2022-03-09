@@ -2,7 +2,7 @@ from disnake.ext import commands
 import disnake
 import matplotlib.pyplot as plt
 import io
-from helper import ongoing_stats, createTimeStats
+from utils.helper import ongoing_stats, createTimeStats
 import gc
 
 class graph(commands.Cog):

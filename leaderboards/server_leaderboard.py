@@ -1,11 +1,12 @@
 from disnake.ext import commands
-from helper import server_db, ongoing_stats
+from utils.helper import server_db, ongoing_stats
+from utils.components import create_components
 import disnake
 import emoji
 
 SUPER_SCRIPTS=["⁰","¹","²","³","⁴","⁵","⁶", "⁷","⁸", "⁹"]
 
-class Server_LB(commands.Cog):
+class ServerLeaderboard(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -93,7 +94,7 @@ class Server_LB(commands.Cog):
             embeds.append(embed)
 
         current_page = 0
-        await ctx.edit_original_message(embed=embeds[0], components=self.create_components(current_page, embeds))
+        await ctx.edit_original_message(embed=embeds[0], components=create_components(current_page, embeds))
         msg = await ctx.original_message()
 
         def check(res: disnake.MessageInteraction):
@@ -114,35 +115,17 @@ class Server_LB(commands.Cog):
             if res.data.custom_id == "Previous":
                 current_page -= 1
                 await res.response.edit_message(embed=embeds[current_page],
-                               components=self.create_components(current_page, embeds))
+                               components=create_components(current_page, embeds))
 
             elif res.data.custom_id == "Next":
                 current_page += 1
                 await res.response.edit_message(embed=embeds[current_page],
-                               components=self.create_components(current_page, embeds))
+                               components=create_components(current_page, embeds))
 
-    def create_components(self, current_page, embeds):
-        length = len(embeds)
-        if length == 1:
-            return []
-
-        page_buttons = [
-            disnake.ui.Button(label="", emoji="◀️", style=disnake.ButtonStyle.blurple, disabled=(current_page == 0),
-                              custom_id="Previous"),
-            disnake.ui.Button(label=f"Page {current_page + 1}/{length}", style=disnake.ButtonStyle.grey,
-                              disabled=True),
-            disnake.ui.Button(label="", emoji="▶️", style=disnake.ButtonStyle.blurple,
-                              disabled=(current_page == length - 1), custom_id="Next")
-            ]
-        buttons = disnake.ui.ActionRow()
-        for button in page_buttons:
-            buttons.append_item(button)
-
-        return [buttons]
 
 
 def setup(bot: commands.Bot):
-    bot.add_cog(Server_LB(bot))
+    bot.add_cog(ServerLeaderboard(bot))
 
 
 

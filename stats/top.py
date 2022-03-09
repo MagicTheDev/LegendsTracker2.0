@@ -1,6 +1,6 @@
-from disnake.ext import commands, tasks
+from disnake.ext import commands
 import disnake
-from helper import ongoing_stats, server_db
+from utils.helper import ongoing_stats, server_db
 
 class top(commands.Cog):
 

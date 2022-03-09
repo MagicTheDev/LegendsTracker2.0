@@ -1,13 +1,10 @@
-import disnake
 from disnake.ext import commands
 import os
-os.system("pip install \"pymongo[srv]\"")
 import traceback
-from helper import IS_BETA
+from utils.helper import IS_BETA
 
 bot = commands.Bot(command_prefix=commands.when_mentioned,
-    sync_commands_debug=True, sync_permissions=True,
-    help_command=None)
+    sync_commands_debug=False, sync_permissions=True, test_guilds=[923764211845312533])
 
 
 initial_extensions = (
@@ -19,7 +16,7 @@ initial_extensions = (
             "Check.history",
             "on_events",
             "emojis",
-            "track",
+            "MainTrack",
             "Pepe.pepe",
             "leaderboards",
             "top",
@@ -32,7 +29,6 @@ initial_extensions = (
             "country_leaderboards",
             "Check.quick_check",
             "patreon",
-            "ctrack",
             "dm_update"
         )
 

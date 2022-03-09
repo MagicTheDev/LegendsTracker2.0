@@ -1,10 +1,12 @@
 
 from disnake.ext import commands
 import disnake
-from helper import getPlayer, ongoing_stats
+from utils.helper import getPlayer, ongoing_stats
+from utils.emojis import fetch_emojis
 import random
 
 tips = ["New Command! - /daily_report", "New Command! - /check clan", "New Command! - /country track"]
+
 
 class CheckStats(commands.Cog):
 
@@ -12,12 +14,12 @@ class CheckStats(commands.Cog):
         self.bot = bot
 
     async def checkEmbed(self, results, pre_results=None, player=None):
-        emojis = self.bot.get_cog("emoji_dictionary")
-        legend_shield = emojis.fetch_emojis("legends_shield")
-        sword = emojis.fetch_emojis("sword")
-        shield = emojis.fetch_emojis("shield")
 
-        from leaderboards import rankings
+        legend_shield = fetch_emojis("legends_shield")
+        sword = fetch_emojis("sword")
+        shield = fetch_emojis("shield")
+
+        from leaderboards.leaderboard_loop import rankings
 
         if pre_results is None:
             result = await ongoing_stats.find_one({"tag": results})
@@ -130,10 +132,9 @@ class CheckStats(commands.Cog):
 
 
     async def checkYEmbed(self, results):
-        
-        emojis = self.bot.get_cog("emoji_dictionary")
-        sword = emojis.fetch_emojis("sword")
-        shield = emojis.fetch_emojis("shield")        
+
+        sword = fetch_emojis("sword")
+        shield = fetch_emojis("shield")
         
         result = await ongoing_stats.find_one({"tag": results})
         playerTag = result.get("tag")

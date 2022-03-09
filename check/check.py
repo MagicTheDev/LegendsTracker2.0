@@ -1,22 +1,22 @@
 import coc
 import disnake
 from disnake.ext import commands
-from helper import addLegendsPlayer_GLOBAL,getPlayer, ongoing_stats
+from utils.helper import getPlayer, ongoing_stats
+from utils.db import addLegendsPlayer_GLOBAL
+from utils.search import search_name, search_clans, search_clan_tag, search_results
 SUPER_SCRIPTS=["⁰","¹","²","³","⁴","⁵","⁶", "⁷","⁸", "⁹"]
 import emoji
 
-class Check_Slash(commands.Cog):
+class Check(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     async def autocomp_names(self, user_input: str):
-        search = self.bot.get_cog("search")
-        results = await search.search_name(user_input)
+        results = await search_name(user_input)
         return results
 
     async def autocomp_clans(self, user_input: str):
-        search = self.bot.get_cog("search")
-        results = await search.search_clans(user_input)
+        results = await search_clans(user_input)
         return results
 
     @commands.slash_command(name="check")
@@ -72,8 +72,7 @@ class Check_Slash(commands.Cog):
             smart_search: Autocompletes clans using clans tracked members are in
         """
         await ctx.response.defer()
-        search = self.bot.get_cog("search")
-        results:coc.Clan = await search.search_clan_tag(smart_search)
+        results:coc.Clan = await search_clan_tag(smart_search)
 
         if results == None:
             embed = disnake.Embed(
@@ -247,8 +246,7 @@ class Check_Slash(commands.Cog):
 
     async def legends(self, ctx, msg, search_query):
 
-        search = self.bot.get_cog("search")
-        results = await search.search_results(ctx, search_query)
+        results = await search_results(ctx, search_query)
 
         #track for them if not found
         if results == []:

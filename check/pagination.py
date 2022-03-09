@@ -1,62 +1,61 @@
-
-from disnake.ext import commands
 import disnake
+from disnake.ext import commands
+from utils.helper import ongoing_stats, profile_db, getPlayer, coc_client
 
-from helper import getPlayer, ongoing_stats, profile_db
-stat_types = ["Yesterday Legends", "Legends Overview", "Graph & Stats", "Add to Quick Check"]
+stat_types = ["Yesterday Legends", "Legends Overview", "Graph & Stats", "Legends History", "Add to Quick Check"]
 
-
-class trophy(commands.Cog):
+class pagination(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-      
 
-    @commands.Cog.listener()
-    async def on_button_click(self, ctx: disnake.MessageInteraction):
-        if ctx.component.label == "All Stats":
-            tag = ctx.component.custom_id
-            results = []
-            results.append(tag)
+    async def button_pagination(self, ctx, msg, results):
+        check = self.bot.get_cog("CheckStats")
+        current_page = 0
+        stats_page = []
+        trophy_results = []
+        x=0
+        async for player in coc_client.get_players(results):
+            r = await ongoing_stats.find_one({"tag": player.tag})
+            name = r.get("name")
+            trophies = r.get("trophies")
+            trophy_results.append(disnake.SelectOption(label=f"{name} | 🏆{trophies}", value=f"{x}"))
+            embed = await check.checkEmbed(player.tag, r, player)
+            stats_page.append(embed)
+            x+=1
 
-            check = self.bot.get_cog("CheckStats")
-            current_page = 0
-            stats_page = []
-            trophy_results = []
-            x = 0
-            for result in results:
-                r = await ongoing_stats.find_one({"tag": result})
-                name = r.get("name")
-                trophies = r.get("trophies")
-                trophy_results.append(disnake.SelectOption(label=f"{name} | 🏆{trophies}", value=f"{x}"))
-                embed = await check.checkEmbed(result)
-                stats_page.append(embed)
-                x += 1
+        components = await self.create_components(results, trophy_results)
+        await msg.edit(embed=stats_page[0], components=components)
 
-            components = await self.create_components(results, trophy_results)
-            await ctx.send(embed=stats_page[0], components=components, delete_after=300)
-            msg = await ctx.original_message()
+        def check(res: disnake.MessageInteraction):
+            return res.message.id == msg.id
 
-            def check(res: disnake.MessageInteraction):
-                return res.message.id == msg.id
+        while True:
+            try:
+                res: disnake.MessageInteraction = await self.bot.wait_for("message_interaction", check=check, timeout=600)
+            except:
+                await msg.edit(components=[])
+                break
 
-            while True:
+
+
+            if res.values[0] in stat_types:
+                if res.values[0] == "Add to Quick Check":
+                    await self.add_profile(res, results[current_page], components, msg)
+                else:
+                    current_stat = stat_types.index(res.values[0])
+                    await res.response.defer()
+                    embed = await self.display_embed(results, stat_types[current_stat], current_page, ctx)
+                    await msg.edit(embed=embed,
+                                   components=components)
+            else:
                 try:
-                    res: disnake.MessageInteraction = await self.bot.wait_for("message_interaction", check=check,
-                                                                              timeout=120)
+                    current_page = int(res.values[0])
+                    embed = stats_page[current_page]
+                    await res.response.edit_message(embed=embed,
+                                   components=components)
                 except:
-                    break
-
-
-                if res.values[0] in stat_types:
-                    if res.values[0] == "Add to Quick Check":
-                        await self.add_profile(res, results[current_page], components, msg)
-                    else:
-                        await res.response.defer()
-                        current_stat = stat_types.index(res.values[0])
-                        embed = await self.display_embed(results, stat_types[current_stat], current_page, ctx)
-                        await msg.edit(embed=embed,
-                                       components=components)
+                    continue
 
 
     async def add_profile(self, res, tag, components, msg):
@@ -134,8 +133,5 @@ class trophy(commands.Cog):
         return[st, st2]
 
 
-
-
-
 def setup(bot: commands.Bot):
-    bot.add_cog(trophy(bot))
+    bot.add_cog(pagination(bot))

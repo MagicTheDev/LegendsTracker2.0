@@ -1,6 +1,8 @@
 from disnake.ext import commands
 import disnake
-from helper import server_db, coc_client, removeLegendsPlayer_SERVER
+from utils.helper import server_db, coc_client
+from utils.db import removeLegendsPlayer_SERVER
+from utils.components import create_components
 
 
 class bot_settings(commands.Cog):
@@ -162,7 +164,7 @@ class bot_settings(commands.Cog):
             embeds.append(embed)
 
         current_page = 0
-        await ctx.edit_original_message(embed=embeds[0], components=self.create_components(current_page, embeds))
+        await ctx.edit_original_message(embed=embeds[0], components=create_components(current_page, embeds))
 
         msg = await ctx.original_message()
 
@@ -183,32 +185,15 @@ class bot_settings(commands.Cog):
             if res.data.custom_id == "Previous":
                 current_page -= 1
                 await res.response.edit_message(embed=embeds[current_page],
-                                                components=self.create_components(current_page, embeds))
+                                                components=create_components(current_page, embeds))
 
             elif res.data.custom_id == "Next":
                 current_page += 1
                 await res.response.edit_message(embed=embeds[current_page],
-                                                components=self.create_components(current_page, embeds))
+                                                components=create_components(current_page, embeds))
 
 
-    def create_components(self, current_page, embeds):
-        length = len(embeds)
-        if length == 1:
-            return []
 
-        page_buttons = [
-            disnake.ui.Button(label="", emoji="◀️", style=disnake.ButtonStyle.blurple, disabled=(current_page == 0),
-                              custom_id="Previous"),
-            disnake.ui.Button(label=f"Page {current_page + 1}/{length}", style=disnake.ButtonStyle.grey,
-                              disabled=True),
-            disnake.ui.Button(label="", emoji="▶️", style=disnake.ButtonStyle.blurple,
-                              disabled=(current_page == length - 1), custom_id="Next")
-            ]
-        buttons = disnake.ui.ActionRow()
-        for button in page_buttons:
-            buttons.append_item(button)
-
-        return [buttons]
 
 
 

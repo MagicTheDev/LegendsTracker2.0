@@ -1,5 +1,5 @@
 from disnake.ext import commands
-from helper import ongoing_stats, server_db, IS_BETA
+from utils.helper import ongoing_stats, server_db, IS_BETA
 import disnake
 import emoji
 import time
@@ -309,64 +309,6 @@ class legend_stats(commands.Cog):
         board = disnake.Embed(title="Trophy Breakdown for players tracked.", description=text,
                               color=disnake.Color.blue())
         await ctx.send(embed=board)
-
-
-    @commands.slash_command(name="plot",description="Plot of defense", guild_ids=[923764211845312533])
-    async def plot(self, ctx):
-        points = []
-        tracked = ongoing_stats.find()
-        limit = await ongoing_stats.count_documents(filter={})
-        for document in await tracked.to_list(length=limit):
-            previous_defs= document.get("previous_defenses")
-            end_of_days = document.get("end_of_day")
-            previous_defs = previous_defs[:-1]
-            previous_defs = previous_defs[1:]
-            end_of_days = end_of_days[:-2]
-            for (defs, day) in zip(previous_defs, end_of_days):
-                if defs == []:
-                    continue
-                day = str(day)
-                day = day[:2] + "00"
-                day = int(day)
-                p = [day, sum(defs)]
-                points.append(p)
-
-        points = np.array(points)
-        x = points[:, 0].reshape(points.shape[0], 1)
-        X = np.append(x, np.ones((points.shape[0], 1)), axis=1)
-        y = points[:, 1].reshape(points.shape[0], 1)
-
-        # Calculating the parameters using the least square method
-        theta = np.linalg.inv(X.T.dot(X)).dot(X.T).dot(y)
-
-        print(f'The parameters of the line: {theta}')
-
-        # Now, calculating the y-axis values against x-values according to
-        # the parameters theta0 and theta1
-        y_line = X.dot(theta)
-
-        # Plotting the data points and the best fit line
-        plt.scatter(x, y)
-        plt.plot(x, y_line, 'r')
-        plt.title('Best fit line using regression method')
-        plt.xlabel('x-axis')
-        plt.ylabel('y-axis')
-
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png')
-        buf.seek(0)
-
-
-        embed = disnake.Embed(title=f"Best fit line",
-                              color=disnake.Color.blue())
-        file = disnake.File(fp=buf, filename="filename.png")
-        pic_channel = await self.bot.fetch_channel(884951195406458900)
-        msg = await pic_channel.send(file=file)
-        pic = msg.attachments[0].url
-        embed.set_image(url=pic)
-        plt.clf()
-        plt.close("all")
-        await ctx.send(embed=embed)
 
 
 

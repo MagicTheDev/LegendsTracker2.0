@@ -1,12 +1,12 @@
 
 from disnake.ext import commands, tasks
-from helper import coc_client, profile_db, ongoing_stats
+from utils.helper import profile_db, ongoing_stats
 import datetime as dt
 import emoji
 SUPER_SCRIPTS=["⁰","¹","²","³","⁴","⁵","⁶", "⁷","⁸", "⁹"]
 import disnake
 
-class dm(commands.Cog):
+class DMFeed(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -15,7 +15,6 @@ class dm(commands.Cog):
 
     def cog_unload(self):
         self.dm_check.cancel()
-
 
     @commands.slash_command(name="daily_report", description="Opt in/out of daily report on tracked players sent to your dm.")
     async def daily_report(self, ctx: disnake.ApplicationCommandInteraction, opt = commands.Param(description="Opt In/Out",choices=["Opt-In", "Opt-Out"])):
@@ -145,12 +144,8 @@ class dm(commands.Cog):
                                         {'$set': {"opt": "Opt-Out"}})
             await res.send(content=f"Opted you out of daily DM reports. Use `/daily_report` to opt back in.", ephemeral=True)
 
-
     @dm_check.before_loop
     async def before_printer(self):
-        print('waiting...')
         await self.bot.wait_until_ready()
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(dm(bot))

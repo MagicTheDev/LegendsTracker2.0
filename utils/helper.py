@@ -4,7 +4,7 @@ from coc.ext import discordlinks
 import motor.motor_asyncio
 from dotenv import load_dotenv
 import aiohttp
-IS_BETA = False
+IS_BETA = True
 
 load_dotenv()
 
@@ -66,43 +66,6 @@ async def patreon_discord_ids():
                     continue
 
     return ids
-
-async def addLegendsPlayer_GLOBAL(player, clan_name):
-      await ongoing_stats.insert_one({
-        "tag": player.tag,
-        "name": player.name,
-        "trophies": player.trophies,
-        "num_season_hits": player.attack_wins,
-        "num_season_defenses": player.defense_wins,
-        "row_triple": 0,
-        "today_hits": [],
-        "today_defenses": [],
-        "num_today_hits": 0,
-        "previous_hits": [],
-        "previous_defenses": [],
-        "num_yesterday_hits": 0,
-        "servers" :[],
-        "end_of_day": [],
-        "clan": clan_name,
-        "link": player.share_link,
-        "league": str(player.league),
-        "highest_streak" : 0,
-        "last_updated" : None,
-        "change" : None
-      })
-
-
-async def addLegendsPlayer_SERVER(guild_id, player):
-  await ongoing_stats.update_one({'tag': player.tag},
-                                 {'$push': {"servers": guild_id}})
-  await server_db.update_one({'server': guild_id},
-                                 {'$push': {"tracked_members": player.tag}})
-
-async def removeLegendsPlayer_SERVER(guild_id, player):
-  await ongoing_stats.update_one({'tag': player.tag},
-                                 {'$pull': {"servers": guild_id}})
-  await server_db.update_one({'server': guild_id},
-                                 {'$pull': {"tracked_members": player.tag}})
 
 
 async def createTimeStats(player):
@@ -183,42 +146,4 @@ async def getClanWar(clanTag):
   except:
     return None
 
-async def pingToMember(ctx, ping):
-  ping = str(ping)
-  if (ping.startswith('<@') and ping.endswith('>')):
-    ping = ping[2:len(ping) - 1]
 
-  if (ping.startswith('!')):
-    ping = ping[1:len(ping)]
-
-  try:
-    member = await ctx.guild.fetch_member(ping)
-    return member
-  except:
-    return None
-
-
-async def pingToRole(ctx, ping):
-    ping = str(ping)
-    if (ping.startswith('<@') and ping.endswith('>')):
-        ping = ping[2:len(ping) - 1]
-
-    if (ping.startswith('&')):
-        ping = ping[1:len(ping)]
-
-    try:
-      role = ctx.guild.get_role(int(ping))
-      return role
-    except:
-        return None
-
-async def pingToChannel(ctx, ping):
-  ping = str(ping)
-  if (ping.startswith('<#') and ping.endswith('>')):
-    ping = ping[2:len(ping) - 1]
-
-  try:
-    channel =  ctx.guild.get_channel(int(ping))
-    return channel
-  except:
-    return None

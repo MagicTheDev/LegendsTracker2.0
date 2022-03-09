@@ -1,5 +1,6 @@
 from disnake.ext import commands
-from helper import getPlayer, getClan, ongoing_stats, server_db, addLegendsPlayer_SERVER, addLegendsPlayer_GLOBAL, removeLegendsPlayer_SERVER
+from utils.helper import getPlayer, ongoing_stats, server_db
+from utils.db import addLegendsPlayer_SERVER, addLegendsPlayer_GLOBAL, removeLegendsPlayer_SERVER
 import disnake
 
 
@@ -11,7 +12,7 @@ server_db.insert_one({
 })
 """
 
-class track(commands.Cog):
+class PlayerTrack(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -155,5 +156,3 @@ class track(commands.Cog):
         return True
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(track(bot))
