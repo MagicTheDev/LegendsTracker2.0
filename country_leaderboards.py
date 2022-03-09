@@ -22,13 +22,13 @@ class country_leaderboard(commands.Cog):
             names.append(document.get("country_name"))
         return names
 
-    #@commands.slash_command()
-    #async def country(self, ctx):
-        #pass
+    @commands.slash_command(name="country", description="test", guild_ids=[923764211845312533])
+    async def country(self, ctx):
+        pass
 
 
 
-    @commands.slash_command(name="country_leaderboards", description="Search country (or global) leaderboards", guild_ids=[923764211845312533])
+    @country.sub_command(name="leaderboards", description="Search country (or global) leaderboards", guild_ids=[923764211845312533])
     async def country_lb(self, ctx: disnake.ApplicationCommandInteraction , country: str = commands.Param(autocomplete=autocomp_names)):
         await ctx.response.defer()
         loc = await coc_client.get_location_named(country)
@@ -69,7 +69,7 @@ class country_leaderboard(commands.Cog):
 
 
 
-    @commands.slash_command(name="country_track", description="Add players from country (or global) leaderboards", guild_ids=[923764211845312533])
+    @country.sub_command(name="track", description="Add players from country (or global) leaderboards", guild_ids=[923764211845312533])
     async def country_track(self,ctx: disnake.ApplicationCommandInteraction, country: str = commands.Param(autocomplete=autocomp_names), top: int = 200):
         """
             Parameters
