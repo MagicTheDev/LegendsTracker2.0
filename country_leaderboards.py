@@ -163,7 +163,9 @@ class country_leaderboard(commands.Cog):
         await msg.edit(embed=embed, components=[])
 
         num_global_tracked = 0
+        num_global_alr = 0
         num_server_tracked = 0
+        num_server_alr = 0
         remove_num = 0
         done = 0
         players_to_be = []
@@ -172,6 +174,10 @@ class country_leaderboard(commands.Cog):
                 players_to_be.append(player.tag)
                 is_global_tracked = await self.check_global_tracked(player=player)
                 is_server_tracked = await self.check_server_tracked(player=player, server_id=ctx.guild.id)
+                if is_global_tracked:
+                    num_global_alr +=1
+                if is_server_tracked:
+                    num_server_alr += 1
                 if not is_global_tracked:
                     num_global_tracked += 1
                     clan_name = "No Clan"
@@ -196,9 +202,9 @@ class country_leaderboard(commands.Cog):
                                                {'$pull': {"tracked_members": mem}})
 
         embed = disnake.Embed(title=f"Location: {country_name}, Top {top}",
-            description=f"{num_global_tracked} members added to global tracking.\n"
-                        f"{num_server_tracked} members added to server tracking.\n"
-                        f"{remove_num} members removed from server tracking.",
+            description=f"Global Tracking: {num_global_tracked} added | {num_global_alr} already present\n"
+                        f"Server Tracking: {num_server_tracked} added | {num_server_alr} already present\n"
+                        f"{remove_num} removed from server tracking.",
             color=disnake.Color.green())
         if ctx.guild.icon is not None:
             embed.set_thumbnail(url=ctx.guild.icon.url)
