@@ -106,10 +106,10 @@ class country_leaderboard(commands.Cog):
             location_id = "global"
         else:
             loc = await coc_client.get_location_named(country)
-            location_id = loc
             if loc is None:
                 return await ctx.edit_original_message(
                     content="Not a valid country. Use the autocomplete to help select from the 100+ countries.")
+            location_id = loc.id
 
         if country == "Global":
             country_name = "Global"
