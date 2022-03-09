@@ -22,7 +22,7 @@ class country_leaderboard(commands.Cog):
             names.append(document.get("country_name"))
         return names
 
-    @commands.slash_command(name="country", description="Country tracking", guild_ids=[923764211845312533])
+    @commands.slash_command()
     async def country(self, ctx):
         pass
 
