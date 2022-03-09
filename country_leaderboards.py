@@ -160,8 +160,7 @@ class country_leaderboard(commands.Cog):
         embed = disnake.Embed(
             description="<a:loading:884400064313819146> Adding players...",
             color=disnake.Color.green())
-        await ctx.send(embed=embed)
-        msg = await ctx.original_message()
+        await msg.edit(embed=embed, components=[])
 
         num_global_tracked = 0
         num_server_tracked = 0
@@ -175,7 +174,10 @@ class country_leaderboard(commands.Cog):
                 is_server_tracked = await self.check_server_tracked(player=player, server_id=ctx.guild.id)
                 if not is_global_tracked:
                     num_global_tracked += 1
-                    await addLegendsPlayer_GLOBAL(player=player,clan_name=player.clan.name)
+                    clan_name = "No Clan"
+                    if player.clan != None:
+                        clan_name = player.clan.name
+                    await addLegendsPlayer_GLOBAL(player=player,clan_name=clan_name)
                 if not is_server_tracked:
                     num_server_tracked+=1
                     await addLegendsPlayer_SERVER(player=player, guild_id=ctx.guild.id)
