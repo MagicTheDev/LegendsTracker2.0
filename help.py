@@ -1,7 +1,7 @@
 
 from disnake.ext import commands
 import disnake
-from helper import server_db
+from helper import server_db, ongoing_stats
 import os
 initial_extensions = (
         "Check.check",
@@ -68,28 +68,16 @@ class help(commands.Cog):
     @commands.command(name="migrate")
     @commands.is_owner()
     async def migrate(self, ctx):
-        embed = disnake.Embed(title="Feed Changes.",
-                               description="As of 3/1/2022 all feeds have been switched to operating with webhooks\n"
-                                           "**Why?**\n"
-                                           "- Feed speed increase, and the bot will be able to handle the feeds of 200+ servers, that it is currently struggling with.\n"
-                                           "**What to do?**\n"
-                                           "- Go to the channel you have for your feed. Give the bot the `Manage Webhooks` permission. (If the bot has admin, you should be fine)\n"
-                                           "- Run `/feed set` (if you want the feed in a discord thread, run the command in a thread under that channel it has permissions in)\n"
-                                           "**Need help or have additional questions?**\n"
-                                           "- Join the support server - discord.gg/gChZm3XCrS",
-                               color=disnake.Color.green())
 
-        tracked = server_db.find()
-        limit = await server_db.count_documents(filter={})
+        tracked = ongoing_stats.find()
+        limit = await ongoing_stats.count_documents(filter={})
         for document in await tracked.to_list(length=limit):
-            channel = document.get("channel_id")
-            if channel == None:
-                continue
-            try:
-                channel = await self.bot.fetch_channel(channel)
-                await channel.send(embed=embed)
-            except:
-                continue
+            servers = document.get("servers")
+            tag = document.get("tag")
+            if 923764211845312533 in servers:
+                await ongoing_stats.update_one({'tag': tag},
+                                               {'$pull': {"servers": 923764211845312533}})
+        await ctx.send("done")
 
     @commands.command(name="gitpull")
     @commands.is_owner()
