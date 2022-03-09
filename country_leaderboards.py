@@ -68,17 +68,22 @@ class country_leaderboard(commands.Cog):
 
 
     @commands.slash_command(name="country_track", description="Add players from country (or global) leaderboards", guild_ids=[923764211845312533])
-    async def country_track(self,ctx: disnake.ApplicationCommandInteraction, country: str = commands.Param(autocomplete=autocomp_names), top=commands.Range[1, 200]):
+    async def country_track(self,ctx: disnake.ApplicationCommandInteraction, country: str = commands.Param(autocomplete=autocomp_names), top: int = 200):
         """
             Parameters
             ----------
             country: Country to track
-            top: Top # of players to track (1 - 200)
+            top: Top # of players to track (1 - 200), default is 200
           """
 
         perms = ctx.author.guild_permissions.manage_guild
         if not perms:
             embed = disnake.Embed(description="Command requires `Manage Server` permissions.",
+                                  color=disnake.Color.red())
+            return await ctx.send(embed=embed)
+
+        if top <= 0 or top >= 200:
+            embed = disnake.Embed(description="Top number must be between 1 and 200.",
                                   color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
@@ -149,11 +154,6 @@ class country_leaderboard(commands.Cog):
 
             chose = res.values[0]
 
-        remove_num = 0
-        if chose == "Yes":
-            remove_num = len(tracked_members)
-            await server_db.update_one({'server': ctx.guild.id},
-                                       {'$set': {"tracked_members": []}})
 
         embed = disnake.Embed(
             description="<a:loading:884400064313819146> Adding players...",
@@ -163,9 +163,12 @@ class country_leaderboard(commands.Cog):
 
         num_global_tracked = 0
         num_server_tracked = 0
+        remove_num = 0
         done = 0
+        players_to_be = []
         for player in country:
             if str(player.league) == "Legend League":
+                players_to_be.append(player.tag)
                 is_global_tracked = await self.check_global_tracked(player=player)
                 is_server_tracked = await self.check_server_tracked(player=player, server_id=ctx.guild.id)
                 if not is_global_tracked:
@@ -177,6 +180,16 @@ class country_leaderboard(commands.Cog):
                 done += 1
                 if done == top:
                     break
+
+        if chose == "Yes":
+            tracked_members = results.get("tracked_members")
+            for mem in tracked_members:
+                if mem not in players_to_be:
+                    remove_num += 1
+                    await ongoing_stats.update_one({'tag': mem},
+                                                   {'$pull': {"servers": ctx.guild.id}})
+                    await server_db.update_one({'server': ctx.guild.id},
+                                               {'$pull': {"tracked_members": mem}})
 
         embed = disnake.Embed(title=f"Location: {country_name}, Top {top}",
             description=f"{num_global_tracked} members added to global tracking.\n"
