@@ -21,7 +21,7 @@ ongoing_db = client.legends_stats
 ongoing_stats = ongoing_db.ongoing_stats
 
 
-moved = False
+moved = True
 
 
 async def stats_update():
@@ -235,8 +235,9 @@ async def moveStats():
                                        {'$push': {"end_of_day": trophies,
                                                   "previous_hits": today_hits,
                                                   "previous_defenses": today_defenses}})
-
     print("Stats Shifted & Stored")
+    os.system("pm2 restart looper")
+
 
 @coc.ClientEvents.new_season_start()
 async def new_Season():

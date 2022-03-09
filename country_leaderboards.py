@@ -1,6 +1,6 @@
 
 from disnake.ext import commands, tasks
-from helper import coc_client, locations, ongoing_stats
+from helper import coc_client, locations, ongoing_stats, server_db, addLegendsPlayer_SERVER, addLegendsPlayer_GLOBAL
 SUPER_SCRIPTS=["⁰","¹","²","³","⁴","⁵","⁶", "⁷","⁸", "⁹"]
 import emoji
 import disnake
@@ -22,14 +22,20 @@ class country_leaderboard(commands.Cog):
             names.append(document.get("country_name"))
         return names
 
+    @commands.slash_command(name="country", description="Country tracking", guild_ids=[923764211845312533])
+    async def country(self, ctx):
+        pass
 
-    @commands.slash_command(name="country_leaderboards", description="Search country leaderboards.")
+    @country.sub_command_group(name="leaderboards", description="Search country (or global) leaderboards")
     async def country_lb(self, ctx: disnake.ApplicationCommandInteraction , country: str = commands.Param(autocomplete=autocomp_names)):
         await ctx.response.defer()
         loc = await coc_client.get_location_named(country)
-        if loc is None:
-            return await ctx.edit_original_message(content="Not a valid country. Use the autocomplete to help select from the 100+ countries.")
-        embeds = await self.create_lb(loc.id)
+        if country == "Global":
+            embeds = await self.create_lb("global")
+        else:
+            if loc is None:
+                return await ctx.edit_original_message(content="Not a valid country. Use the autocomplete to help select from the 100+ countries.")
+            embeds = await self.create_lb(loc.id)
 
         current_page = 0
         await ctx.edit_original_message(embed=embeds[0], components=self.create_components(current_page, embeds))
@@ -61,6 +67,124 @@ class country_leaderboard(commands.Cog):
 
 
 
+    @country.sub_command_group(name="track", description="Add players from country (or global) leaderboards")
+    async def ctrack_add(self,ctx: disnake.ApplicationCommandInteraction, country: str = commands.Param(autocomplete=autocomp_names), top: int=commands.Range[1, 200]):
+        """
+            Parameters
+            ----------
+            country: Country to track
+            top: Top # of players to track (1 - 200)
+          """
+
+        perms = ctx.author.guild_permissions.manage_guild
+        if not perms:
+            embed = disnake.Embed(description="Command requires `Manage Server` permissions.",
+                                  color=disnake.Color.red())
+            return await ctx.send(embed=embed)
+
+
+
+        results = await server_db.find_one({"server": ctx.guild.id})
+        tracked_members = results.get("tracked_members")
+        feed = results.get("channel_id")
+        if len(tracked_members) > 500 and feed is not None:
+            embed = disnake.Embed(
+                description="Sorry this command cannot be used while you have more than 500 people tracked and have feed enabled.\n"
+                            "Please clear some members with `/clear_under`, sync members with `/clan_track sync`, or remove individual accounts with `/track remove`",
+                color=disnake.Color.red())
+            return await ctx.send(embed=embed)
+
+        await ctx.response.defer()
+        if country == "Global":
+            location_id = "global"
+        else:
+            loc = await coc_client.get_location_named(country)
+            location_id = loc
+            if loc is None:
+                return await ctx.edit_original_message(
+                    content="Not a valid country. Use the autocomplete to help select from the 100+ countries.")
+
+        country = await coc_client.get_location_players(location_id=location_id)
+        if country == "Global":
+            country_name = "Global"
+        else:
+            country_name = await coc_client.get_location(location_id)
+
+        embed = disnake.Embed(description=f"**Would you like to remove tracked players outside of this location?**\n"
+                                          f"if **yes**, this will set your feed & leaderboard to just players in this location.\n",
+                              color=disnake.Color.green())
+
+        select1 = disnake.ui.Select(
+            options=[
+                disnake.SelectOption(label="Yes", value=f"Yes", emoji="✅"),
+                disnake.SelectOption(label="No", value=f"No", emoji="❌")
+            ],
+            placeholder="Choose your option",
+            min_values=1,  # the minimum number of options a user must select
+            max_values=1  # the maximum number of options a user can select
+        )
+        action_row = disnake.ui.ActionRow()
+        action_row.append_item(select1)
+
+        await ctx.edit_original_message(embed=embed, components=[action_row])
+        msg = await ctx.original_message()
+
+        chose = False
+
+        def check(res: disnake.MessageInteraction):
+            return res.message.id == msg.id
+
+        while chose == False:
+            try:
+                res: disnake.MessageInteraction = await self.bot.wait_for("message_interaction", check=check,
+                                                                          timeout=600)
+            except:
+                await msg.edit(components=[])
+                break
+
+            if res.author.id != ctx.author.id:
+                await res.send(content="You must run the command to interact with components.", ephemeral=True)
+                continue
+
+            chose = res.values[0]
+
+        remove_num = 0
+        if chose == "Yes":
+            remove_num = len(tracked_members)
+            await server_db.update_one({'server': ctx.guild.id},
+                                       {'$set': {"tracked_members": []}})
+
+        embed = disnake.Embed(
+            description="<a:loading:884400064313819146> Adding players...",
+            color=disnake.Color.green())
+        await ctx.send(embed=embed)
+        msg = await ctx.original_message()
+
+        num_global_tracked = 0
+        num_server_tracked = 0
+        done = 0
+        for player in country:
+            if str(player.league) == "Legend League":
+                is_global_tracked = await self.check_global_tracked(player=player)
+                is_server_tracked = await self.check_server_tracked(player=player, server_id=ctx.guild.id)
+                if not is_global_tracked:
+                    num_global_tracked += 1
+                    await addLegendsPlayer_GLOBAL(player=player,clan_name=player.clan.name)
+                if not is_server_tracked:
+                    num_server_tracked+=1
+                    await addLegendsPlayer_SERVER(player=player, guild_id=ctx.guild.id)
+                done += 1
+                if done == top:
+                    break
+
+        embed = disnake.Embed(title=f"Location: {country_name}, Top {top}",
+            description=f"{num_global_tracked} members added to global tracking.\n"
+                        f"{num_server_tracked} members added to server tracking.\n"
+                        f"{remove_num} members removed from server tracking.",
+            color=disnake.Color.green())
+        if ctx.guild.icon is not None:
+            embed.set_thumbnail(url=ctx.guild.icon.url)
+        return await msg.edit(embed=embed, components=[])
 
 
     async def create_lb(self, location_id):
@@ -141,7 +265,24 @@ class country_leaderboard(commands.Cog):
 
         return [buttons]
 
+    async def check_global_tracked(self,player):
+        results = await ongoing_stats.find_one({"tag": f"{player.tag}"})
+        return results != None
 
+    async def check_server_tracked(self,player, server_id):
+        results = await server_db.find_one({"server": server_id})
+        tracked_members = results.get("tracked_members")
+
+        results = await ongoing_stats.find_one({"tag": player.tag})
+        if results != None:
+            servers = []
+            servers = results.get("servers")
+            if servers == None:
+                servers = []
+        else:
+            servers = []
+
+        return ((player.tag in tracked_members) or (server_id in servers))
 
 
 
