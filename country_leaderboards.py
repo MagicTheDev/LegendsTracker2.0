@@ -68,7 +68,7 @@ class country_leaderboard(commands.Cog):
 
 
     @country.sub_command_group(name="track", description="Add players from country (or global) leaderboards", guild_ids=[923764211845312533])
-    async def ctrack_add(self,ctx: disnake.ApplicationCommandInteraction, country: str = commands.Param(autocomplete=autocomp_names), top: int=commands.Range[1, 200]):
+    async def country_track(self,ctx: disnake.ApplicationCommandInteraction, country: str = commands.Param(autocomplete=autocomp_names), top: int=commands.Range[1, 200]):
         """
             Parameters
             ----------
