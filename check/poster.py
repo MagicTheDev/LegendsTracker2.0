@@ -132,7 +132,7 @@ class Poster(commands.Cog):
         if averages[2] >= 0:
             avg3 = f"+{str(averages[2])}"
         else:
-            avg3 = f"-{str(averages[2])}"
+            avg3 = f"{str(averages[2])}"
         rank = await self.rank(tag)
         hitstats = await self.hit_stats(result, days)
 
