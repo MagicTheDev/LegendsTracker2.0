@@ -5,9 +5,6 @@ import emoji
 import time
 import statcord
 import psutil
-from matplotlib import pyplot as plt
-import io
-import numpy as np
 
 class LegendStats(commands.Cog):
 
