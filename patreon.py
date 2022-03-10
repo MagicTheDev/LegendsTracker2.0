@@ -26,7 +26,7 @@ class Patreon(commands.Cog):
 
 
         results = await server_db.find_one({"patreon_sub": ctx.author.id})
-        if results == None:
+        if results is None:
             await server_db.update_one({"server": ctx.guild.id}, {'$set': {"patreon_sub": ctx.author.id}})
             return await ctx.send("Pledge successfully linked to this server.")
         else:

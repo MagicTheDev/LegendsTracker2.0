@@ -141,7 +141,7 @@ class CountryLeaderboard(commands.Cog):
         def check(res: disnake.MessageInteraction):
             return res.message.id == msg.id
 
-        while chose == False:
+        while chose is False:
             try:
                 res: disnake.MessageInteraction = await self.bot.wait_for("message_interaction", check=check,
                                                                           timeout=600)
@@ -180,7 +180,7 @@ class CountryLeaderboard(commands.Cog):
                 if not is_global_tracked:
                     num_global_tracked += 1
                     clan_name = "No Clan"
-                    if player.clan != None:
+                    if player.clan is not None:
                         clan_name = player.clan.name
                     await addLegendsPlayer_GLOBAL(player=player,clan_name=clan_name)
                 if not is_server_tracked:

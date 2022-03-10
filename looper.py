@@ -30,10 +30,10 @@ async def stats_update():
     minute = now.minute
 
     global moved
-    if (hour == "4") and (minute >= 50) and (moved == True):
+    if (hour == "4") and (minute >= 50) and (moved is True):
         moved = False
 
-    if (hour == "5") and (minute >= 3) and (minute <= 8) and (moved == False):
+    if (hour == "5") and (minute >= 3) and (minute <= 8) and (moved is False):
         await moveStats()
         moved = True
 
@@ -167,7 +167,7 @@ async def stats_update():
                 results = await ongoing_stats.find_one({"tag": f"{clash_player.tag}"})
                 numberOfTriples = results.get("row_triple")
                 highest_streak = results.get("highest_streak")
-                if highest_streak == None:
+                if highest_streak is None:
                     highest_streak = 0
                 if numberOfTriples > highest_streak:
                     await ongoing_stats.update_one({'tag': f"{clash_player.tag}"},
@@ -179,7 +179,7 @@ async def stats_update():
                 if numberOfTriples >= 2:
                     onfire = f"\nOn fire 🔥 {numberOfTriples} triples in a row 🔥"
 
-                if multipleTriples == True:
+                if multipleTriples is True:
                     hits = results.get("today_hits")
                     for x in range(1, diffHits + 1):
                         thisHit = hits[-x]

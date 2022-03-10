@@ -18,7 +18,7 @@ class QuickCheck(commands.Cog):
         await ctx.send(embed=embed)
         msg = await ctx.original_message()
         results = await profile_db.find_one({'discord_id': ctx.author.id})
-        if results != None:
+        if results is not None:
             tags = results.get("profile_tags")
             if tags != []:
                 pagination = self.bot.get_cog("pagination")

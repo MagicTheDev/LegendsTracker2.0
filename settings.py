@@ -41,7 +41,7 @@ class bot_settings(commands.Cog):
                 if w.user.id == self.bot.user.id:
                     webhook = w
                     break
-            if webhook == None:
+            if webhook is None:
                 webhook = await channel.create_webhook(name="Legends Tracker", avatar=bot_av, reason="Legends Feed")
 
 
@@ -90,7 +90,7 @@ class bot_settings(commands.Cog):
 
         results = await server_db.find_one({"server": ctx.guild.id})
 
-        if results == None:
+        if results is None:
             return
 
         trophies = int(trophies)
@@ -142,7 +142,7 @@ class bot_settings(commands.Cog):
             return await ctx.send(embed=embed)
         async for player in coc_client.get_players(tags):
             if list_type == "Clan list":
-                if player.clan != None:
+                if player.clan is not None:
                     if player.clan not in list:
                         list.append(player.clan)
             else:

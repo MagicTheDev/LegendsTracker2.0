@@ -42,7 +42,7 @@ class ClanTrack(commands.Cog):
 
         results = await server_db.find_one({"server": ctx.guild.id})
         tracked_clans = results.get("tracked_clans")
-        if tracked_clans == None:
+        if tracked_clans is None:
             tracked_clans = []
 
         if clan.tag in tracked_clans:
@@ -123,7 +123,7 @@ class ClanTrack(commands.Cog):
 
         results = await server_db.find_one({"server": ctx.guild.id})
         tracked_clans = results.get("tracked_clans")
-        if tracked_clans == None:
+        if tracked_clans is None:
             tracked_clans = []
 
         if clan.tag not in tracked_clans:
@@ -158,7 +158,7 @@ class ClanTrack(commands.Cog):
 
         results = await server_db.find_one({"server": ctx.guild.id})
         tracked_clans = results.get("tracked_clans")
-        if tracked_clans == None:
+        if tracked_clans is None:
             tracked_clans = []
 
         if tracked_clans == []:
@@ -189,7 +189,7 @@ class ClanTrack(commands.Cog):
 
         results = await server_db.find_one({"server": ctx.guild.id})
         tracked_clans = results.get("tracked_clans")
-        if tracked_clans == None:
+        if tracked_clans is None:
             tracked_clans = []
 
         if tracked_clans == []:
@@ -222,7 +222,7 @@ class ClanTrack(commands.Cog):
         def check(res: disnake.MessageInteraction):
             return res.message.id == msg.id
 
-        while chose == False:
+        while chose is False:
             try:
                 res: disnake.MessageInteraction = await self.bot.wait_for("message_interaction", check=check,
                                                                           timeout=600)
@@ -314,17 +314,17 @@ class ClanTrack(commands.Cog):
 
     async def check_global_tracked(self,player):
         results = await ongoing_stats.find_one({"tag": f"{player.tag}"})
-        return results != None
+        return results is not None
 
     async def check_server_tracked(self,player, server_id):
         results = await server_db.find_one({"server": server_id})
         tracked_members = results.get("tracked_members")
 
         results = await ongoing_stats.find_one({"tag": player.tag})
-        if results != None:
+        if results is not None:
             servers = []
             servers = results.get("servers")
-            if servers == None:
+            if servers is None:
                 servers = []
         else:
             servers = []
