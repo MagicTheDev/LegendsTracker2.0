@@ -82,6 +82,21 @@ class Poster(commands.Cog):
         graph = Image.open("check/poster_graph.png")
         poster = Image.open("check/poster.png")
 
+        from leaderboards.leaderboard_loop import rankings
+        gspot = None
+        flag = None
+        cou_spot = None
+        spots = [i for i, value in enumerate(rankings) if value == tag]
+        for r in spots:
+            loc = rankings[r + 1]
+            if loc == "global":
+                gspot = rankings[r + 2]
+            else:
+                cou_spot = rankings[r + 2]
+                loc = loc.lower()
+                flag = loc
+
+
         poster.paste(graph, (1175, 475), graph.convert("RGBA"))
 
         font = ImageFont.truetype("check/code.TTF", 80)
@@ -89,6 +104,7 @@ class Poster(commands.Cog):
         font3 = ImageFont.truetype("check/blogger.ttf", 60)
         font4 = ImageFont.truetype("check/blogger.ttf",37)
         font5 = ImageFont.truetype("check/blogger.ttf", 20)
+        font6 = ImageFont.truetype("check/blogger.ttf", 40)
 
         averages = await self.averages(result, days)
         if averages[2] >= 0:
@@ -113,6 +129,27 @@ class Poster(commands.Cog):
         draw.text((840, 670), f"{hitstats[3]}%", anchor="mm", fill=(255, 255, 255), font=font4)
         draw.text((840, 790), f"{hitstats[4]}%", anchor="mm", fill=(255, 255, 255), font=font4)
         draw.text((840, 910), f"{hitstats[5]}%", anchor="mm", fill=(255, 255, 255), font=font4)
+
+        if gspot is not None:
+            globe = Image.open("check/globe.png")
+            size = 75,75
+            globe.thumbnail(size, Image.ANTIALIAS)
+            globe.save("check/globe2.png", "PNG")
+            globe = Image.open("check/globe2.png")
+            poster.paste(globe, (130, 340), globe.convert("RGBA"))
+            draw.text((220, 360), f"#{gspot}", fill=(255, 255, 255), font=font6)
+
+        try:
+            if flag is not None:
+                globe = Image.open(f"check/png250px/{flag}.png")
+                size = 80, 80
+                globe.thumbnail(size, Image.ANTIALIAS)
+                globe.save(f"check/png250px/{flag}2.png", "PNG")
+                globe = Image.open(f"check/png250px/{flag}2.png")
+                poster.paste(globe, (770, 350), globe.convert("RGBA"))
+                draw.text((870, 355), f"#{cou_spot}", fill=(255, 255, 255), font=font6)
+        except:
+            pass
 
 
         poster.show()
