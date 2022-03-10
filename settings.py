@@ -64,7 +64,7 @@ class bot_settings(commands.Cog):
 
     @commands.slash_command(name="clear_under",
                        description="Remove players under certain trophies from server tracking.")
-    async def trophyLimit(self, ctx: disnake.ApplicationCommandInteraction, trophies: str = commands.Param(choices=["5000", "5100", "5200", "5300", "5400", "5500", "5600", "5700", "5800", "5900", "6000"])):
+    async def trophyLimit(self, ctx: disnake.ApplicationCommandInteraction, trophies: int):
         """
             Parameters
             ----------
