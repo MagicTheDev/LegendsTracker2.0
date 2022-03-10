@@ -4,7 +4,7 @@ import traceback
 from utils.helper import IS_BETA
 
 bot = commands.Bot(command_prefix=commands.when_mentioned,
-    sync_commands_debug=False, sync_permissions=True, test_guilds=[923764211845312533])
+    sync_commands_debug=False, sync_permissions=True)
 
 
 initial_extensions = (
