@@ -196,7 +196,7 @@ class Check(commands.Cog):
                 continue
 
             # print(res.custom_id)
-            if res.values[0] == "0" or res.values[0] == "1":
+            if res.values[0] in ("0", "1"):
                 current_page = int(res.values[0])
                 await res.response.edit_message(embed=embeds[current_page],
                                                 components=[action_row])
