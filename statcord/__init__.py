@@ -7,7 +7,6 @@ __version__ = '3.1.0'
 name = "statcord"
 
 from collections import namedtuple
-from .client import Client
 from .exceptions import *
 
 VersionInfo = namedtuple('VersionInfo', 'major minor micro releaselevel serial')
