@@ -9,7 +9,6 @@ bot = commands.Bot(command_prefix=commands.when_mentioned,
 
 initial_extensions = (
             "check.maincheck",
-            "feeds.feeds",
             "leaderboards.leaderboard",
             "stats.mainstats",
             "track.track",
@@ -18,7 +17,12 @@ initial_extensions = (
             "help",
             "settings",
             "patreon",
-            "check.poster"
+            "check.poster",
+            "feeds.dm_feed",
+            "feeds.feed_buttons",
+            "feeds.legend_feed",
+            "leaderboards.leaderboard_loop"
+
         )
 
 

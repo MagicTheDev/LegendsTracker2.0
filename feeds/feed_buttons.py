@@ -130,3 +130,5 @@ class FeedButtons(commands.Cog):
 
         return[st, st2]
 
+def setup(bot):
+    bot.add_cog(FeedButtons(bot))
