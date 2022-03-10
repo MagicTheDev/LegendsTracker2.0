@@ -134,7 +134,7 @@ class Poster(commands.Cog):
         draw.text((840, 670), f"{hitstats[3]}%", anchor="mm", fill=(255, 255, 255), font=font4)
         draw.text((840, 790), f"{hitstats[4]}%", anchor="mm", fill=(255, 255, 255), font=font4)
         draw.text((840, 910), f"{hitstats[5]}%", anchor="mm", fill=(255, 255, 255), font=font4)
-        draw.text((100, 1000), f"{month} {year} Season", fill=(255, 255, 255), font=font4)
+        draw.text((75, 1020), f"{month} {year} Season", fill=(255, 255, 255), font=font4)
 
         if gspot is not None:
             globe = Image.open("check/globe.png")
