@@ -22,11 +22,13 @@ class Poster(commands.Cog):
         return results
 
     @commands.slash_command(name="poster", description="Poster w/ graph & stats to show off season legends stats")
-    async def createPoster(self, ctx, smart_search: str = commands.Param(autocomplete=autocomp_names)):
+    async def createPoster(self, ctx, smart_search: str = commands.Param(autocomplete=autocomp_names),
+                           background: str = commands.Param(default=None,choices=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"])):
         """
             Parameters
             ----------
             smart_search: Name or player tag to search with
+            background: Which background & troop for poster to use
         """
         await ctx.response.defer()
         if utils.is_valid_tag(smart_search) is False:
@@ -97,7 +99,10 @@ class Poster(commands.Cog):
         plt.close("all")
 
         graph = Image.open("check/poster_graph.png")
-        poster = Image.open(f"check/poster{random.randint(1,14)}.png")
+        if background is None:
+            poster = Image.open(f"check/poster{random.randint(1,14)}.png")
+        else:
+            poster = Image.open(f"check/poster{background}.png")
 
         from leaderboards.leaderboard_loop import rankings
         gspot = None
