@@ -41,17 +41,17 @@ async def removeLegendsPlayer_SERVER(guild_id, player):
 
 async def check_global_tracked(player):
     results = await ongoing_stats.find_one({"tag": f"{player.tag}"})
-    return results != None
+    return results is not None
 
 async def check_server_tracked(player, server_id):
     results = await server_db.find_one({"server": server_id})
     tracked_members = results.get("tracked_members")
 
     results = await ongoing_stats.find_one({"tag": player.tag})
-    if results != None:
+    if results is not None:
         servers = []
         servers = results.get("servers")
-        if servers == None:
+        if servers is None:
             servers = []
     else:
         servers = []

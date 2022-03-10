@@ -29,7 +29,7 @@ class CheckStats(commands.Cog):
         if player is None:
             player = await getPlayer(results)
 
-        if player == None:
+        if player is None:
           embed = disnake.Embed(title=f"{results}",
                                   description=f"Api is likely under maintenance.",
                                   color=disnake.Color.blue())
@@ -67,7 +67,7 @@ class CheckStats(commands.Cog):
         link = result.get("link")
 
         highest_streak = result.get("highest_streak")
-        if highest_streak == None:
+        if highest_streak is None:
             highest_streak = 0
         active_streak = result.get("row_triple")
 
@@ -139,7 +139,7 @@ class CheckStats(commands.Cog):
         result = await ongoing_stats.find_one({"tag": results})
         playerTag = result.get("tag")
         player = await getPlayer(playerTag)
-        if player == None:
+        if player is None:
           embed = disnake.Embed(title=f"{results}",
                                   description=f"Player is invalid, likely banned.",
                                   color=disnake.Color.blue())
@@ -148,7 +148,7 @@ class CheckStats(commands.Cog):
         hits = result.get("previous_hits")
         defs = result.get("previous_defenses")
         clanName = "No Clan"
-        if player.clan != None:
+        if player.clan is not None:
             clanName = player.clan.name
         try:
             totalOff = sum(hits[-1])

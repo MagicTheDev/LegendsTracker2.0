@@ -5,9 +5,6 @@ import emoji
 import time
 import statcord
 import psutil
-from matplotlib import pyplot as plt
-import io
-import numpy as np
 
 class LegendStats(commands.Cog):
 
@@ -35,7 +32,7 @@ class LegendStats(commands.Cog):
         results = await server_db.find_one({"server": ctx.guild.id})
         feed = "None"
 
-        if results != None:
+        if results is not None:
             feed = results.get("webhook")
 
         status = "<:status_green:948031949140799568>"

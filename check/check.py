@@ -32,7 +32,7 @@ class Check(commands.Cog):
             ----------
             smart_search: Type a search, pick an option, or don't to get multiple results back
         """
-        if smart_search == None:
+        if smart_search is None:
             smart_search = str(ctx.author.id)
 
         embed = disnake.Embed(
@@ -50,7 +50,7 @@ class Check(commands.Cog):
             ----------
             discord_user: Search by @discordUser
         """
-        if discord_user == None:
+        if discord_user is None:
             discord_user = str(ctx.author.id)
         else:
             discord_user = str(discord_user.id)
@@ -74,7 +74,7 @@ class Check(commands.Cog):
         await ctx.response.defer()
         results:coc.Clan = await search_clan_tag(smart_search)
 
-        if results == None:
+        if results is None:
             embed = disnake.Embed(
                 description=f"Not a valid clan tag.",
                 color=disnake.Color.red())
@@ -196,7 +196,7 @@ class Check(commands.Cog):
                 continue
 
             # print(res.custom_id)
-            if res.values[0] == "0" or res.values[0] == "1":
+            if res.values[0] in ("0", "1"):
                 current_page = int(res.values[0])
                 await res.response.edit_message(embed=embeds[current_page],
                                                 components=[action_row])
@@ -260,7 +260,7 @@ class Check(commands.Cog):
                     return await msg.edit(content=None, embed=embed)
 
                 clan_name = "No Clan"
-                if player.clan != None:
+                if player.clan is not None:
                     clan_name = player.clan.name
                 await addLegendsPlayer_GLOBAL(player=player, clan_name=clan_name)
                 embed = disnake.Embed(
@@ -278,6 +278,6 @@ class Check(commands.Cog):
 
     async def check_global_tracked(self,player):
         results = await ongoing_stats.find_one({"tag": f"{player.tag}"})
-        return results != None
+        return results is not None
 
 

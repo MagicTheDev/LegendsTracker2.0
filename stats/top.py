@@ -147,7 +147,7 @@ class Top(commands.Cog):
             for person in await tracked.to_list(length=lim):
 
                 thisPlayer = []
-                if previous == None:
+                if previous is None:
                     trophy = person.get("trophies")
                     name = person.get("name")
                     hits = person.get("today_hits")
@@ -197,7 +197,7 @@ class Top(commands.Cog):
                     continue
 
                 thisPlayer = []
-                if previous == None:
+                if previous is None:
                     trophy = person.get("trophies")
                     name = person.get("name")
                     hits = person.get("today_hits")
@@ -272,10 +272,9 @@ class Top(commands.Cog):
                 numDef = x[3]
                 if int(numDef) < 8:
                     continue
-                else:
-                    print("here")
-                    list += f"{str(found + 1)}. {name} | **-{defs}**\n"
-                    found += 1
+                print("here")
+                list += f"{str(found + 1)}. {name} | **-{defs}**\n"
+                found += 1
                 if found == 25:
                     break
 

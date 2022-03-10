@@ -65,7 +65,7 @@ class History(commands.Cog):
                 stats.append("None")
                 stats.append("None")
 
-        if no_results == True:
+        if no_results is True:
           embed = disnake.Embed(description="Player has never ended season in legends.",
                                   color=disnake.Color.red())
           return embed

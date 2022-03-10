@@ -59,7 +59,7 @@ class LegendsFeed(commands.Cog):
             for document in await tracked.to_list(length=limit):
                 try:
                     servers = document.get("servers")
-                    if servers == None:
+                    if servers is None:
                         continue
 
                     change = document.get("change")
