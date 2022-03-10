@@ -32,15 +32,15 @@ class LeaderboardLoop(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.loop.start()
+        self.lbloop.start()
 
 
     def cog_unload(self):
-        self.loop.cancel()
+        self.lbloop.cancel()
 
 
     @tasks.loop(seconds=300)
-    async def loop(self):
+    async def lbloop(self):
         glob = await coc_client.get_location_players()
         x = 1
         global rankings
@@ -86,7 +86,7 @@ class LeaderboardLoop(commands.Cog):
         print("lb loop done")
 
 
-    @loop.before_loop
+    @lbloop.before_loop
     async def before_printer(self):
         await self.bot.wait_until_ready()
 
