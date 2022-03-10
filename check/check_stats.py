@@ -5,7 +5,7 @@ from utils.helper import getPlayer, ongoing_stats
 from utils.emojis import fetch_emojis
 import random
 
-tips = ["New Command! - /poster #playertag"]
+tips = ["New Command! - /poster"]
 
 
 class CheckStats(commands.Cog):
