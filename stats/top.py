@@ -147,7 +147,7 @@ class Top(commands.Cog):
             for person in await tracked.to_list(length=lim):
 
                 thisPlayer = []
-                if previous == None:
+                if previous is None:
                     trophy = person.get("trophies")
                     name = person.get("name")
                     hits = person.get("today_hits")
@@ -197,7 +197,7 @@ class Top(commands.Cog):
                     continue
 
                 thisPlayer = []
-                if previous == None:
+                if previous is None:
                     trophy = person.get("trophies")
                     name = person.get("name")
                     hits = person.get("today_hits")

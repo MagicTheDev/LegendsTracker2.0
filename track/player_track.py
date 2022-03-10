@@ -76,7 +76,7 @@ class PlayerTrack(commands.Cog):
                 await ctx.send(embed=embed)
 
             clan_name = "No Clan"
-            if player.clan != None:
+            if player.clan is not None:
                 clan_name = player.clan.name
 
 
@@ -122,17 +122,17 @@ class PlayerTrack(commands.Cog):
 
     async def check_global_tracked(self,player):
         results = await ongoing_stats.find_one({"tag": f"{player.tag}"})
-        return results != None
+        return results is not None
 
     async def check_server_tracked(self,player, server_id):
         results = await server_db.find_one({"server": server_id})
         tracked_members = results.get("tracked_members")
 
         results = await ongoing_stats.find_one({"tag": player.tag})
-        if results != None:
+        if results is not None:
             servers = []
             servers = results.get("servers")
-            if servers == None:
+            if servers is None:
                 servers = []
         else:
             servers = []

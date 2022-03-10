@@ -35,7 +35,7 @@ class LegendStats(commands.Cog):
         results = await server_db.find_one({"server": ctx.guild.id})
         feed = "None"
 
-        if results != None:
+        if results is not None:
             feed = results.get("webhook")
 
         status = "<:status_green:948031949140799568>"
