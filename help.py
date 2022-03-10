@@ -117,7 +117,7 @@ class help(commands.Cog):
                                            f"When it comes to tracking, I split it into 2 parts - \"global\" and  \"server\", when you track someone on your server, it is adding it "
                                            f"to server tracking, but also global tracking if they havent been already. Global tracking is just the global pool of players, so you can check someones "
                                            f"stats even if you dont want them in your feed or tracked on your server.\n"
-                                           f"Of course any tracked players you can view in your feed if you set it up. With `/feed set`. Make sure it has correct perms.")
+                                           f"Of course any tracked players you can view in your feed if you set it up. With `/feed set`. Make sure it has correct perms.", inline=False)
         embed5.add_field(name="**Checking People:**", value=f"So to check people, we have the aptly named /check commands.\n"
                                            f"> /check search\n"
                                            f"> /check user\n"
@@ -127,13 +127,13 @@ class help(commands.Cog):
                                            f"the autocomplete do the rest\n"
                                            f"Check user uses any accounts linked to you, this is just a convenience feature, if you have an account linked to clash perk or sidekick it will show.\n"
                                            f"Check clan will give a leaderboard view of legends stats in a clan. And lastly quick_check allows you to save players to your profile for quick checking, and also "
-                                           f"allows you to use the /daily_report command.")
+                                           f"allows you to use the /daily_report command.", inline=False)
         embed5.add_field(name="**Stats**", value=f"There are a plethora of stats available, checking the command list is best.\n"
                                            f"However among the most popular are:\n"
                                            f"> /poster #playerTag\n"
                                            f"> /country leaderboards\n"
                                            f"> /streak\n"
-                                           f"> /top")
+                                           f"> /top", inline=False)
         embeds.append(embed5)
 
         embed = disnake.Embed(title="Legends Tracker",
