@@ -78,6 +78,8 @@ class Poster(commands.Cog):
         #encoded_string = name.encode("ascii", "ignore")
         #decode_string = encoded_string.decode()
         plt.savefig("check/poster_graph.png", transparent=True)
+        plt.clf()
+        plt.close("all")
 
         graph = Image.open("check/poster_graph.png")
         poster = Image.open("check/poster.png")
@@ -157,9 +159,6 @@ class Poster(commands.Cog):
         poster.save(temp, format="png")
         temp.seek(0)
         file = disnake.File(fp=temp, filename="filename.png")
-
-        plt.clf()
-        plt.close("all")
 
         await ctx.edit_original_message(file=file)
 
