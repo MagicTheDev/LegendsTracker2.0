@@ -8,6 +8,7 @@ from coc import utils
 import pytz
 utc = pytz.utc
 from datetime import datetime
+import calendar
 
 class Poster(commands.Cog):
 
@@ -38,6 +39,8 @@ class Poster(commands.Cog):
             return await ctx.edit_original_message(embed=embed)
 
         start = utils.get_season_start().date()
+        month = calendar.month_name[start.month]
+        year = start.year
         now = datetime.utcnow().replace(tzinfo=utc).date()
         diff = now - start
         days = diff.days
@@ -131,6 +134,7 @@ class Poster(commands.Cog):
         draw.text((840, 670), f"{hitstats[3]}%", anchor="mm", fill=(255, 255, 255), font=font4)
         draw.text((840, 790), f"{hitstats[4]}%", anchor="mm", fill=(255, 255, 255), font=font4)
         draw.text((840, 910), f"{hitstats[5]}%", anchor="mm", fill=(255, 255, 255), font=font4)
+        draw.text((100, 1000), f"{month} {year} Season", anchor="mm", fill=(255, 255, 255), font=font4)
 
         if gspot is not None:
             globe = Image.open("check/globe.png")
