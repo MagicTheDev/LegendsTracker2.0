@@ -9,7 +9,7 @@ import pytz
 utc = pytz.utc
 from datetime import datetime
 import calendar
-from utils.search import search_name_with_tag, search_results
+from utils.search import search_name_with_tag
 
 class Poster(commands.Cog):
 
@@ -20,7 +20,7 @@ class Poster(commands.Cog):
         results = await search_name_with_tag(user_input)
         return results
 
-    @commands.slash_command(name="poster", description="Graph, Stats, & More to show off legends stats.")
+    @commands.slash_command(name="poster", description="Poster w/ graph & stats to show off season legends stats")
     async def createPoster(self, ctx, smart_search: str = commands.Param(autocomplete=autocomp_names)):
         """
             Parameters
