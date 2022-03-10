@@ -134,6 +134,7 @@ class help(commands.Cog):
                                            f"> /country leaderboards\n"
                                            f"> /streak\n"
                                            f"> /top", inline=False)
+        embed5.set_footer(text="Use dropdown below to navigate.")
         embeds.append(embed5)
 
         embed = disnake.Embed(title="Legends Tracker",
