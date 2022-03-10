@@ -273,7 +273,7 @@ class Check(commands.Cog):
                     color=disnake.Color.red())
                 return await msg.edit(content=None, embed=embed)
 
-        pagination = self.bot.get_cog("pagination")
+        pagination = self.bot.get_cog("MainCheck")
         await pagination.button_pagination(ctx, msg, results)
 
     async def check_global_tracked(self,player):

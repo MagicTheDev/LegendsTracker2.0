@@ -1,4 +1,4 @@
-from helper import ongoing_stats, server_db
+from utils.helper import ongoing_stats, server_db
 
 async def addLegendsPlayer_GLOBAL(player, clan_name):
     await ongoing_stats.insert_one({

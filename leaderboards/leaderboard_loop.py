@@ -88,6 +88,3 @@ class LeaderboardLoop(commands.Cog):
     async def before_printer(self):
         await self.bot.wait_until_ready()
 
-
-def setup(bot: commands.Bot):
-    bot.add_cog(LeaderboardLoop(bot))

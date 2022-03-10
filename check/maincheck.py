@@ -7,10 +7,10 @@ from .pagination import Pagination
 from.quick_check import QuickCheck
 
 
-class Track(Check, CheckStats, Graph, History, Pagination,QuickCheck, commands.Cog):
+class MainCheck(Check, CheckStats, Graph, History, Pagination,QuickCheck, commands.Cog):
     def __init__(self, bot):
         super().__init__(bot)
         self.bot = bot
 
 def setup(bot):
-    bot.add_cog(Track(bot))
+    bot.add_cog(MainCheck(bot))

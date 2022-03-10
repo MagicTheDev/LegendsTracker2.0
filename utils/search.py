@@ -1,6 +1,6 @@
 import re
 from coc import utils
-from helper import getPlayer, getTags, ongoing_stats, getClan
+from utils.helper import getPlayer, getTags, ongoing_stats, getClan
 
 
 async def search_results(ctx, query):

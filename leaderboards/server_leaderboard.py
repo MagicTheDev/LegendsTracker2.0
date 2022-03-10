@@ -124,8 +124,6 @@ class ServerLeaderboard(commands.Cog):
 
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(ServerLeaderboard(bot))
 
 
 

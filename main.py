@@ -11,13 +11,14 @@ initial_extensions = (
             "check.maincheck",
             "feeds.feeds",
             "leaderboards.leaderboard",
-            "stats.mainstats"
-            "track.track"            
+            "stats.mainstats",
+            "track.track",
             "on_events",
             "pepe.pepe",
             "help",
             "settings",
-            "patreon"
+            "patreon",
+            "check.poster"
         )
 
 

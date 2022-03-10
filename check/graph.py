@@ -5,21 +5,20 @@ import io
 from utils.helper import ongoing_stats, createTimeStats
 import gc
 
+
 class Graph(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-
     async def createGraphEmbed(self, results):
-        
+
         result = await ongoing_stats.find_one({"tag": results})
         y = result.get("end_of_day")
         y = y[-14:]
         current = result.get("trophies")
         y.append(current)
         name = result.get("name")
-
 
         if len(y) < 2:
             embed = disnake.Embed(
@@ -34,7 +33,7 @@ class Graph(commands.Cog):
         x.reverse()
 
         plt.plot(x, y, color='green', linestyle='dashed', linewidth=3,
-                  marker='o', markerfacecolor='blue', markersize=12)
+                 marker='o', markerfacecolor='blue', markersize=12)
         plt.ylim(min(y) - 100, max(y) + 100)
         plt.xlim(14, -1)
 
@@ -69,7 +68,6 @@ class Graph(commands.Cog):
         plt.clf()
         plt.close("all")
         gc.collect()
-
 
         one_stars = 0
         two_stars = 0
@@ -151,4 +149,3 @@ class Graph(commands.Cog):
                         )
 
         return embed
-

@@ -9,7 +9,7 @@ import disnake
 import re
 
 
-class country_leaderboard(commands.Cog):
+class CountryLeaderboard(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -268,10 +268,3 @@ class country_leaderboard(commands.Cog):
 
         return embeds
 
-
-
-
-
-
-def setup(bot: commands.Bot):
-    bot.add_cog(country_leaderboard(bot))

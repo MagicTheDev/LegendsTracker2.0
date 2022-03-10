@@ -32,11 +32,11 @@ class pepe(commands.Cog):
             size = 16
 
 
-        back = Image.open("Pepe/pepesign.png")
+        back = Image.open("pepe/pepesign.png")
 
         width = 250
         height = 250
-        font = ImageFont.truetype("Pepe/pepefont.ttf", size)
+        font = ImageFont.truetype("pepe/pepefont.ttf", size)
         draw = ImageDraw.Draw(back)
 
         draw.text(((width/2)-5, 55), sign_text, anchor="mm", fill=(0, 0, 0), font=font)
