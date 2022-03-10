@@ -9,28 +9,39 @@ import pytz
 utc = pytz.utc
 from datetime import datetime
 import calendar
+from utils.search import search_name_with_tag, search_results
 
 class Poster(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
+    async def autocomp_names(self, user_input: str):
+        results = await search_name_with_tag(user_input)
+        return results
+
     @commands.slash_command(name="poster", description="Graph, Stats, & More to show off legends stats.")
-    async def createPoster(self, ctx, player_tag):
+    async def createPoster(self, ctx, smart_search: str = commands.Param(autocomplete=autocomp_names)):
         """
             Parameters
             ----------
-            player_tag: Player to search for
+            smart_search: Name or player tag to search with
         """
         await ctx.response.defer()
+        if utils.is_valid_tag(smart_search) is False:
+            if "|" not in smart_search:
+                embed = disnake.Embed(
+                    description=f"Invalid player tag or make sure you choose an option from the autocomplete.",
+                    color=disnake.Color.red())
+                return await ctx.edit_original_message(embed=embed)
 
-        if utils.is_valid_tag(player_tag) is False:
-            embed = disnake.Embed(
-                description=f"Invalid player tag.",
-                color=disnake.Color.red())
-            return await ctx.edit_original_message(embed=embed)
+        if "|" in smart_search:
+            search = smart_search.split("|")
+            tag = search[1]
+        else:
+            tag = smart_search
 
-        tag = utils.correct_tag(tag=player_tag)
+        tag = utils.correct_tag(tag=tag)
         result = await ongoing_stats.find_one({"tag": tag})
         if result is None:
             embed = disnake.Embed(

@@ -69,6 +69,37 @@ async def search_name(query):
         names.append(document.get("name"))
     return names
 
+async def search_name_with_tag(query):
+    names = []
+    #if search is a player tag, pull stats of the player tag
+
+    if utils.is_valid_tag(query) is True:
+        t = utils.correct_tag(tag=query)
+        query = query.lower()
+        query = re.escape(query)
+        results = ongoing_stats.find({"$and": [
+            {"tag": {"$regex": f"^(?i).*{t}.*$"}},
+            {"league": {"$eq": "Legend League"}}
+        ]})
+        for document in await results.to_list(length=25):
+            names.append(document.get("name") + " | " + document.get("tag"))
+        return names
+
+    #ignore capitalization
+    #results 3 or larger check for partial match
+    #results 2 or shorter must be exact
+    #await ongoing_stats.create_index([("name", "text")])
+
+    query = query.lower()
+    query = re.escape(query)
+    results = ongoing_stats.find({"$and" : [
+        {"name": {"$regex": f"^(?i).*{query}.*$"}},
+        {"league" : {"$eq" : "Legend League"}}
+    ]})
+    for document in await results.to_list(length=25):
+        names.append(document.get("name") + " | " + document.get("tag"))
+    return names
+
 async def search_clans(query):
     names = set()
     if len(query) == 0:
