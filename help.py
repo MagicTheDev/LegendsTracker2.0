@@ -178,6 +178,9 @@ class help(commands.Cog):
                                description="Stats Commands",
                                color=disnake.Color.blue())
 
+        embed2.add_field(name=f"**/poster**",
+                         value="Visual poster containing season legends stats.",
+                         inline=False)
         embed2.add_field(name=f"**/top**",
                          value="Use this command to get top hitters & defenders tracked.",
                          inline=False)
