@@ -5,6 +5,9 @@ from utils.helper import ongoing_stats
 from PIL import Image, ImageDraw, ImageFont
 import io
 from coc import utils
+import pytz
+utc = pytz.utc
+from datetime import datetime
 
 class Poster(commands.Cog):
 
@@ -34,8 +37,13 @@ class Poster(commands.Cog):
                 color=disnake.Color.red())
             return await ctx.edit_original_message(embed=embed)
 
+        start = utils.get_season_start().date()
+        now = datetime.utcnow().replace(tzinfo=utc).date()
+        diff = now - start
+        days = diff.days
+
         y = result.get("end_of_day")
-        y = y[-30:]
+        y = y[-days:]
         current = result.get("trophies")
         y.append(current)
         name = result.get("name")
@@ -54,7 +62,7 @@ class Poster(commands.Cog):
         plt.plot(x, y, color='white', linestyle='dashed', linewidth=3,
                       marker="*", markerfacecolor="white", markeredgecolor="yellow", markersize=20)
         plt.ylim(min(y) - 100, max(y) + 100)
-        plt.xlim(30, -1)
+        plt.xlim(days + 1, -1)
 
         plt.gca().spines["top"].set_color("yellow")
         plt.gca().spines["bottom"].set_color("yellow")
