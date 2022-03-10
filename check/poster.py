@@ -20,11 +20,11 @@ class Poster(commands.Cog):
         """
         await ctx.response.defer()
 
-        if utils.is_valid_tag(player_tag) is True:
+        if utils.is_valid_tag(player_tag) is False:
             embed = disnake.Embed(
                 description=f"Invalid player tag.",
                 color=disnake.Color.red())
-            await ctx.edit_original_message(embed)
+            return await ctx.edit_original_message(embed)
 
         tag = utils.correct_tag(tag=player_tag)
         result = await ongoing_stats.find_one({"tag": tag})
@@ -32,7 +32,7 @@ class Poster(commands.Cog):
             embed = disnake.Embed(
                 description=f"Player not tracked.",
                 color=disnake.Color.red())
-            await ctx.edit_original_message(embed=embed)
+            return await ctx.edit_original_message(embed=embed)
 
         y = result.get("end_of_day")
         y = y[-30:]
@@ -44,7 +44,7 @@ class Poster(commands.Cog):
             embed = disnake.Embed(
                 description=f"Not enough data collected to make a poster for {name}. {str(len(y))} day collected, minimum 2 required.",
                 color=disnake.Color.red())
-            await ctx.edit_original_message(embed=embed)
+            return await ctx.edit_original_message(embed=embed)
 
         x = []
         for spot in range(0, len(y)):
