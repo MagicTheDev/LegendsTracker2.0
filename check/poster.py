@@ -188,10 +188,10 @@ class Poster(commands.Cog):
         ongoingOffense = result.get("previous_hits")
         ongoingDefense = result.get("previous_defenses")
         if len(ongoingOffense) <= days:
-            del ongoingOffense[-1]
+            del ongoingOffense[0]
 
         if len(ongoingDefense) <= days:
-            del ongoingDefense[-1]
+            del ongoingDefense[0]
         ongoingOffense = ongoingOffense[-days:]
         ongoingDefense = ongoingDefense[-days:]
 
