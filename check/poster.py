@@ -10,6 +10,7 @@ utc = pytz.utc
 from datetime import datetime
 import calendar
 from utils.search import search_name_with_tag
+import random
 
 class Poster(commands.Cog):
 
@@ -96,7 +97,7 @@ class Poster(commands.Cog):
         plt.close("all")
 
         graph = Image.open("check/poster_graph.png")
-        poster = Image.open("check/poster.png")
+        poster = Image.open(f"check/poster{random.randint(1,14)}.png")
 
         from leaderboards.leaderboard_loop import rankings
         gspot = None
