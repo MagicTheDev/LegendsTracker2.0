@@ -225,9 +225,7 @@ class Poster(commands.Cog):
         for document in await tracked.to_list(length=limit):
             tag = document.get("tag")
             trophy = document.get("trophies")
-            rr = []
-            rr.append(tag)
-            rr.append(trophy)
+            rr = [tag, trophy]
             rankings.append(rr)
 
         ranking = sorted(rankings, key=lambda l: l[1], reverse=True)

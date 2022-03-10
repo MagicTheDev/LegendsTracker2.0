@@ -15,8 +15,7 @@ class FeedButtons(commands.Cog):
     async def on_button_click(self, ctx: disnake.MessageInteraction):
         if ctx.component.label == "All Stats":
             tag = ctx.component.custom_id
-            results = []
-            results.append(tag)
+            results = [tag]
 
             check = self.bot.get_cog("MainCheck")
             current_page = 0
