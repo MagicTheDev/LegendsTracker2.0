@@ -18,7 +18,7 @@ class FeedButtons(commands.Cog):
             results = []
             results.append(tag)
 
-            check = self.bot.get_cog("CheckStats")
+            check = self.bot.get_cog("MainCheck")
             current_page = 0
             stats_page = []
             trophy_results = []
@@ -85,18 +85,16 @@ class FeedButtons(commands.Cog):
 
     async def display_embed(self, results, stat_type, current_page, ctx):
 
-        check = self.bot.get_cog("CheckStats")
-        graph = self.bot.get_cog("graph")
-        history = self.bot.get_cog("History")
+        check = self.bot.get_cog("MainCheck")
 
         if stat_type == "Legends Overview":
             return await check.checkEmbed(results[current_page])
         elif stat_type == "Yesterday Legends":
             return await check.checkYEmbed(results[current_page])
         elif stat_type == "Graph & Stats":
-            return await graph.createGraphEmbed(results[current_page])
+            return await check.createGraphEmbed(results[current_page])
         elif stat_type == "Legends History":
-            return await history.create_history(ctx, results[current_page])
+            return await check.create_history(ctx, results[current_page])
 
     async def create_components(self, results, trophy_results):
         length = len(results)
