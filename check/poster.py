@@ -187,6 +187,11 @@ class Poster(commands.Cog):
     async def averages(self, result, days):
         ongoingOffense = result.get("previous_hits")
         ongoingDefense = result.get("previous_defenses")
+        if len(ongoingOffense) <= days:
+            del ongoingOffense[-1]
+
+        if len(ongoingDefense) <= days:
+            del ongoingDefense[-1]
         ongoingOffense = ongoingOffense[-days:]
         ongoingDefense = ongoingDefense[-days:]
 
