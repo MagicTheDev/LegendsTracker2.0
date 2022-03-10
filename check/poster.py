@@ -32,7 +32,7 @@ class Poster(commands.Cog):
             embed = disnake.Embed(
                 description=f"Player not tracked.",
                 color=disnake.Color.red())
-            await ctx.send(embed)
+            await ctx.send(embed=embed)
 
         y = result.get("end_of_day")
         y = y[-30:]
@@ -44,7 +44,7 @@ class Poster(commands.Cog):
             embed = disnake.Embed(
                 description=f"Not enough data collected to make a poster for {name}. {str(len(y))} day collected, minimum 2 required.",
                 color=disnake.Color.red())
-            await ctx.send(embed)
+            await ctx.send(embed=embed)
 
         x = []
         for spot in range(0, len(y)):
