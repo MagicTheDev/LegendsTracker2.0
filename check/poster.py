@@ -90,13 +90,13 @@ class Poster(commands.Cog):
         font4 = ImageFont.truetype("check/blogger.ttf",37)
         font5 = ImageFont.truetype("check/blogger.ttf", 20)
 
-        averages = await self.averages(result)
+        averages = await self.averages(result, days)
         if averages[2] >= 0:
             avg3 = f"+{str(averages[2])}"
         else:
             avg3 = f"-{str(averages[2])}"
         rank = await self.rank(tag)
-        hitstats = await self.hit_stats(result)
+        hitstats = await self.hit_stats(result, days)
 
         draw = ImageDraw.Draw(poster)
         draw.text((585, 95), name, anchor="mm", fill=(255,255,255), font=font)
@@ -127,11 +127,11 @@ class Poster(commands.Cog):
         await ctx.edit_original_message(file=file)
 
 
-    async def averages(self, result):
+    async def averages(self, result, days):
         ongoingOffense = result.get("previous_hits")
         ongoingDefense = result.get("previous_defenses")
-        ongoingOffense = ongoingOffense[-30:]
-        ongoingDefense = ongoingDefense[-30:]
+        ongoingOffense = ongoingOffense[-days:]
+        ongoingDefense = ongoingDefense[-days:]
 
         calcOff = []
         x = 0
@@ -177,7 +177,7 @@ class Poster(commands.Cog):
             if tag in x:
                 return i
 
-    async def hit_stats(self, result):
+    async def hit_stats(self, result, days):
         one_stars = 0
         two_stars = 0
         three_stars = 0
@@ -189,6 +189,8 @@ class Poster(commands.Cog):
 
         hits = result.get("previous_hits")
         defs = result.get("previous_defenses")
+        hits = hits[-days:]
+        defs = defs[-days:]
 
         for day in hits:
             for hit in day:
