@@ -21,7 +21,7 @@ class QuickCheck(commands.Cog):
         if results != None:
             tags = results.get("profile_tags")
             if tags != []:
-                pagination = self.bot.get_cog("pagination")
+                pagination = self.bot.get_cog("MainCheck")
                 return await pagination.button_pagination(ctx, msg, tags)
 
         embed = disnake.Embed(
