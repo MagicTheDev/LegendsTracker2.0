@@ -93,12 +93,6 @@ class bot_settings(commands.Cog):
         if results == None:
             return
 
-        fchannel = results.get("channel_id")
-        if fchannel == None:
-            embed = disnake.Embed(
-                description="Sorry this server does not have a legends feed. Those with Manage Server Perms can add one with **/feed set**.",
-                color=disnake.Color.red())
-            return await ctx.edit_original_message(embed=embed)
         trophies = int(trophies)
 
         tracked_members = results.get("tracked_members")
