@@ -27,7 +27,7 @@ class Poster(commands.Cog):
             embed = disnake.Embed(
                 description=f"Invalid player tag.",
                 color=disnake.Color.red())
-            return await ctx.edit_original_message(embed)
+            return await ctx.edit_original_message(embed=embed)
 
         tag = utils.correct_tag(tag=player_tag)
         result = await ongoing_stats.find_one({"tag": tag})
