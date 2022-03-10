@@ -39,7 +39,7 @@ class Poster(commands.Cog):
             return await ctx.edit_original_message(embed=embed)
 
         start = utils.get_season_start().date()
-        month = calendar.month_name[start.month]
+        month = calendar.month_name[start.month + 1]
         year = start.year
         now = datetime.utcnow().replace(tzinfo=utc).date()
         diff = now - start
