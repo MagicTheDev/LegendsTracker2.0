@@ -76,11 +76,11 @@ class Poster(commands.Cog):
 
         poster.paste(graph, (1175, 475), graph.convert("RGBA"))
 
-        font = ImageFont.truetype("check/CODE2000.ttf", 80)
-        font2 = ImageFont.truetype("check/blogger-sans.medium.ttf", 35)
-        font3 = ImageFont.truetype("check/blogger-sans.medium.ttf", 60)
-        font4 = ImageFont.truetype("check/blogger-sans.medium.ttf",37)
-        font5 = ImageFont.truetype("check/blogger-sans.medium.ttf", 20)
+        font = ImageFont.truetype("check/code.ttf", 80)
+        font2 = ImageFont.truetype("check/blogger.ttf", 35)
+        font3 = ImageFont.truetype("check/blogger.ttf", 60)
+        font4 = ImageFont.truetype("check/blogger.ttf",37)
+        font5 = ImageFont.truetype("check/blogger.ttf", 20)
 
         averages = await self.averages(result)
         if averages[2] >= 0:
