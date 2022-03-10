@@ -76,7 +76,7 @@ class Poster(commands.Cog):
 
         poster.paste(graph, (1175, 475), graph.convert("RGBA"))
 
-        font = ImageFont.truetype("check/code.ttf", 80)
+        font = ImageFont.truetype("check/code.TTF", 80)
         font2 = ImageFont.truetype("check/blogger.ttf", 35)
         font3 = ImageFont.truetype("check/blogger.ttf", 60)
         font4 = ImageFont.truetype("check/blogger.ttf",37)
