@@ -83,6 +83,8 @@ class LeaderboardLoop(commands.Cog):
                 x += 1
         rankings = rr
 
+        print("lb loop done")
+
 
     @loop.before_loop
     async def before_printer(self):
