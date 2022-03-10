@@ -11,7 +11,7 @@ class Poster(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.slash_command(name="poster", description="Graph, Stats, & More to show off legends stats.", test_guilds=[923764211845312533])
+    @commands.slash_command(name="poster", description="Graph, Stats, & More to show off legends stats.", test_guilds=[923764211845312533, 849364313156485120])
     async def createPoster(self, ctx, player_tag):
         """
             Parameters
