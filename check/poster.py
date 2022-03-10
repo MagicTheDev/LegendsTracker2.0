@@ -65,9 +65,9 @@ class Poster(commands.Cog):
         y.append(current)
         name = result.get("name")
 
-        if len(y) < 2:
+        if len(y) < 3:
             embed = disnake.Embed(
-                description=f"Not enough data collected to make a poster for {name}. {str(len(y))} day collected, minimum 2 required.",
+                description=f"Not enough data collected to make a poster for {name}. {str(len(y))} day collected, minimum 3 required.",
                 color=disnake.Color.red())
             return await ctx.edit_original_message(embed=embed)
 
