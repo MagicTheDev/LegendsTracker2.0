@@ -104,17 +104,36 @@ class help(commands.Cog):
 
         embeds = []
 
-        embed5  = disnake.Embed(title="Setup Tips",
-                               description=f"To set up a attack/defense feed use `/feed set`\n"
-                                           f"> Run the command in the channel (or thread) you want the bot to post in.\n"
-                                           f"> Must have `Manage Webhooks` Permission to do so.\n"
-                                           f"To track a player & add them to your server use `/track add #playerTag`\n"
-                                           f"To add entire clans - use `/ctrack add #playerTag`\n"
-                                           f"Checking a player's stats has never been easier with `/check search`"
-                                           f"For other commands & help check out `/help`\n"
-                                           "**NOTE:** Players have to be tracked before you can view stats on them, after that stats will start to show as they are collected.",
+        embed5  = disnake.Embed(title="Quick Start",
+                               description=f"Thanks for using me!\n"
+                                           f"To get started there are 3 main components to the bot - tracking people & the feed, checking people, and stats.",
                                color=disnake.Color.blue())
 
+        embed5.add_field(name="**Tracking People:**", value=f"There are 3 main ways to track people.\n"
+                                           f"> /track #playerTag\n"
+                                           f"> /ctrack #clanTag\n"
+                                           f"> /country track\n"
+                                           f"These 3 will add an individual player, people in a clan, or people on a countries leaderboard, in that order.\n"
+                                           f"When it comes to tracking, I split it into 2 parts - \"global\" and  \"server\", when you track someone on your server, it is adding it "
+                                           f"to server tracking, but also global tracking if they havent been already. Global tracking is just the global pool of players, so you can check someones "
+                                           f"stats even if you dont want them in your feed or tracked on your server.\n"
+                                           f"Of course any tracked players you can view in your feed if you set it up. With `/feed set`. Make sure it has correct perms.")
+        embed5.add_field(name="**Checking People:**", value=f"So to check people, we have the aptly named /check commands.\n"
+                                           f"> /check search\n"
+                                           f"> /check user\n"
+                                           f"> /check clan\n"
+                                           f"> /quick_check\n"
+                                           f"Check search is the most powerful command on the bot. No more looking for a players tag to look them up (although you can). Just type in their name & let "
+                                           f"the autocomplete do the rest\n"
+                                           f"Check user uses any accounts linked to you, this is just a convenience feature, if you have an account linked to clash perk or sidekick it will show.\n"
+                                           f"Check clan will give a leaderboard view of legends stats in a clan. And lastly quick_check allows you to save players to your profile for quick checking, and also "
+                                           f"allows you to use the /daily_report command.")
+        embed5.add_field(name="**Stats**", value=f"There are a plethora of stats available, checking the command list is best.\n"
+                                           f"However among the most popular are:\n"
+                                           f"> /poster #playerTag\n"
+                                           f"> /country leaderboards\n"
+                                           f"> /streak\n"
+                                           f"> /top")
         embeds.append(embed5)
 
         embed = disnake.Embed(title="Legends Tracker",
