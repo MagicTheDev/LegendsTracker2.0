@@ -35,7 +35,16 @@ class bot_settings(commands.Cog):
 
 
             bot_av = self.bot.user.avatar.read().close()
-            webhook = await channel.create_webhook(name="Legends Tracker", avatar=bot_av, reason="Legends Feed")
+            webhooks = await channel.webhooks()
+            webhook = None
+            for w in webhooks:
+                if w.user.id == self.bot.user.id:
+                    webhook = w
+                    break
+            if webhook == None:
+                webhook = await channel.create_webhook(name="Legends Tracker", avatar=bot_av, reason="Legends Feed")
+
+
         except Exception as e:
             e = str(e)[0:1000]
             embed = disnake.Embed(title="Error",
