@@ -47,12 +47,14 @@ class Poster(commands.Cog):
     async def createPoster(self, ctx, smart_search: str = commands.Param(autocomplete=autocomp_names),
                            background: str = commands.Param(default=None,
         choices=["Edrag", "Hogrider", "Clash Forest", "Clan War", "Loons", "Witch", "Archers", "Bowler", "Barbs", "Barb & Archer", "Big Boy Skelly",
-                 "Wiz Tower", "Spells", "Barb Sunset", "Wood Board", "Clash Sky", "Super Wizard", "Village Battle", "Hero Pets"])):
+                 "Wiz Tower", "Spells", "Barb Sunset", "Wood Board", "Clash Sky", "Super Wizard", "Village Battle", "Hero Pets"]),
+                previous_season:str = commands.Param(default=None, choices=["Yes", "No"])):
         """
             Parameters
             ----------
             smart_search: Name or player tag to search with
-            background: Which background for poster to use
+            background: Which background for poster to use (optional)
+            previous_season: yes/no (optional)
         """
         await ctx.response.defer()
         if utils.is_valid_tag(smart_search) is False:
@@ -76,26 +78,65 @@ class Poster(commands.Cog):
                 color=disnake.Color.red())
             return await ctx.edit_original_message(embed=embed)
 
-        start = utils.get_season_start().replace(tzinfo=utc).date()
-        month = calendar.month_name[start.month + 1]
-        now = datetime.utcnow().replace(tzinfo=utc).date()
-        now_ = datetime.utcnow().replace(tzinfo=utc)
-        diff = now - start
-        days = diff.days
-        if now_.hour <= 5:
-            days -= 1
 
+
+        if previous_season == "Yes":
+            # current season start date
+            # use to get previous season (month - 1)
+            # end of last season is beginning of current
+            end = utils.get_season_start().replace(tzinfo=utc).date()
+            start = utils.get_season_start(month=end.month - 1, year=end.year).replace(tzinfo=utc).date()
+            month = calendar.month_name[start.month + 1]
+            length_of_season = end - start
+            length_of_season = length_of_season.days
+
+            # get the first record we need
+            # get length progressed in current season
+            now = datetime.utcnow().replace(tzinfo=utc).date()
+            now_ = datetime.utcnow().replace(tzinfo=utc)
+            current_season_progress = now - end
+            current_season_progress = current_season_progress.days
+            if now_.hour <= 5:
+                current_season_progress -= 1
+
+            first_record = current_season_progress
+            last_record = first_record + length_of_season
+        else:
+            start = utils.get_season_start().replace(tzinfo=utc).date()
+            now = datetime.utcnow().replace(tzinfo=utc).date()
+            now_ = datetime.utcnow().replace(tzinfo=utc)
+            current_season_progress = now - start
+            current_season_progress = current_season_progress.days
+            if now_.hour <= 5:
+                current_season_progress -= 1
+            first_record = 0
+            last_record = current_season_progress
+
+        name = result.get("name")
         y = result.get("end_of_day")
-        y = y[-days:]
+
+        len_y = len(y)
+        if last_record == len_y:
+            last_record -= 1
+        if last_record > len_y:
+            last_record = len(y) -1
+
+        if first_record >= len_y - 2:
+            if previous_season == "Yes":
+                embed = disnake.Embed(
+                    description=f"Not enough data collected to make a poster for {name}. Minimum 3 days collected last season required.",
+                    color=disnake.Color.red())
+                return await ctx.edit_original_message(embed=embed)
+            else:
+                embed = disnake.Embed(
+                    description=f"Not enough data collected to make a poster for {name}. {str(len(y))} day collected, minimum 3 required.",
+                    color=disnake.Color.red())
+                return await ctx.edit_original_message(embed=embed)
+
+
+        y = y[len(y)-last_record:len(y)-first_record]
         current = result.get("trophies")
         y.append(current)
-        name = result.get("name")
-
-        if len(y) < 3:
-            embed = disnake.Embed(
-                description=f"Not enough data collected to make a poster for {name}. {str(len(y))} day collected, minimum 3 required.",
-                color=disnake.Color.red())
-            return await ctx.edit_original_message(embed=embed)
 
         x = []
         for spot in range(0, len(y)):
@@ -105,7 +146,7 @@ class Poster(commands.Cog):
         plt.plot(x, y, color='white', linestyle='dashed', linewidth=3,
                       marker="*", markerfacecolor="white", markeredgecolor="yellow", markersize=20)
         plt.ylim(min(y) - 100, max(y) + 100)
-        plt.xlim(days + 1, -1)
+        plt.xlim(last_record-first_record + 1, -1)
 
         plt.gca().spines["top"].set_color("yellow")
         plt.gca().spines["bottom"].set_color("yellow")
@@ -153,7 +194,6 @@ class Poster(commands.Cog):
         font4 = ImageFont.truetype("check/blogger.ttf",37)
         font5 = ImageFont.truetype("check/blogger.ttf", 20)
         font6 = ImageFont.truetype("check/blogger.ttf", 40)
-        font7 = ImageFont.truetype("check/code.TTF", 60)
 
         #add clan badge & text
         player: coc.Player = await getPlayer(tag)
@@ -175,13 +215,13 @@ class Poster(commands.Cog):
             watermark.putalpha(watermask)
             poster.paste(watermark, None, watermark)
 
-        averages = await self.averages(result, days)
+        averages = await self.averages(result, first_record, last_record)
         if averages[2] >= 0:
             avg3 = f"+{str(averages[2])}"
         else:
             avg3 = f"{str(averages[2])}"
         rank = await self.rank(tag)
-        hitstats = await self.hit_stats(result, days)
+        hitstats = await self.hit_stats(result, first_record, last_record)
 
         draw = ImageDraw.Draw(poster)
         draw.text((585, 95), name, anchor="mm", fill=(255,255,255), font=font)
@@ -231,16 +271,11 @@ class Poster(commands.Cog):
         await ctx.edit_original_message(file=file)
 
 
-    async def averages(self, result, days):
+    async def averages(self, result, first_record, last_record):
         ongoingOffense = result.get("previous_hits")
         ongoingDefense = result.get("previous_defenses")
-        if len(ongoingOffense) <= days:
-            del ongoingOffense[0]
-
-        if len(ongoingDefense) <= days:
-            del ongoingDefense[0]
-        ongoingOffense = ongoingOffense[-days:]
-        ongoingDefense = ongoingDefense[-days:]
+        ongoingOffense = ongoingOffense[len(ongoingOffense)-last_record:len(ongoingOffense)-first_record]
+        ongoingDefense = ongoingDefense[len(ongoingDefense)-last_record:len(ongoingDefense)-first_record]
 
         calcOff = []
         x = 0
