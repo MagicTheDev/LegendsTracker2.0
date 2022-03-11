@@ -12,6 +12,25 @@ import calendar
 from utils.search import search_name_with_tag
 import random
 
+POSTER_LIST = {"Edrag" : "edrag",
+               "Hogrider" : "hogrider",
+               "Clash Forest" : "clashforest",
+               "Clan War" : "clanwar",
+               "Loons" : "loons",
+               "Witch" : "witch",
+               "Archers" : "archers",
+               "Bowler" : "bowler",
+               "Barbs" : "barbs",
+               "Barb & Archer" : "barbandarcher",
+               "Big Boy Skelly" : "Big Boy",
+               "Wiz Tower" : "wiztower",
+               "Spells" : "spells",
+               "Barb Sunset" : "barbsunset",
+               "Wood Board" : "woodboard",
+               "Clash Sky" : "clashsky",
+               "Super Wizard" : "swiz",
+               "Village Battle" : "villagebattle",
+               "Hero Pets" : "heropets"}
 class Poster(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
@@ -23,7 +42,9 @@ class Poster(commands.Cog):
 
     @commands.slash_command(name="poster", description="Poster w/ graph & stats to show off season legends stats")
     async def createPoster(self, ctx, smart_search: str = commands.Param(autocomplete=autocomp_names),
-                           background: str = commands.Param(default=None,choices=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"])):
+                           background: str = commands.Param(default=None,
+        choices=["Edrag", "Hogrider", "Clash Forest", "Clan War", "Loons", "Witch", "Archers", "Bowler", "Barbs", "Barb & Archer", "Big Boy Skelly",
+                 "Wiz Tower", "Spells", "Barb Sunset", "Wood Board", "Clash Sky", "Super Wizard", "Village Battle", "Hero Pets"])):
         """
             Parameters
             ----------
@@ -102,9 +123,9 @@ class Poster(commands.Cog):
 
         graph = Image.open("check/poster_graph.png")
         if background is None:
-            poster = Image.open(f"check/poster{random.randint(1,14)}.png")
+            poster = Image.open(f"check/poster{random.choice(POSTER_LIST.values())}.png")
         else:
-            poster = Image.open(f"check/poster{background}.png")
+            poster = Image.open(f"check/poster{POSTER_LIST.get(background)}.png")
 
         from leaderboards.leaderboard_loop import rankings
         gspot = None
