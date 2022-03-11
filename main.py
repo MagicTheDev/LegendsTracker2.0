@@ -21,8 +21,7 @@ initial_extensions = (
             "feeds.dm_feed",
             "feeds.feed_buttons",
             "feeds.legend_feed",
-            "leaderboards.leaderboard_loop",
-            "mainstats"
+            "leaderboards.leaderboard_loop"
         )
 
 

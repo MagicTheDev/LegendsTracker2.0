@@ -1,7 +1,8 @@
+import coc
 from disnake.ext import commands
 import disnake
 import matplotlib.pyplot as plt
-from utils.helper import ongoing_stats
+from utils.helper import ongoing_stats, getPlayer
 from PIL import Image, ImageDraw, ImageFont
 import io
 from coc import utils
@@ -11,6 +12,8 @@ from datetime import datetime
 import calendar
 from utils.search import search_name_with_tag
 import random
+import requests
+from io import BytesIO
 
 POSTER_LIST = {"Edrag" : "edrag",
                "Hogrider" : "hogrider",
@@ -22,7 +25,7 @@ POSTER_LIST = {"Edrag" : "edrag",
                "Bowler" : "bowler",
                "Barbs" : "barbs",
                "Barb & Archer" : "barbandarcher",
-               "Big Boy Skelly" : "Big Boy",
+               "Big Boy Skelly" : "bigboy",
                "Wiz Tower" : "wiztower",
                "Spells" : "spells",
                "Barb Sunset" : "barbsunset",
@@ -150,6 +153,27 @@ class Poster(commands.Cog):
         font4 = ImageFont.truetype("check/blogger.ttf",37)
         font5 = ImageFont.truetype("check/blogger.ttf", 20)
         font6 = ImageFont.truetype("check/blogger.ttf", 40)
+        font7 = ImageFont.truetype("check/code.TTF", 60)
+
+        #add clan badge & text
+        player: coc.Player = await getPlayer(tag)
+        if player.clan is not None:
+            clan = await player.get_detailed_clan()
+            await clan.badge.save("check/clanbadge.png", size="large")
+            badge = Image.open("check/clanbadge.png")
+            size = 275, 275
+            badge.thumbnail(size, Image.ANTIALIAS)
+            A = badge.getchannel('A')
+            newA = A.point(lambda i: 128 if i > 0 else 0)
+            badge.putalpha(newA)
+            poster.paste(badge, (1350, 110), badge.convert("RGBA"))
+
+            watermark = Image.new("RGBA", poster.size)
+            waterdraw = ImageDraw.ImageDraw(watermark, "RGBA")
+            waterdraw.text((1500, 70), clan.name, anchor="mm", font=font)
+            watermask = watermark.convert("L").point(lambda x: min(x, 100))
+            watermark.putalpha(watermask)
+            poster.paste(watermark, None, watermark)
 
         averages = await self.averages(result, days)
         if averages[2] >= 0:
@@ -198,7 +222,7 @@ class Poster(commands.Cog):
             pass
 
 
-        poster.show()
+        #poster.show()
         temp = io.BytesIO()
         poster.save(temp, format="png")
         temp.seek(0)
