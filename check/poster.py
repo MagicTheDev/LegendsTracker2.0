@@ -48,11 +48,11 @@ class Poster(commands.Cog):
         result = await ongoing_stats.find_one({"tag": tag})
         if result is None:
             embed = disnake.Embed(
-                description=f"Player not tracked.",
+                description=f"Player not tracked.\nUse `/track add` to add players for tracking & view stats on them.",
                 color=disnake.Color.red())
             return await ctx.edit_original_message(embed=embed)
 
-        start = utils.get_season_start().date()
+        start = utils.get_season_start().replace(tzinfo=utc).date()
         month = calendar.month_name[start.month + 1]
         year = start.year
         now = datetime.utcnow().replace(tzinfo=utc).date()
