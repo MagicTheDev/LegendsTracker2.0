@@ -157,11 +157,7 @@ class Poster(commands.Cog):
             plt.xlim(int(last_record-first_record + 1), -1)
             plt.xlabel('Days Ago', color="yellow", fontsize=14)
         else:
-            plt.tick_params(
-                axis='x',  # changes apply to the x-axis
-                which='both',  # both major and minor ticks are affected
-                bottom=False,  # ticks along the bottom edge are off
-                top=False)
+            plt.xticks([], [])
             plt.xlabel('Trophies Over Time', color="yellow", fontsize=14)
 
         plt.gca().spines["top"].set_color("yellow")
