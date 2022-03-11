@@ -3,7 +3,7 @@ from utils.helper import ongoing_stats, server_db, IS_BETA
 import disnake
 import emoji
 import time
-import statcord
+import statcord.client as sclient
 import psutil
 
 class LegendStats(commands.Cog):
@@ -14,7 +14,7 @@ class LegendStats(commands.Cog):
         #test comment
         if not IS_BETA:
             self.key = "statcord.com-rsmhOZRkiyBTI2C7z4i6"
-            self.api = statcord.Client(self.bot, self.key, custom1=self.custom1)
+            self.api = sclient.Client(self.bot, self.key, custom1=self.custom1)
             self.api.start_loop()
 
     @commands.Cog.listener()
@@ -307,3 +307,5 @@ class LegendStats(commands.Cog):
                               color=disnake.Color.blue())
         await ctx.send(embed=board)
 
+def setup(bot):
+    bot.add_cog(LegendStats(bot))
