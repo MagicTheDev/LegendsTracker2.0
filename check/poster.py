@@ -170,7 +170,7 @@ class Poster(commands.Cog):
 
             watermark = Image.new("RGBA", poster.size)
             waterdraw = ImageDraw.ImageDraw(watermark, "RGBA")
-            waterdraw.text((1460, 70), clan.name, anchor="mm", font=font)
+            waterdraw.text((1480, 70), clan.name, anchor="mm", font=font)
             watermask = watermark.convert("L").point(lambda x: min(x, 100))
             watermark.putalpha(watermask)
             poster.paste(watermark, None, watermark)
