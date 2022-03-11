@@ -197,9 +197,9 @@ class Poster(commands.Cog):
                 month = f"0{month}"
             date = f"{month}-{start.year}"
             season_stats = history_db[f"{date}"]
-            result = await season_stats.find_one({"tag": tag})
-            if result is not None:
-                r = result.get("rank")
+            st = await season_stats.find_one({"tag": tag})
+            if st is not None:
+                r = st.get("rank")
                 if r <= 1000:
                     gspot = r
 
