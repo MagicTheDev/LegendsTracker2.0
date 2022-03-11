@@ -315,10 +315,10 @@ class Poster(commands.Cog):
                 trophy = document.get("trophies")
             else:
                 eod = document.get("end_of_day")
-                try:
-                    trophy = eod[first_record]
-                except:
+                if first_record > len(eod)
                     continue
+                trophy = eod[-first_record]
+
             rr = []
             rr.append(tag)
             rr.append(trophy)
