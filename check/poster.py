@@ -123,9 +123,9 @@ class Poster(commands.Cog):
 
         graph = Image.open("check/poster_graph.png")
         if background is None:
-            poster = Image.open(f"check/poster{random.choice(POSTER_LIST.values())}.png")
+            poster = Image.open(f"check/{random.choice(list(POSTER_LIST.values()))}.png")
         else:
-            poster = Image.open(f"check/poster{POSTER_LIST.get(background)}.png")
+            poster = Image.open(f"check/{POSTER_LIST.get(background)}.png")
 
         from leaderboards.leaderboard_loop import rankings
         gspot = None
