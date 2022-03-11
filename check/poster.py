@@ -166,7 +166,7 @@ class Poster(commands.Cog):
         draw.text((360, 275), f"+{str(averages[0])} CUPS A DAY", anchor="mm", fill=(255, 255, 255), font=font2)
         draw.text((800, 275), f"-{str(averages[1])} CUPS A DAY", anchor="mm", fill=(255, 255, 255), font=font2)
         draw.text((570, 400), f"{avg3} CUPS A DAY", anchor="mm", fill=(255, 255, 255), font=font2)
-        draw.text((1260, 400), f"{current} | Bot Rank #{rank}", fill=(255, 255, 255), font=font3)
+        draw.text((1240, 400), f"{current} | Bot Rank #{rank}", fill=(255, 255, 255), font=font3)
         draw.text((295, 670), f"{hitstats[0]}%", anchor="mm", fill=(255, 255, 255), font=font4)
         draw.text((295, 790), f"{hitstats[1]}%", anchor="mm", fill=(255, 255, 255), font=font4)
         draw.text((295, 910), f"{hitstats[2]}%", anchor="mm", fill=(255, 255, 255), font=font4)
