@@ -49,7 +49,7 @@ class Poster(commands.Cog):
             Parameters
             ----------
             smart_search: Name or player tag to search with
-            background: Which background & troop for poster to use
+            background: Which background for poster to use
         """
         await ctx.response.defer()
         if utils.is_valid_tag(smart_search) is False:
