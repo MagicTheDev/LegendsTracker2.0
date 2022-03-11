@@ -107,6 +107,7 @@ class Poster(commands.Cog):
             now_ = datetime.utcnow().replace(tzinfo=utc)
             current_season_progress = now - start
             current_season_progress = current_season_progress.days
+            month = calendar.month_name[start.month + 1]
             if now_.hour <= 5:
                 current_season_progress -= 1
             first_record = 0
