@@ -321,7 +321,7 @@ class Poster(commands.Cog):
             if tag in x:
                 return i
 
-    async def hit_stats(self, result, days):
+    async def hit_stats(self, result, first_record, last_record):
         one_stars = 0
         two_stars = 0
         three_stars = 0
@@ -333,8 +333,8 @@ class Poster(commands.Cog):
 
         hits = result.get("previous_hits")
         defs = result.get("previous_defenses")
-        hits = hits[-days:]
-        defs = defs[-days:]
+        hits = hits[len(hits)-last_record:len(hits)-first_record]
+        defs = defs[len(defs)-last_record:len(defs)-first_record]
 
         for day in hits:
             for hit in day:
