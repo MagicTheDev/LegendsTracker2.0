@@ -192,7 +192,7 @@ class Poster(commands.Cog):
                     loc = loc.lower()
                     flag = loc
         else:
-            mo = start.month
+            mo = start.month - 1
             if mo <= 9:
                 mo = f"0{mo}"
             date = f"{start.year}-{mo}"
