@@ -192,10 +192,10 @@ class Poster(commands.Cog):
                     loc = loc.lower()
                     flag = loc
         else:
-            month = start.month
-            if month <= 9:
-                month = f"0{month}"
-            date = f"{month}-{start.year}"
+            mo = start.month
+            if mo <= 9:
+                mo = f"0{mo}"
+            date = f"{start.year}-{mo}"
             season_stats = history_db[f"{date}"]
             st = await season_stats.find_one({"tag": tag})
             if st is not None:
