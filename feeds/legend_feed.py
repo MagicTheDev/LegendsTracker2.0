@@ -38,6 +38,10 @@ class LegendsFeed(commands.Cog):
                     await server_db.update_one({"server": server}, {'$set': {"webhook": None}})
                     await server_db.update_one({"server": server}, {'$set': {"thread": None}})
                     continue
+                except disnake.Forbidden:
+                    await server_db.update_one({"server": server}, {'$set': {"webhook": None}})
+                    await server_db.update_one({"server": server}, {'$set': {"thread": None}})
+                    continue
 
                 if webhook is not None:
                     webhooks[server] = webhook
@@ -101,14 +105,16 @@ class LegendsFeed(commands.Cog):
                         else:
                             await webhook.send(embed=embed, components=[buttons], username='Legends Tracker',
                                                avatar_url="https://cdn.discordapp.com/attachments/843624785560993833/938961364100190269/796f92a51db491f498f6c76fea759651_1.png")
+
+                    await ongoing_stats.update_one({'tag': tag},
+                                                       {'$set': {'change': None}})
                 except Exception as e:
                     c = await self.bot.fetch_channel(923767060977303552)
                     e = str(e)
                     e = e[0:2000]
                     await c.send(content=e)
 
-                await ongoing_stats.update_one({'tag': tag},
-                                       {'$set': {'change': None}})
+
 
         except Exception as e:
             c = await self.bot.fetch_channel(923767060977303552)
