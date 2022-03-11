@@ -157,7 +157,7 @@ class Poster(commands.Cog):
             plt.xlim(int(last_record-first_record + 1), -1)
             plt.xlabel('Days Ago', color="yellow", fontsize=14)
         else:
-            plt.xlim(-1, int(last_record - first_record + 1))
+            plt.xlim(last_record-1, first_record)
             plt.xlabel('Day Of Season', color="yellow", fontsize=14)
 
         plt.gca().spines["top"].set_color("yellow")
