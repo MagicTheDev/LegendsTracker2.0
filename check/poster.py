@@ -314,11 +314,11 @@ class Poster(commands.Cog):
             if first_record == 0:
                 trophy = document.get("trophies")
             else:
-                first_record += 1
+                record = first_record + 1
                 eod = document.get("end_of_day")
-                if first_record > len(eod):
+                if record > len(eod):
                     continue
-                trophy = eod[-first_record]
+                trophy = eod[-record]
 
             rr = []
             rr.append(tag)
