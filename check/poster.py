@@ -315,7 +315,7 @@ class Poster(commands.Cog):
                 trophy = document.get("trophies")
             else:
                 eod = document.get("end_of_day")
-                if first_record > len(eod)
+                if first_record > len(eod):
                     continue
                 trophy = eod[-first_record]
 
