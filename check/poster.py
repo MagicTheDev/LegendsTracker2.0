@@ -327,7 +327,7 @@ class Poster(commands.Cog):
 
         ranking = sorted(rankings, key=lambda l: l[1], reverse=True)
         ranking = await self.get_rank(ptag, ranking)
-        return str(ranking)
+        return str(ranking+1)
 
     async def get_rank(self, tag, ranking ):
         for i, x in enumerate(ranking):
