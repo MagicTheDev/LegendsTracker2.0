@@ -53,11 +53,12 @@ class Poster(commands.Cog):
             return await ctx.edit_original_message(embed=embed)
 
         start = utils.get_season_start().replace(tzinfo=utc).date()
-        month = calendar.month_name[start.month + 1]
-        year = start.year
         now = datetime.utcnow().replace(tzinfo=utc).date()
+        now_ = datetime.utcnow().replace(tzinfo=utc)
         diff = now - start
         days = diff.days
+        if now_.hour <= 5:
+            days -= 1
 
         y = result.get("end_of_day")
         y = y[-days:]
