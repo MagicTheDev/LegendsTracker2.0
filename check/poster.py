@@ -151,7 +151,11 @@ class Poster(commands.Cog):
         plt.plot(x, y, color='white', linestyle='dashed', linewidth=3,
                       marker="*", markerfacecolor="white", markeredgecolor="yellow", markersize=20)
         plt.ylim(min(y) - 100, max(y) + 100)
-        plt.xlim(int(last_record-first_record + 1), -1)
+
+        if previous_season != "Yes":
+            plt.xlim(int(last_record-first_record + 1), -1)
+        else:
+            plt.xlim(0, int(last_record - first_record + 1))
 
         plt.gca().spines["top"].set_color("yellow")
         plt.gca().spines["bottom"].set_color("yellow")
