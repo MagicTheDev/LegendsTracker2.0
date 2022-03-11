@@ -2,7 +2,7 @@ import coc
 from disnake.ext import commands
 import disnake
 import matplotlib.pyplot as plt
-from utils.helper import ongoing_stats, getPlayer
+from utils.helper import ongoing_stats, getPlayer, history_db
 from PIL import Image, ImageDraw, ImageFont
 import io
 from coc import utils
@@ -176,20 +176,32 @@ class Poster(commands.Cog):
         else:
             poster = Image.open(f"check/{POSTER_LIST.get(background)}.png")
 
-        from leaderboards.leaderboard_loop import rankings
         gspot = None
         flag = None
         cou_spot = None
-        spots = [i for i, value in enumerate(rankings) if value == tag]
-        for r in spots:
-            loc = rankings[r + 1]
-            if loc == "global":
-                gspot = rankings[r + 2]
-            else:
-                cou_spot = rankings[r + 2]
-                loc = loc.lower()
-                flag = loc
+        if previous_season != "Yes":
+            from leaderboards.leaderboard_loop import rankings
 
+            spots = [i for i, value in enumerate(rankings) if value == tag]
+            for r in spots:
+                loc = rankings[r + 1]
+                if loc == "global":
+                    gspot = rankings[r + 2]
+                else:
+                    cou_spot = rankings[r + 2]
+                    loc = loc.lower()
+                    flag = loc
+        else:
+            month = start.month
+            if month <= 9:
+                month = f"0{month}"
+            date = f"{month}-{start.year}"
+            season_stats = history_db[f"{date}"]
+            result = await season_stats.find_one({"tag": tag})
+            if result is not None:
+                r = result.get("rank")
+                if r <= 1000:
+                    gspot = r
 
         poster.paste(graph, (1175, 475), graph.convert("RGBA"))
 
@@ -253,6 +265,7 @@ class Poster(commands.Cog):
             globe = Image.open("check/globe2.png")
             poster.paste(globe, (130, 340), globe.convert("RGBA"))
             draw.text((220, 360), f"#{gspot}", fill=(255, 255, 255), font=font6)
+
 
         try:
             if flag is not None:
