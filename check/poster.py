@@ -157,21 +157,12 @@ class Poster(commands.Cog):
             plt.xlim(int(last_record-first_record + 1), -1)
             plt.xlabel('Days Ago', color="yellow", fontsize=14)
         else:
-            plt.xlim(-1, int(last_record - first_record + 1))
-            ax = plt.axes()
-            ticks = [0]
-            for x in range(0, len(y)):
-                if x != 0:
-                    if x % 2== 0:
-                        ticks.append(x)
-
-            if len(y) % 2:
-                ticks.append(len(y) + 2)
-            else:
-                ticks.append(len(y) + 1)
-
-            ax.set_xticks(ticks)
-            plt.xlabel('Day Of Season', color="yellow", fontsize=14)
+            plt.tick_params(
+                axis='x',  # changes apply to the x-axis
+                which='both',  # both major and minor ticks are affected
+                bottom=False,  # ticks along the bottom edge are off
+                top=False)
+            plt.xlabel('Trophies Over Time', color="yellow", fontsize=14)
 
         plt.gca().spines["top"].set_color("yellow")
         plt.gca().spines["bottom"].set_color("yellow")
