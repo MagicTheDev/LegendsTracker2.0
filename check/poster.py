@@ -54,7 +54,7 @@ class Poster(commands.Cog):
             ----------
             smart_search: Name or player tag to search with
             background: Which background for poster to use (optional)
-            previous_season: yes/no (optional)
+            previous_season: (optional)
         """
         await ctx.response.defer()
         if utils.is_valid_tag(smart_search) is False:
