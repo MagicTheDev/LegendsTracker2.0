@@ -99,7 +99,7 @@ class Poster(commands.Cog):
             if now_.hour <= 5:
                 current_season_progress -= 1
 
-            first_record = current_season_progress
+            first_record = current_season_progress + 1
             last_record = first_record + length_of_season
         else:
             start = utils.get_season_start().replace(tzinfo=utc).date()
