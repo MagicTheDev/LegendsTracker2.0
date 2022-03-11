@@ -155,8 +155,10 @@ class Poster(commands.Cog):
 
         if previous_season != "Yes":
             plt.xlim(int(last_record-first_record + 1), -1)
+            plt.xlabel('Days Ago', color="yellow", fontsize=14)
         else:
             plt.xlim(-1, int(last_record - first_record + 1))
+            plt.xlabel('Day Of Season', color="yellow", fontsize=14)
 
         plt.gca().spines["top"].set_color("yellow")
         plt.gca().spines["bottom"].set_color("yellow")
@@ -166,7 +168,7 @@ class Poster(commands.Cog):
         plt.gca().tick_params(axis='y', colors='yellow')
 
         # naming the x axis
-        plt.xlabel('Days Ago', color="yellow", fontsize=14)
+
         # naming the y axis
         plt.ylabel('Trophies', color="yellow", fontsize=14)
         #encoded_string = name.encode("ascii", "ignore")
