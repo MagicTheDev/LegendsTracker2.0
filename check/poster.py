@@ -136,9 +136,12 @@ class Poster(commands.Cog):
 
 
         y = y[len(y)-last_record:len(y)-first_record]
-        current = result.get("trophies")
+
         if previous_season != "Yes":
+            current = result.get("trophies")
             y.append(current)
+        else:
+            current = y[-1]
 
         x = []
         for spot in range(0, len(y)):
@@ -222,7 +225,7 @@ class Poster(commands.Cog):
             avg3 = f"+{str(averages[2])}"
         else:
             avg3 = f"{str(averages[2])}"
-        rank = await self.rank(tag)
+        rank = await self.rank(tag, first_record)
         hitstats = await self.hit_stats(result, first_record, last_record)
 
         draw = ImageDraw.Draw(poster)
@@ -302,13 +305,20 @@ class Poster(commands.Cog):
         return[averageOffense, averageDefense, averageNet]
 
 
-    async def rank(self, ptag):
+    async def rank(self, ptag, first_record):
         rankings = []
         tracked = ongoing_stats.find()
         limit = await ongoing_stats.count_documents(filter={})
         for document in await tracked.to_list(length=limit):
             tag = document.get("tag")
-            trophy = document.get("trophies")
+            if first_record == 0:
+                trophy = document.get("trophies")
+            else:
+                eod = document.get("end_of_day")
+                try:
+                    trophy = eod[first_record]
+                except:
+                    continue
             rr = []
             rr.append(tag)
             rr.append(trophy)
