@@ -48,7 +48,7 @@ class Poster(commands.Cog):
                            background: str = commands.Param(default=None,
         choices=["Edrag", "Hogrider", "Clash Forest", "Clan War", "Loons", "Witch", "Archers", "Bowler", "Barbs", "Barb & Archer", "Big Boy Skelly",
                  "Wiz Tower", "Spells", "Barb Sunset", "Wood Board", "Clash Sky", "Super Wizard", "Village Battle", "Hero Pets"]),
-                previous_season:str = commands.Param(default=None, choices=["Yes", "No"])):
+                previous_season:str = commands.Param(default=None, choices=["Yes"])):
         """
             Parameters
             ----------
@@ -99,7 +99,7 @@ class Poster(commands.Cog):
             if now_.hour <= 5:
                 current_season_progress -= 1
 
-            first_record = current_season_progress + 1
+            first_record = current_season_progress
             last_record = first_record + length_of_season
         else:
             start = utils.get_season_start().replace(tzinfo=utc).date()
@@ -137,7 +137,8 @@ class Poster(commands.Cog):
 
         y = y[len(y)-last_record:len(y)-first_record]
         current = result.get("trophies")
-        y.append(current)
+        if previous_season != "Yes":
+            y.append(current)
 
         x = []
         for spot in range(0, len(y)):
