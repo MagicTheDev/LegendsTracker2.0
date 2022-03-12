@@ -55,7 +55,7 @@
 <!-- ABOUT THE PROJECT -->
 ## MagicBot
 
-Premier and **FREE** Legends Defense & Attacks Tracking Bot w/ leaderboards, stats, & more!
+The Premier **FREE** Legends Defense & Attacks Tracking Bot w/ leaderboards, stats, & more!
 
 
 
