@@ -87,4 +87,4 @@ async def _ordered(request : Request, response: Response):
     return tags
 
 if __name__ == '__main__':
-    uvicorn.run("legendapi:app", port=80, host='"0.0.0.0"')
+    uvicorn.run("legendapi:app", port=80, host="0.0.0.0")
