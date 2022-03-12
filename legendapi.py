@@ -13,19 +13,12 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-fake_users_db = {
-    "johndoe": {
-        "username": "johndoe",
-        "hashed_password": "fakehashedsecret",
-        "disabled": False,
-    }
-}
-
 DB_LOGIN = os.getenv("DB_LOGIN")
 
 db_client = motor.motor_asyncio.AsyncIOMotorClient(DB_LOGIN)
 legends_stats = db_client.legends_stats
 ongoing_stats = legends_stats.ongoing_stats
+logins = legends_stats.logins
 
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI()
