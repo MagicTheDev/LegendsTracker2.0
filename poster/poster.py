@@ -173,15 +173,15 @@ class Poster(commands.Cog):
         plt.ylabel('Trophies', color="yellow", fontsize=14)
         #encoded_string = name.encode("ascii", "ignore")
         #decode_string = encoded_string.decode()
-        plt.savefig("check/poster_graph.png", transparent=True)
+        plt.savefig("poster/poster_graph.png", transparent=True)
         plt.clf()
         plt.close("all")
 
-        graph = Image.open("check/poster_graph.png")
+        graph = Image.open("poster/poster_graph.png")
         if background is None:
-            poster = Image.open(f"check/{random.choice(list(POSTER_LIST.values()))}.png")
+            poster = Image.open(f"poster/backgrounds/{random.choice(list(POSTER_LIST.values()))}.png")
         else:
-            poster = Image.open(f"check/{POSTER_LIST.get(background)}.png")
+            poster = Image.open(f"poster/backgrounds/{POSTER_LIST.get(background)}.png")
 
         gspot = None
         flag = None
@@ -212,19 +212,19 @@ class Poster(commands.Cog):
 
         poster.paste(graph, (1175, 475), graph.convert("RGBA"))
 
-        font = ImageFont.truetype("check/code.TTF", 80)
-        font2 = ImageFont.truetype("check/blogger.ttf", 35)
-        font3 = ImageFont.truetype("check/blogger.ttf", 60)
-        font4 = ImageFont.truetype("check/blogger.ttf",37)
-        font5 = ImageFont.truetype("check/blogger.ttf", 20)
-        font6 = ImageFont.truetype("check/blogger.ttf", 40)
+        font = ImageFont.truetype("poster/fonts/code.TTF", 80)
+        font2 = ImageFont.truetype("poster/fonts/blogger.ttf", 35)
+        font3 = ImageFont.truetype("poster/fonts/blogger.ttf", 60)
+        font4 = ImageFont.truetype("poster/fonts/blogger.ttf",37)
+        font5 = ImageFont.truetype("poster/fonts/blogger.ttf", 20)
+        font6 = ImageFont.truetype("poster/fonts/blogger.ttf", 40)
 
         #add clan badge & text
         player: coc.Player = await getPlayer(tag)
         if player.clan is not None:
             clan = await player.get_detailed_clan()
-            await clan.badge.save("check/clanbadge.png", size="large")
-            badge = Image.open("check/clanbadge.png")
+            await clan.badge.save("poster/clanbadge.png", size="large")
+            badge = Image.open("poster/clanbadge.png")
             size = 275, 275
             badge.thumbnail(size, Image.ANTIALIAS)
             A = badge.getchannel('A')
@@ -265,22 +265,22 @@ class Poster(commands.Cog):
         draw.text((75, 1020), f"{month} {start.year} Season", fill=(255, 255, 255), font=font4)
 
         if gspot is not None:
-            globe = Image.open("check/globe.png")
+            globe = Image.open("poster/globe.png")
             size = 75,75
             globe.thumbnail(size, Image.ANTIALIAS)
-            globe.save("check/globe2.png", "PNG")
-            globe = Image.open("check/globe2.png")
+            globe.save("poster/globe2.png", "PNG")
+            globe = Image.open("poster/globe2.png")
             poster.paste(globe, (130, 340), globe.convert("RGBA"))
             draw.text((220, 360), f"#{gspot}", fill=(255, 255, 255), font=font6)
 
 
         try:
             if flag is not None:
-                globe = Image.open(f"check/png250px/{flag}.png")
+                globe = Image.open(f"poster/country_flags/{flag}.png")
                 size = 80, 80
                 globe.thumbnail(size, Image.ANTIALIAS)
-                globe.save(f"check/png250px/{flag}2.png", "PNG")
-                globe = Image.open(f"check/png250px/{flag}2.png")
+                globe.save(f"poster/country_flags/{flag}2.png", "PNG")
+                globe = Image.open(f"poster/country_flags/{flag}2.png")
                 poster.paste(globe, (770, 350), globe.convert("RGBA"))
                 draw.text((870, 355), f"#{cou_spot}", fill=(255, 255, 255), font=font6)
         except:
