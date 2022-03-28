@@ -207,7 +207,8 @@ class Poster(commands.Cog):
                 gspot = player.legend_statistics.previous_season.rank
             except:
                 gspot = None
-            if gspot > 99999:
+
+            if gspot != None and gspot > 99999:
                 gspot = None
 
         poster.paste(graph, (1175, 475), graph.convert("RGBA"))
