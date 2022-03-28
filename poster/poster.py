@@ -318,8 +318,14 @@ class Poster(commands.Cog):
                 calcDef.append(sum(defe))
         ongoingDefense = calcDef
 
-        averageOffense = round(sum(ongoingOffense) / x)
-        averageDefense = round(sum(ongoingDefense) / y)
+        try:
+            averageOffense = round(sum(ongoingOffense) / x)
+        except:
+            averageOffense = 0
+        try:
+            averageDefense = round(sum(ongoingDefense) / y)
+        except:
+            averageDefense = 0
         averageNet = averageOffense - averageDefense
 
         return[averageOffense, averageDefense, averageNet]
