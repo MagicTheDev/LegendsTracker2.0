@@ -17,13 +17,26 @@ initial_extensions = (
             "help",
             "settings",
             "patreon",
-            "check.poster",
             "feeds.dm_feed",
             "feeds.feed_buttons",
             "feeds.legend_feed",
-            "leaderboards.leaderboard_loop"
+            "leaderboards.leaderboard_loop",
+            "poster.poster"
         )
 
+"""
+Conventions:
+
+server = discord guild object
+result(s) = mongo result
+type_result(s) - if multiple mongo objects
+player = coc.player object
+member = coc.player.tag
+user = discord.user
+user_id = discord.user.id
+
+_id if just the id, not the actual object
+"""
 
 for extension in initial_extensions:
     try:
