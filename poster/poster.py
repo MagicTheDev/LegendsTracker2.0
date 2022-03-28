@@ -203,7 +203,10 @@ class Poster(commands.Cog):
                     flag = loc
 
         else:
-            gspot = player.legend_statistics.previous_season.rank
+            try:
+                gspot = player.legend_statistics.previous_season.rank
+            except:
+                gspot = None
             if gspot > 99999:
                 gspot = None
 
