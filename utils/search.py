@@ -78,8 +78,7 @@ async def search_name_with_tag(query):
         query = query.lower()
         query = re.escape(query)
         results = ongoing_stats.find({"$and": [
-            {"tag": {"$regex": f"^(?i).*{t}.*$"}},
-            {"league": {"$eq": "Legend League"}}
+            {"tag": {"$regex": f"^(?i).*{t}.*$"}}
         ]})
         for document in await results.to_list(length=25):
             names.append(document.get("name") + " | " + document.get("tag"))
