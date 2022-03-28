@@ -333,7 +333,7 @@ class Poster(commands.Cog):
 
     async def rank(self, ptag, first_record, previous_season):
         if previous_season == "Yes":
-            first_record -= 1
+            first_record += 1
         rankings = []
         tracked = ongoing_stats.find()
         limit = await ongoing_stats.count_documents(filter={})
@@ -342,7 +342,7 @@ class Poster(commands.Cog):
             if first_record == 0:
                 trophy = document.get("trophies")
             else:
-                record = first_record + 1
+                record = first_record
                 eod = document.get("end_of_day")
                 if record > len(eod):
                     continue
