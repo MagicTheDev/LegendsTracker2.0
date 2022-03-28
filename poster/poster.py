@@ -244,7 +244,7 @@ class Poster(commands.Cog):
             avg3 = f"+{str(averages[2])}"
         else:
             avg3 = f"{str(averages[2])}"
-        rank = await self.rank(tag, first_record)
+        rank = await self.rank(tag, first_record, previous_season)
         hitstats = await self.hit_stats(result, first_record, last_record)
 
         draw = ImageDraw.Draw(poster)
@@ -331,7 +331,9 @@ class Poster(commands.Cog):
         return[averageOffense, averageDefense, averageNet]
 
 
-    async def rank(self, ptag, first_record):
+    async def rank(self, ptag, first_record, previous_season):
+        if previous_season == "Yes":
+            first_record -= 1
         rankings = []
         tracked = ongoing_stats.find()
         limit = await ongoing_stats.count_documents(filter={})
