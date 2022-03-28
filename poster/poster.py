@@ -183,10 +183,13 @@ class Poster(commands.Cog):
         else:
             poster = Image.open(f"poster/backgrounds/{POSTER_LIST.get(background)}.png")
 
+        player: coc.Player = await getPlayer(tag)
+
         gspot = None
         flag = None
         cou_spot = None
         if previous_season != "Yes":
+            '''
             from leaderboards.leaderboard_loop import rankings
 
             spots = [i for i, value in enumerate(rankings) if value == tag]
@@ -198,6 +201,10 @@ class Poster(commands.Cog):
                     cou_spot = rankings[r + 2]
                     loc = loc.lower()
                     flag = loc
+            '''
+            gspot = player.legend_statistics.previous_season.rank
+            if gspot > 99999:
+                gspot = None
         else:
             mo = start.month + 1
             if mo <= 9:
@@ -220,7 +227,6 @@ class Poster(commands.Cog):
         font6 = ImageFont.truetype("poster/fonts/blogger.ttf", 40)
 
         #add clan badge & text
-        player: coc.Player = await getPlayer(tag)
         if player.clan is not None:
             clan = await player.get_detailed_clan()
             await clan.badge.save("poster/clanbadge.png", size="large")
@@ -238,6 +244,7 @@ class Poster(commands.Cog):
             watermask = watermark.convert("L").point(lambda x: min(x, 100))
             watermark.putalpha(watermask)
             poster.paste(watermark, None, watermark)
+
 
         averages = await self.averages(result, first_record, last_record)
         if averages[2] >= 0:
@@ -270,8 +277,8 @@ class Poster(commands.Cog):
             globe.thumbnail(size, Image.ANTIALIAS)
             globe.save("poster/globe2.png", "PNG")
             globe = Image.open("poster/globe2.png")
-            poster.paste(globe, (130, 340), globe.convert("RGBA"))
-            draw.text((220, 360), f"#{gspot}", fill=(255, 255, 255), font=font6)
+            poster.paste(globe, (90, 340), globe.convert("RGBA"))
+            draw.text((180, 360), f"#{gspot}", fill=(255, 255, 255), font=font6)
 
 
         try:
