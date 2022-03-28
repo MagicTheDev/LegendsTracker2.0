@@ -189,7 +189,7 @@ class Poster(commands.Cog):
         flag = None
         cou_spot = None
         if previous_season != "Yes":
-            '''
+
             from leaderboards.leaderboard_loop import rankings
 
             spots = [i for i, value in enumerate(rankings) if value == tag]
@@ -201,21 +201,11 @@ class Poster(commands.Cog):
                     cou_spot = rankings[r + 2]
                     loc = loc.lower()
                     flag = loc
-            '''
+
+        else:
             gspot = player.legend_statistics.previous_season.rank
             if gspot > 99999:
                 gspot = None
-        else:
-            mo = start.month + 1
-            if mo <= 9:
-                mo = f"0{mo}"
-            date = f"{start.year}-{mo}"
-            season_stats = history_db[f"{date}"]
-            st = await season_stats.find_one({"tag": tag})
-            if st is not None:
-                r = st.get("rank")
-                if r <= 1000:
-                    gspot = r
 
         poster.paste(graph, (1175, 475), graph.convert("RGBA"))
 
