@@ -1,7 +1,8 @@
 
 from disnake.ext import commands
 import disnake
-from utils.helper import ongoing_stats, coc_client
+from utils.helper import ongoing_stats
+from looper import coc_client_two
 import os
 initial_extensions = (
             "check.maincheck",
@@ -32,7 +33,7 @@ class help(commands.Cog):
     @commands.command(name='print')
     @commands.is_owner()
     async def print(self, ctx, yes=None):
-        cache = coc_client.http.cache
+        cache = coc_client_two.http.cache
         if yes!= None:
             print(cache)
         await ctx.send(len(cache))
