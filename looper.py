@@ -213,7 +213,9 @@ async def stats_update():
 
     if removed != []:
         print(f"Removed: {removed}")
-    print(f"Loop 3: {time.time() - rtime}")
+    #print(f"Loop 3: {time.time() - rtime}")
+    cache = coc_client_two.http.cache
+    print("cache length: " + str(len(cache)))
     await asyncio.sleep(5)
 
 async def moveStats():
