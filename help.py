@@ -2,7 +2,6 @@
 from disnake.ext import commands
 import disnake
 from utils.helper import ongoing_stats
-from looper import coc_client_two
 import os
 initial_extensions = (
             "check.maincheck",
@@ -30,13 +29,6 @@ class help(commands.Cog):
                 has.append(i)
         return has
 
-    @commands.command(name='print')
-    @commands.is_owner()
-    async def print(self, ctx, yes=None):
-        cache = coc_client_two.http.cache
-        if yes!= None:
-            print(cache)
-        await ctx.send(len(cache))
 
     @commands.slash_command(name='reload', guild_ids=[923764211845312533, 810466565744230410, 328997757048324101])
     @commands.guild_permissions(923764211845312533, owner=True)
