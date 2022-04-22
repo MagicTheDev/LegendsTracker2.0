@@ -74,7 +74,7 @@ class Check(commands.Cog):
         await ctx.response.defer()
         results:coc.Clan = await search_clan_tag(smart_search)
 
-        if results is None:
+        if results is None or results.member_count == 0:
             embed = disnake.Embed(
                 description=f"Not a valid clan tag.",
                 color=disnake.Color.red())
