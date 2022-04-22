@@ -118,6 +118,12 @@ class Check(commands.Cog):
 
             ranking.append(thisPlayer)
 
+        if len(ranking) == 0:
+            embed = disnake.Embed(
+                description=f"No legends players in this clan.",
+                color=disnake.Color.red())
+            return await ctx.edit_original_message(content=None, embed=embed)
+
         ranking = sorted(ranking, key=lambda l: l[6], reverse=True)
 
         text = ""
@@ -151,6 +157,13 @@ class Check(commands.Cog):
         if text != "":
             embed = disnake.Embed(title=f"__**{results.name} Legends Check**__",
                                   description=text)
+            embed.set_thumbnail(url=results.badge.large)
+            if num_not != 0:
+                embed.set_footer(text=f"{num_not} players untracked.")
+            embeds.append(embed)
+        else:
+            embed = disnake.Embed(title=f"__**{results.name} Legends Check**__",
+                                  description="No players tracked, use select menu below to track missing players in clan.")
             embed.set_thumbnail(url=results.badge.large)
             if num_not != 0:
                 embed.set_footer(text=f"{num_not} players untracked.")
@@ -230,7 +243,9 @@ class Check(commands.Cog):
                     options.append(disnake.SelectOption(label="Page 2 (25-50)", value=f"1", emoji="📄"))
 
                 if options == []:
-                    await ctx.edit_original_message(embed=embeds[0], components=[])
+                    e = embeds[0]
+                    e.set_footer(text="")
+                    await ctx.edit_original_message(embed=e, components=[])
                 else:
                     select1 = disnake.ui.Select(
                         options=options,
@@ -240,8 +255,9 @@ class Check(commands.Cog):
                     )
                     action_row = disnake.ui.ActionRow()
                     action_row.append_item(select1)
-
-                    await ctx.edit_original_message(embed=embeds[0], components=[action_row])
+                    e = embeds[0]
+                    e.set_footer(text="")
+                    await ctx.edit_original_message(embed=e, components=[action_row])
 
 
     async def legends(self, ctx, msg, search_query):
