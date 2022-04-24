@@ -11,7 +11,7 @@ async def addLegendsPlayer_GLOBAL(player: coc.Player, clan_name):
         "tag": player.tag,
         "name": player.name,
         "trophies": player.trophies,
-        "th": player.town_hall,
+        "th": 14,
         "num_season_hits": player.attack_wins,
         "num_season_defenses": player.defense_wins,
         "row_triple": 0,
