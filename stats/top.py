@@ -8,7 +8,7 @@ class Top(commands.Cog):
         self.bot = bot
 
     @commands.slash_command(name="top",
-                            description="Top player stats - (hits, def, net).")
+                            description="Top player stats - (hits, def, net).", guild_ids=[923764211845312533])
     async def top_server(self,ctx: disnake.ApplicationCommandInteraction, previous: str = commands.Param(default=None,choices=["Yesterday", "2 Days Ago", "3 Days Ago"])):
         """
             Parameters
