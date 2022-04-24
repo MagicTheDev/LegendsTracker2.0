@@ -302,18 +302,6 @@ class LegendsFeed(commands.Cog):
     def feed_components(self, results, color="red"):
         tags=[]
         options = []
-        if len(results) == 1:
-            if color == "green":
-                button_color = disnake.ButtonStyle.green
-            else:
-                button_color = disnake.ButtonStyle.red
-            result = results[0]
-            tag = result.get("tag")
-            button = disnake.ui.Button(label="All Stats", emoji="📊", style=button_color, custom_id=f"{tag}")
-            buttons = disnake.ui.ActionRow()
-            buttons.append_item(button)
-            return [buttons]
-
         for result in results:
             name = result.get("name")
             trophies = result.get("trophies")
