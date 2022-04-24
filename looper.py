@@ -126,7 +126,6 @@ async def stats_update():
                     for x in range(1, diff_hits + 1):
                         thisHit = hits[-x]
                         attacksText += f"<:sword:825589136026501160> +{thisHit}"
-                        await player.insert_attack(thisHit)
                         await ongoing_stats.update_one({'tag': f"{player.tag}"},
                                                        {'$push': {
                                                            'new_change': f"{attacksText} | <:legends:881450752109850635>{str(player.trophies)}{onfire} | {player.name}"
