@@ -42,8 +42,8 @@ class LegendsFeed(commands.Cog):
                     if thread_id is not None:
                         thread = await self.bot.fetch_channel(thread_id)
                 except (disnake.NotFound, disnake.Forbidden):
-                    await clan_results.update_one({"server": server_id}, {'$set': {"webhook": None}})
-                    await clan_results.update_one({"server": server_id}, {'$set': {"thread": None}})
+                    await clan_feed_db.update_one({"server": server_id}, {'$set': {"webhook": None}})
+                    await clan_feed_db.update_one({"server": server_id}, {'$set': {"thread": None}})
                     continue
                 except Exception as e:
                     c = await self.bot.fetch_channel(923767060977303552)
