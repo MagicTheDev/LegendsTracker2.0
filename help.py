@@ -42,7 +42,7 @@ class help(commands.Cog):
                         " for the members in the respective clan - you can have 1 main feed & 5 clan feeds per a server. `/feed set` & `/clan-feed add` are the respective commands", inline=False)
         embed.add_field(name="Other", value="There are plenty of other stats & little nuiances to learn, enjoy, & explore. the `/faq` & `/help` commands are a great place to start & if you have any questions"
                                             " or suggestions to stop by the support server with `/server`", inline=False)
-        await ctx.send(embed)
+        await ctx.send(embed=embed)
 
     @commands.slash_command(name="faq", description="Frequently asked questions & their answers")
     async def faq(self, ctx: disnake.ApplicationCommandInteraction):
@@ -50,10 +50,9 @@ class help(commands.Cog):
                               color=disnake.Color.green())
         embed.add_field(name="**Q: I just tracked a player. Why is there no stats?**",
                         value="A. Legends stats aren't given outright, so they have to be collected as they happen. Stats will appear from the moment tracked forward.", inline=False)
-        embed.add_field(name="**Q: THE STATS ARE WRONG ?!**",
-                        value="A: Well it depends. One, it helps to understand how this bot works, as mentioned above, there can be errors, why is that? "
-                              "The api doesn’t give legends stats. This bot (and any other legends bot) work by having a list of players & checking their trophies non-stop. If the trophies go up, it’s an attack. If the trophies go down, it’s a defense. Sounds good, except, the api doesn’t update immediately, i estimate it takes 3 to 5 minutes on average. In those few minutes, the trophies (how we’re checking hits/defenses) could change in a few ways that can trip up the bot. Which ways? 1. 2 attacks in a short time frame, "
-                              "in this case you will see stats like +68, that’s just 2 hits, & tbh it’s 100% accurate for all intents & purposes. 2. 2 defenses happen at same time, same as above but something like -68. And Lastly, 3,  where we can get some inaccuracy, a defense & attack happen at same time, u may get something like +4 if a +30 attack & -26 defense happen at same time. Always, the net gain/loss for the day will accurate & any overall stats only use the “accurate” hits.", inline=False)
+        embed.add_field(name="**Q: THE STATS ARE WRONG ?!**", value="A: Well it depends. One, it helps to understand how this bot works, as mentioned above, there can be errors, why is that? "
+                              "The api doesn’t give legends stats. This bot works by checking player's trophies non-stop. If the trophies go up, it’s an attack. If they go down, it’s a defense. Sounds good, except, the api doesn’t update immediately, it takes 3 to 5 minutes on average. In those few minutes, the trophies (how we’re checking hits/defenses) could change in a few ways that can trip up the bot. 1. 2 attacks in a short time frame, "
+                              "in this case you will see stats like +68, that’s just 2 hits, & tbh it’s 100% accurate for all intents & purposes. 2. 2 defenses happen at same time, same as above but something like -68. And Lastly, 3,  where we can get some inaccuracy, a defense & attack happen at same time, u may get something like +4 if a +30 attack & -26 defense happen at same time. Always, the net gain/loss for the day will be accurate ", inline=False)
         embed.add_field(name="**Q: Where is this months history?**",
                         value="A: The monthly history has to be downloaded in bulk - it contains about 700 thousand records on average. It also doesn't become available till several days after season ends. I try to download it & add it as soon as I can.", inline=False)
         embed.add_field(name="**Q: Why doesn’t an account show country?**",
