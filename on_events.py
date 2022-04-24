@@ -42,7 +42,7 @@ class Bot_Events(commands.Cog):
         try:
             channel = guild.text_channels[0]
             embed = disnake.Embed(title="Thanks for inviting me!",
-                               description="Run /help for quick setup guide.",
+                               description="Run /quick_start for quick setup guide.",
                                color=disnake.Color.blue())
             await channel.send(embed=embed)
         except:
