@@ -40,9 +40,9 @@ class OwnerCommands(commands.Cog):
         for document in await tracked.to_list(length=limit):
             hits = document.get("today_hits")
             tag= document.get("tag")
-            if len(hits) >= 9:
+            if sum(hits) >= 321:
                 await ongoing_stats.update_one({'tag': tag},
-                                               {'$set': {"today_hits": hits[0:8]}})
+                                               {'$set': {"today_hits": hits[0:7]}})
             else:
                 continue
 
