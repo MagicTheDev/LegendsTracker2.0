@@ -233,7 +233,7 @@ class LegendsFeed(commands.Cog):
                         if thread_id is None:
                             await webhook.send(embed=embed, avatar_url=self.bot.user.display_avatar.url, components=components)
                         else:
-                            await webhook.send(embed=embed, components=components)
+                            await webhook.send(embed=embed, avatar_url=self.bot.user.display_avatar.url, components=components, thread=thread)
                         off_text_changes = []
                         off_cresults = []
 
@@ -250,7 +250,7 @@ class LegendsFeed(commands.Cog):
                         if thread_id is None:
                             await webhook.send(embed=embed, avatar_url=self.bot.user.display_avatar.url, components=components)
                         else:
-                            await webhook.send(embed=embed, avatar_url=self.bot.user.display_avatar.url, components=components)
+                            await webhook.send(embed=embed, avatar_url=self.bot.user.display_avatar.url, components=components, thread=thread)
                         def_text_changes = []
                         def_cresults = []
 
@@ -264,7 +264,7 @@ class LegendsFeed(commands.Cog):
                     if thread_id is None:
                         await webhook.send(embed=embed, avatar_url=self.bot.user.display_avatar.url, components=components)
                     else:
-                        await webhook.send(embed=embed, avatar_url=self.bot.user.display_avatar.url, components=components)
+                        await webhook.send(embed=embed, avatar_url=self.bot.user.display_avatar.url, components=components, thread=thread)
 
                 if len(def_text_changes) > 0:
                     if server_def == "Off":
@@ -278,7 +278,7 @@ class LegendsFeed(commands.Cog):
                     if thread_id is None:
                         await webhook.send(embed=embed, avatar_url=self.bot.user.display_avatar.url, components=components)
                     else:
-                        await webhook.send(embed=embed, avatar_url=self.bot.user.display_avatar.url, components=components)
+                        await webhook.send(embed=embed, avatar_url=self.bot.user.display_avatar.url, components=components, thread=thread)
 
                 '''
                 #keep until we see if it has a use
