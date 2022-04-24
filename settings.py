@@ -2,7 +2,7 @@ from disnake.ext import commands
 import disnake
 from utils.helper import server_db, coc_client, getClan, clan_feed_db
 from utils.db import removeLegendsPlayer_SERVER
-from utils.components import create_components
+from utils.components import create_components, create_components2
 from coc import utils
 
 
@@ -127,9 +127,8 @@ class bot_settings(commands.Cog):
         return await ctx.send(embed=embed)
 
 
-    @commands.slash_command(name='tracked_list',
-                       description="List of clans or players tracked in server.")
-    async def tracked_list(self, ctx: disnake.ApplicationCommandInteraction, list_type: str = commands.Param(choices=["Clan list", "Player list"])):
+    @commands.slash_command(name='tracked-list',description="List of clans or players tracked in server.")
+    async def tracked_lists(self, ctx: disnake.ApplicationCommandInteraction, list_type: str = commands.Param(choices=["Clan list", "Player list"])):
         await ctx.response.defer()
         list = []
         results = await server_db.find_one({"server": ctx.guild.id})
@@ -165,7 +164,7 @@ class bot_settings(commands.Cog):
             embeds.append(embed)
 
         current_page = 0
-        await ctx.edit_original_message(embed=embeds[0], components=create_components(current_page, embeds))
+        await ctx.edit_original_message(embed=embeds[0], components=create_components2(current_page, embeds, True))
 
         msg = await ctx.original_message()
 
@@ -186,12 +185,17 @@ class bot_settings(commands.Cog):
             if res.data.custom_id == "Previous":
                 current_page -= 1
                 await res.response.edit_message(embed=embeds[current_page],
-                                                components=create_components(current_page, embeds))
+                                                components=create_components2(current_page, embeds, True))
 
             elif res.data.custom_id == "Next":
                 current_page += 1
                 await res.response.edit_message(embed=embeds[current_page],
-                                                components=create_components(current_page, embeds))
+                                                components=create_components2(current_page, embeds, True))
+
+            elif res.data.custom_id == "Print":
+                await msg.delete()
+                for embed in embeds:
+                    await ctx.channel.send(embed=embed)
 
 
     @commands.slash_command(name='feed_defenses',
