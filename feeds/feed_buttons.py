@@ -18,7 +18,7 @@ class FeedButtons(commands.Cog):
         if utils.is_valid_tag(ctx.values[0]):
             tags = [ctx.values[0]]
             view = disnake.ui.View.from_message(ctx.message)
-            await ctx.edit_original_message(view=view)
+            await ctx.response.edit_original_message(view=view)
 
             ez_look = False
             check = self.bot.get_cog("MainCheck")
