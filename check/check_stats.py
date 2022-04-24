@@ -11,7 +11,7 @@ from datetime import datetime
 import calendar
 from dbplayer import DB_Player
 
-tips = ["New Command! - /poster"]
+tips = ["there are some mistakes in todays stats due to maintenance, sry"]
 SUPER_SCRIPTS=["⁰","¹","²","³","⁴","⁵","⁶", "⁷","⁸", "⁹"]
 
 class CheckStats(commands.Cog):
