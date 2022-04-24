@@ -31,20 +31,21 @@ class OwnerCommands(commands.Cog):
         await guild.leave()  # Guild found
         await ctx.send(f"I left: {guild.name}!")
 
-    @commands.command(name="migrate")
+    @commands.command(name="fix")
     @commands.is_owner()
     async def migrate(self, ctx):
 
         tracked = ongoing_stats.find()
         limit = await ongoing_stats.count_documents(filter={})
         for document in await tracked.to_list(length=limit):
-            servers = document.get("servers")
-            if servers is None:
-                continue
-            tag = document.get("tag")
-            if 923764211845312533 in servers:
+            hits = document.get("today_hits")
+            tag= document.get("tag")
+            if len(hits) >= 9:
                 await ongoing_stats.update_one({'tag': tag},
-                                               {'$pull': {"servers": 923764211845312533}})
+                                               {'$set': {"today_hits": hits[0:8]}})
+            else:
+                continue
+
         await ctx.send("done")
 
     @commands.command(name="gitpull")
