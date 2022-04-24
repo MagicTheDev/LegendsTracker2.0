@@ -56,9 +56,5 @@ class OwnerCommands(commands.Cog):
         await ctx.send("Bot using latest changes.")
 
 
-
-
-
-
 def setup(bot: commands.Bot):
     bot.add_cog(OwnerCommands(bot))

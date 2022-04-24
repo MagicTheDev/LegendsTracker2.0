@@ -72,7 +72,7 @@ class Graph(commands.Cog):
         embed.add_field(name="**Offensive Stats:**",
                         value=f"- One Star: {player.one_star_avg_off}%\n"
                               f"- Two Star: {player.two_star_avg_off}%\n"
-                              f"- Three Star: {player.three_star_avg_def}%\n"
+                              f"- Three Star: {player.three_star_avg_off}%\n"
                               f"- Total {player.season_hits_len} attacks accurately tracked.")
         embed.add_field(name="**Defensive Stats:**",
                         value=f"- One Star: {player.one_star_avg_def}%\n"
