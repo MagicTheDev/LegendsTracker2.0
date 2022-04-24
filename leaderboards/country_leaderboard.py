@@ -51,10 +51,6 @@ class CountryLeaderboard(commands.Cog):
                 await ctx.edit_original_message(components=[])
                 break
 
-            if res.author.id != ctx.author.id:
-                await res.send(content="You must run the command to interact with components.", ephemeral=True)
-                continue
-
             # print(res.custom_id)
             if res.data.custom_id == "Previous":
                 current_page -= 1
@@ -117,14 +113,16 @@ class CountryLeaderboard(commands.Cog):
 
         country = await coc_client.get_location_players(location_id=location_id)
 
-        embed = disnake.Embed(description=f"**Would you like to remove tracked players outside of this location?**\n"
+        embed = disnake.Embed(description=f"**Warning this will add the top {top} {country_name} players to your server feed & list, click Cancel if this isn't what you intend.**\n"
+                                          f"**Would you like to remove tracked players outside of this location?**\n"
                                           f"if **yes**, this will set your feed & leaderboard to just players in this location.\n",
                               color=disnake.Color.green())
 
         select1 = disnake.ui.Select(
             options=[
                 disnake.SelectOption(label="Yes", value=f"Yes", emoji="✅"),
-                disnake.SelectOption(label="No", value=f"No", emoji="❌")
+                disnake.SelectOption(label="No", value=f"No", emoji="❌"),
+                disnake.SelectOption(label="CANCEL", value="cancel")
             ],
             placeholder="Choose your option",
             min_values=1,  # the minimum number of options a user must select
@@ -154,6 +152,11 @@ class CountryLeaderboard(commands.Cog):
                 continue
 
             chose = res.values[0]
+            if chose == "cancel":
+                embed = disnake.Embed(description=f"No problem. Canceling the command now.",
+                                      color=disnake.Color.green())
+                return await res.response.edit_message(embed=embed,
+                                                       components=[])
 
 
         embed = disnake.Embed(

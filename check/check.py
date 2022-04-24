@@ -3,7 +3,7 @@ import disnake
 from disnake.ext import commands
 from utils.helper import getPlayer, ongoing_stats
 from utils.db import addLegendsPlayer_GLOBAL
-from utils.search import search_name, search_clans, search_clan_tag, search_results
+from utils.search import search_clans_with_tag, search_clan_tag, search_results, search_name_with_tag
 SUPER_SCRIPTS=["⁰","¹","²","³","⁴","⁵","⁶", "⁷","⁸", "⁹"]
 import emoji
 
@@ -12,11 +12,12 @@ class Check(commands.Cog):
         self.bot = bot
 
     async def autocomp_names(self, user_input: str):
-        results = await search_name(user_input)
+        results = await search_name_with_tag(user_input)
         return results
 
+
     async def autocomp_clans(self, user_input: str):
-        results = await search_clans(user_input)
+        results = await search_clans_with_tag(user_input)
         return results
 
     @commands.slash_command(name="check")
@@ -32,15 +33,19 @@ class Check(commands.Cog):
             ----------
             smart_search: Type a search, pick an option, or don't to get multiple results back
         """
-        if smart_search is None:
-            smart_search = str(ctx.author.id)
+        await ctx.response.defer()
+        if "|" in smart_search and "#" in smart_search:
+            search = smart_search.split("|")
+            tag = search[-1]
+        else:
+            tag = smart_search
 
         embed = disnake.Embed(
             description="<a:loading:884400064313819146> Fetching Stats. | Searches of 10+ players can take a few seconds, refine your search or use playertag if needed.",
             color=disnake.Color.green())
-        await ctx.send(embed=embed)
+        await ctx.edit_original_message(embed=embed)
         msg = await ctx.original_message()
-        await self.legends(ctx, msg, smart_search)
+        await self.legends(ctx, msg, tag, True)
 
     @check.sub_command(name="user",
                             description="Check a discord user's linked accounts (empty for your own)")
@@ -60,7 +65,7 @@ class Check(commands.Cog):
             color=disnake.Color.green())
         await ctx.send(embed=embed)
         msg = await ctx.original_message()
-        await self.legends(ctx, msg, discord_user)
+        await self.legends(ctx, msg, discord_user, False)
 
 
     @check.sub_command(name="clan", description="Search by name or tag to find a clan.")
@@ -72,7 +77,13 @@ class Check(commands.Cog):
             smart_search: Autocompletes clans using clans tracked members are in
         """
         await ctx.response.defer()
-        results:coc.Clan = await search_clan_tag(smart_search)
+        if "|" in smart_search and "#" in smart_search:
+            search = smart_search.split("|")
+            tag = search[-1]
+        else:
+            tag = smart_search
+
+        results:coc.Clan = await search_clan_tag(tag)
 
         if results is None or results.member_count == 0:
             embed = disnake.Embed(
@@ -260,7 +271,7 @@ class Check(commands.Cog):
                     await ctx.edit_original_message(embed=e, components=[action_row])
 
 
-    async def legends(self, ctx, msg, search_query):
+    async def legends(self, ctx, msg, search_query, ez_look):
 
         results = await search_results(ctx, search_query)
 
@@ -268,7 +279,6 @@ class Check(commands.Cog):
         if results == []:
             player = await getPlayer(search_query)
             if player is not None:
-
                 if str(player.league) != "Legend League":
                     embed = disnake.Embed(
                         description=f"{player.name} is not tracked nor is in legends.",
@@ -290,7 +300,7 @@ class Check(commands.Cog):
                 return await msg.edit(content=None, embed=embed)
 
         pagination = self.bot.get_cog("MainCheck")
-        await pagination.button_pagination(ctx, msg, results)
+        await pagination.button_pagination(msg, results, ez_look)
 
     async def check_global_tracked(self,player):
         results = await ongoing_stats.find_one({"tag": f"{player.tag}"})

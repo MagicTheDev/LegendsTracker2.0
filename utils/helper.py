@@ -4,6 +4,7 @@ from coc.ext import discordlinks
 import motor.motor_asyncio
 from dotenv import load_dotenv
 import aiohttp
+import operator
 IS_BETA = False
 
 load_dotenv()
@@ -37,7 +38,18 @@ if not IS_BETA:
     server_db = legends_stats.server
     locations = legends_stats.locations
     profile_db = legends_stats.profile_db
+    clan_feed_db = legends_stats.clan_feeds
 else:
+    #### DATABASES USED ####
+    legends_stats = db_client.legends_stats
+    history_db = db_client.clan_tags
+
+    ### COLLECTIONS USED ###
+    ongoing_stats = legends_stats.ongoing_stats
+    server_db = legends_stats.server
+    locations = legends_stats.locations
+    profile_db = legends_stats.profile_db
+    '''
     #### DATABASES USED ####
     beta_legends_stats = db_client.beta_legends_stats
     legends_stats = db_client.legends_stats
@@ -48,6 +60,7 @@ else:
     server_db = beta_legends_stats.beta_server
     locations = legends_stats.locations
     profile_db = beta_legends_stats.beta_profile_db
+    '''
 
 async def patreon_discord_ids():
     ids = []
@@ -67,43 +80,6 @@ async def patreon_discord_ids():
 
     return ids
 
-
-async def createTimeStats(player):
-  ongoingOffense = player.get("previous_hits")
-  ongoingDefense = player.get("previous_defenses")
-  ongoingNet = player.get("ongoingNet")
-
-  calcOff = []
-  x = 0
-  for off in ongoingOffense:
-    if off != []:
-      x+=1
-      calcOff.append(sum(off))
-  ongoingOffense = calcOff
-
-  calcDef = []
-  y = 0
-  for defe in ongoingDefense:
-    if defe != []:
-      y+=1
-      calcDef.append(sum(defe))
-  ongoingDefense = calcDef
-
-  if len(ongoingOffense) == 0:
-    text = f"**Average Offense:** No stats collected yet.\n" \
-           f"**Average Defense:** No stats collected yet.\n" \
-           f"**Average Net Gain:** No stats collected yet.\n"
-    return text
-
-  averageOffense = round(sum(ongoingOffense) / x)
-  averageDefense = round(sum(ongoingDefense) / y)
-  averageNet = averageOffense - averageDefense
-
-  text = f"**Average Offense:** {averageOffense} cups a day.\n" \
-         f"**Average Defense:** {averageDefense} cups a day.\n" \
-         f"**Average Net Gain:** {averageNet} cups a day.\n" \
-         f"*Stats collected from {x} days of data.*"
-  return text
 
 
 async def getTags(ctx, ping):

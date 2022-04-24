@@ -24,7 +24,7 @@ class PlayerTrack(commands.Cog):
 
 
     @track.sub_command(name="add", description="Add legends tracking for a player")
-    async def track_add(self,ctx, player_tag):
+    async def track_add(self,ctx: disnake.ApplicationCommandInteraction, player_tag):
         """
             Parameters
             ----------
@@ -63,11 +63,49 @@ class PlayerTrack(commands.Cog):
                                       color=disnake.Color.from_rgb(255,255,0))
                 return await ctx.send(embed=embed)
             else:
+                embed = disnake.Embed(description=f"{player.name} is already globally tracked, would you like to add them to server tracking?.",
+                                      color=disnake.Color.green())
+                page_buttons = [
+                    disnake.ui.Button(label="Yes", emoji="✅", style=disnake.ButtonStyle.green,
+                                      custom_id="Yes"),
+                    disnake.ui.Button(label="No", emoji="❌", style=disnake.ButtonStyle.red,
+                                      custom_id="No")
+                ]
+                buttons = disnake.ui.ActionRow()
+                for button in page_buttons:
+                    buttons.append_item(button)
+
+                await ctx.send(embed=embed, components=[buttons])
+                msg = await ctx.original_message()
+
+                def check(res: disnake.MessageInteraction):
+                    return res.message.id == msg.id
+
+                chose = False
+                while chose is False:
+                    try:
+                        res: disnake.MessageInteraction = await self.bot.wait_for("message_interaction", check=check,
+                                                                                  timeout=120)
+                    except:
+                        await msg.edit(components=[])
+                        break
+
+                    if res.author.id != ctx.author.id:
+                        await res.send(content="You must run the command to interact with components.", ephemeral=True)
+                        continue
+
+                    chose = res.data.custom_id
+
+                    if chose == "No":
+                        embed = disnake.Embed(description=f"No problem. Use `/check search {player_tag}` to view stats for this player.",
+                                              color=disnake.Color.green())
+                        return await res.response.edit_message(embed=embed,
+                                                               components=[])
+
                 embed = disnake.Embed(description=f"{player.name} added to server tracking.",
                                       color=disnake.Color.green())
                 await addLegendsPlayer_SERVER(player=player, guild_id=ctx.guild.id)
-
-                return await ctx.send(embed=embed)
+                return await ctx.edit_original_message(embed=embed, components=[])
         else:
             if is_full:
                 embed = disnake.Embed(description=f"**Player added for global tracking.**\n However, cannot server track this player. Feed is full - has 500 players.\n"
@@ -111,13 +149,9 @@ class PlayerTrack(commands.Cog):
             return await ctx.send(embed=embed)
 
         await removeLegendsPlayer_SERVER(player=player, guild_id=ctx.guild.id)
-        embed = disnake.Embed(description=f"[{player.name}]({player.share_link}) removed from **server** legends tracking.",
+        embed = disnake.Embed(description=f"[{player.name}]({player.share_link}) removed from **server** legends tracking.\n**Global** tracking cannot be removed.",
                               color=disnake.Color.green())
         return await ctx.send(embed=embed)
-
-
-
-
 
 
     async def check_global_tracked(self,player):

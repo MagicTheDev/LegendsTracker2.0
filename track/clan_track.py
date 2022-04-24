@@ -149,7 +149,7 @@ class ClanTrack(commands.Cog):
             description=f"{num_server_tracked} members removed from server tracking.",
             color=disnake.Color.green())
         embed.set_thumbnail(url=clan.badge.large)
-        return await ctx.edit_original_message(embed=embed)
+        await ctx.edit_original_message(embed=embed)
 
 
     @ctrack.sub_command(name="list", description="List of clans linked to server")

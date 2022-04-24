@@ -53,7 +53,7 @@ def get_user(db, username: str):
 def fake_decode_token(token):
     # This doesn't provide any security at all
     # Check the next version
-    user = get_user(fake_users_db, token)
+    user = get_user(token, token)
     return user
 
 

@@ -38,10 +38,10 @@ class History(commands.Cog):
             description="<a:loading:884400064313819146> Fetching Historical Data.",
             color=disnake.Color.green())
       await ctx.send(embed=embed)
-      embed= await self.create_history(ctx, player_tag)
+      embed= await self.create_history(player_tag)
       await ctx.edit_original_message(embed=embed)
 
-    async def create_history(self, ctx, tag):
+    async def create_history(self, tag):
         stats = []
         names = []
         player = await getPlayer(tag)
@@ -93,8 +93,9 @@ class History(commands.Cog):
               oldyear = year
               text = ""
             text += f"{month} | 🏆{trophies} | 🌎{rank}\n"
-            
-        embed.add_field(name = f"**{oldyear}**", value=text, inline=False)           
+
+        if text != "":
+            embed.add_field(name = f"**{oldyear}**", value=text, inline=False)
 
         embed.set_footer(text="Tip: `/check` commands have legends history as well")
         return embed

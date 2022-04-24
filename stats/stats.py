@@ -1,10 +1,22 @@
 from disnake.ext import commands
-from utils.helper import ongoing_stats, server_db, IS_BETA
+from utils.helper import ongoing_stats, server_db, IS_BETA, history_db
 import disnake
 import emoji
 import time
 import statcord.client as sclient
 import psutil
+import matplotlib.pyplot as plt
+import io
+import calendar
+
+dates = ["2015-07", "2015-08", "2015-09", "2015-10", "2015-11", "2015-12",
+         "2016-01","2016-02","2016-03","2016-04","2016-05","2016-06","2016-07","2016-08","2016-09","2016-10","2016-11","2016-12",
+         "2017-01","2017-02","2017-03","2017-04","2017-05","2017-06","2017-07","2017-08","2017-09","2017-10","2017-11","2017-12",
+         "2018-01","2018-02","2018-03","2018-04","2018-05","2018-06","2018-07","2018-08","2018-09","2018-10","2018-11","2018-12",
+         "2019-01","2019-02","2019-03","2019-04", "2019-05", "2019-06", "2019-07", "2019-08","2019-09","2019-10","2019-11","2019-12",
+         "2020-01","2020-02","2020-03","2020-04","2020-05","2020-06","2020-07","2020-08","2020-09","2020-10","2020-11","2020-12",
+         "2021-01","2021-02","2021-03","2021-04","2021-05","2021-06","2021-07","2021-08", "2021-09", "2021-10", "2021-11", "2021-12",
+         "2022-01", "2022-02", "2022-03"]
 
 class LegendStats(commands.Cog):
 
@@ -89,6 +101,7 @@ class LegendStats(commands.Cog):
 
     @commands.slash_command(name="streaks",description="View the top 3 star streak statistics.")
     async def streaks(self, ctx: disnake.ApplicationCommandInteraction):
+        await ctx.response.defer()
         fire = "<a:fireflame:946369467561172993>"
         fire = ''.join(filter(str.isdigit, fire))
         fire = self.bot.get_emoji(int(fire))
@@ -114,7 +127,7 @@ class LegendStats(commands.Cog):
         st = disnake.ui.ActionRow()
         st.append_item(select)
 
-        await ctx.send(embed=embed1, components=[st])
+        await ctx.edit_original_message(embed=embed1, components=[st])
 
         msg = await ctx.original_message()
 
@@ -273,10 +286,9 @@ class LegendStats(commands.Cog):
                               color=disnake.Color.blue())
         await ctx.send(embed=board)
 
-
     @commands.slash_command(name="breakdown",description="Trophy Breakdown for players tracked.")
-    async def breakdown(self, ctx):
-
+    async def breakdown(self, ctx: disnake.ApplicationCommandInteraction):
+        await ctx.response.defer()
         results = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         tracked = ongoing_stats.find({"league": {"$eq": "Legend League"}})
         limit = await ongoing_stats.count_documents(filter={"league": {"$eq": "Legend League"}})
@@ -305,7 +317,83 @@ class LegendStats(commands.Cog):
 
         board = disnake.Embed(title="Trophy Breakdown for players tracked.", description=text,
                               color=disnake.Color.blue())
-        await ctx.send(embed=board)
+        await ctx.edit_original_message(embed=board)
+
+    @commands.slash_command(name="legend-popularity", description="Number of legends accounts at EOS over time")
+    async def legend_popularity(self, ctx: disnake.ApplicationCommandInteraction):
+        await ctx.response.defer()
+        y = []
+        for date in dates:
+            season_stats = history_db[f"{date}"]
+            limit = await season_stats.count_documents(filter={})
+            y.append(limit)
+
+
+        x = []
+        for spot in range(0, len(y)):
+            x.append(spot)
+
+        x.reverse()
+        y.reverse()
+
+        plt.plot(dates, y, color='green', linestyle='dashed', linewidth=2,
+                 marker='o', markerfacecolor='blue', markersize=5)
+        plt.ylim(min(y) - 100, max(y) + 50000)
+        plt.xlim(len(y)+ 1, -1)
+
+        plt.xticks(x, dates, color='blue', rotation=45, fontsize='8',
+                   horizontalalignment='right')
+        plt.locator_params(axis="x", nbins=10)
+
+        plt.xlabel('Days Ago')
+        # naming the y axis
+        plt.ylabel('Accounts')
+        plt.title(f"Legend Popularity Over Time")
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+        file = disnake.File(fp=buf, filename="filename.png")
+        pic_channel = await self.bot.fetch_channel(884951195406458900)
+        msg = await pic_channel.send(file=file)
+        pic = msg.attachments[0].url
+        plt.clf()
+        plt.close("all")
+        await ctx.edit_original_message(content=pic)
+
+    @commands.slash_command(name="eos-finishers", description="Number 1 EOS finishers for every month")
+    async def eos_finishers(self, ctx: disnake.ApplicationCommandInteraction):
+        await ctx.response.defer()
+        text = ""
+        oldyear = "2015"
+        embed = disnake.Embed(title="#1 Finishers for EOS",
+                              color=disnake.Color.blue())
+        for date in dates:
+            season_stats = history_db[f"{date}"]
+            result = await season_stats.find_one({"rank": 1})
+            year = date[0:4]
+            month = date[5:8]
+            month = calendar.month_name[int(month)]
+            month = month.ljust(9)
+            if result is not None:
+               name = result.get("name")
+               trophies = result.get("trophies")
+               if year != oldyear:
+                   embed.add_field(name=oldyear, value=text, inline=False)
+                   text = ""
+                   oldyear=year
+               text+= f"`{month}` | 🏆{trophies} | \u200e{name}\n"
+            else:
+                continue
+
+        if text != "":
+            embed.add_field(name=f"**{oldyear}**", value=text, inline=False)
+
+
+        await ctx.edit_original_message(embed=embed)
+
+
+
+
 
 def setup(bot):
     bot.add_cog(LegendStats(bot))

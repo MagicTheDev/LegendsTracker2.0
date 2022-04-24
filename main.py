@@ -21,7 +21,8 @@ initial_extensions = (
             "feeds.feed_buttons",
             "feeds.legend_feed",
             "leaderboards.leaderboard_loop",
-            "poster.poster"
+            "poster.poster",
+            "owner_commands"
         )
 
 """

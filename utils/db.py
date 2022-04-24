@@ -1,10 +1,17 @@
+import coc
+
 from utils.helper import ongoing_stats, server_db
 
-async def addLegendsPlayer_GLOBAL(player, clan_name):
+async def addLegendsPlayer_GLOBAL(player: coc.Player, clan_name):
+    if player.clan is not None:
+        badge = player.clan.badge.url
+    else:
+        badge = clan_name
     await ongoing_stats.insert_one({
         "tag": player.tag,
         "name": player.name,
         "trophies": player.trophies,
+        "th": player.town_hall,
         "num_season_hits": player.attack_wins,
         "num_season_defenses": player.defense_wins,
         "row_triple": 0,
@@ -17,6 +24,7 @@ async def addLegendsPlayer_GLOBAL(player, clan_name):
         "servers": [],
         "end_of_day": [],
         "clan": clan_name,
+        "badge": badge,
         "link": player.share_link,
         "league": str(player.league),
         "highest_streak": 0,

@@ -1,31 +1,51 @@
 import disnake
 from disnake.ext import commands
-from utils.helper import ongoing_stats, profile_db, getPlayer, coc_client
+from utils.helper import ongoing_stats, profile_db, getPlayer
+from dbplayer import DB_Player
 
-stat_types = ["Yesterday Legends", "Legends Overview", "Graph & Stats", "Legends History", "Add to Quick Check"]
+stat_types = ["Previous Days", "Legends Overview", "Graph & Stats", "Legends History", "Add to Quick Check"]
 
 class Pagination(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    async def button_pagination(self, ctx, msg, results):
+    async def button_pagination(self, msg, tags, ez_look):
         check = self.bot.get_cog("MainCheck")
         current_page = 0
         stats_page = []
         trophy_results = []
+
         x=0
-        async for player in coc_client.get_players(results):
-            r = await ongoing_stats.find_one({"tag": player.tag})
-            name = r.get("name")
-            trophies = r.get("trophies")
-            trophy_results.append(disnake.SelectOption(label=f"{name} | 🏆{trophies}", value=f"{x}"))
-            embed = await check.checkEmbed(player.tag, r, player)
+        results = []
+        is_many = len(tags) > 1
+        if is_many and ez_look:
+            x= 1
+        text = ""
+        for tag in tags:
+            r = await ongoing_stats.find_one({"tag": tag})
+            results.append(r)
+            player = DB_Player(r)
+            SUPER_SCRIPTS = ["⁰", "¹", "²", "³", "⁴", "⁵", "⁶", "⁷", "⁸", "⁹"]
+            numHits = SUPER_SCRIPTS[player.num_hits]
+            numDefs = SUPER_SCRIPTS[player.num_def]
+            text += f"\u200e**<:trophyy:849144172698402817>{player.trophies} | \u200e{player.name}**\n➼ <:cw:948845649229647952> {player.sum_hits}{numHits} <:sh:948845842809360424> {player.sum_defs}{numDefs}\n"
+            trophy_results.append(disnake.SelectOption(label=f"{player.name} | 🏆{player.trophies}", value=f"{x}"))
+            embed = await check.checkEmbed(r)
             stats_page.append(embed)
             x+=1
 
-        components = await self.create_components(results, trophy_results)
-        await msg.edit(embed=stats_page[0], components=components)
+        if is_many and ez_look:
+            embed = disnake.Embed(title=f"{len(results)} Results",
+                                  description=text)
+            trophy_results.insert(0, disnake.SelectOption(label=f"Results Overview", value=f"0"))
+            embed.set_footer(text="Use `Player Results` menu Below to switch btw players")
+            stats_page.insert(0, embed)
+            components = await self.create_components(results, trophy_results, current_page, is_many and ez_look)
+            await msg.edit(embed=embed, components=components)
+        else:
+            components = await self.create_components(results, trophy_results, current_page, is_many and ez_look)
+            await msg.edit(embed=stats_page[0], components=components)
 
         def check(res: disnake.MessageInteraction):
             return res.message.id == msg.id
@@ -37,20 +57,21 @@ class Pagination(commands.Cog):
                 await msg.edit(components=[])
                 break
 
-
-
             if res.values[0] in stat_types:
                 if res.values[0] == "Add to Quick Check":
                     await self.add_profile(res, results[current_page], components, msg)
                 else:
                     current_stat = stat_types.index(res.values[0])
                     await res.response.defer()
-                    embed = await self.display_embed(results, stat_types[current_stat], current_page, ctx)
+                    embed = await self.display_embed(results, stat_types[current_stat], current_page)
                     await msg.edit(embed=embed,
                                    components=components)
             else:
                 try:
+                    previous_page = current_page
                     current_page = int(res.values[0])
+                    if previous_page == 0 or current_page == 0:
+                        components = await self.create_components(results, trophy_results, current_page, is_many and ez_look)
                     embed = stats_page[current_page]
                     await res.response.edit_message(embed=embed,
                                    components=components)
@@ -59,6 +80,7 @@ class Pagination(commands.Cog):
 
 
     async def add_profile(self, res, tag, components, msg):
+        tag = tag.get("tag")
         results = await profile_db.find_one({'discord_id': res.author.id})
         await msg.edit(components=components)
         if results is None:
@@ -83,22 +105,21 @@ class Pagination(commands.Cog):
                     await res.send(content=f"Added {player.name} to your Quick Check list.", ephemeral=True)
 
 
-    async def display_embed(self, results, stat_type, current_page, ctx):
+    async def display_embed(self, results, stat_type, current_page):
 
         check = self.bot.get_cog("MainCheck")
 
         if stat_type == "Legends Overview":
             return await check.checkEmbed(results[current_page])
-        elif stat_type == "Yesterday Legends":
+        elif stat_type == "Previous Days":
             return await check.checkYEmbed(results[current_page])
         elif stat_type == "Graph & Stats":
             return await check.createGraphEmbed(results[current_page])
         elif stat_type == "Legends History":
-            return await check.create_history(ctx, results[current_page])
+            return await check.create_history(results[current_page].get("tag"))
 
-    async def create_components(self, results, trophy_results):
+    async def create_components(self, results, trophy_results, current_page, is_many):
         length = len(results)
-
         options = []
 
         for stat in stat_types:
@@ -127,6 +148,9 @@ class Pagination(commands.Cog):
         )
         st2 = disnake.ui.ActionRow()
         st2.append_item(profile_select)
+
+        if is_many and current_page==0:
+            return [st2]
 
         return[st, st2]
 

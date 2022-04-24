@@ -26,12 +26,15 @@ class Bot_Events(commands.Cog):
     @commands.Cog.listener()
     async def on_application_command(self,ctx):
         channel = self.bot.get_channel(936069341693231155)
-        server = ctx.guild.name
+        try:
+            server = ctx.guild.name
+        except:
+            server = "None"
         user = ctx.author
         command = ctx.data.name
         embed = disnake.Embed(description=f"**{command} {ctx.filled_options}** \nused by {user.mention} [{user.name}] in {server} server",
                               color=disnake.Color.blue())
-        #embed.set_thumbnail(url=user.avatar.url)
+        embed.set_thumbnail(url=user.display_avatar.url)
         await channel.send(embed=embed)
 
     @commands.Cog.listener()

@@ -6,7 +6,7 @@ from utils.helper import getPlayer, getTags, ongoing_stats, getClan
 async def search_results(ctx, query):
     tags = []
     #if search is a player tag, pull stats of the player tag
-    if utils.is_valid_tag(query) is True:
+    if utils.is_valid_tag(query) is True and len(query) >= 5:
         t = utils.correct_tag(tag=query)
         result = await ongoing_stats.find_one({"tag": t})
         if result is not None:
@@ -32,7 +32,7 @@ async def search_results(ctx, query):
         {"name": {"$regex": f"^(?i).*{query}.*$"}},
         {"league" : {"$eq" : "Legend League"}}
     ]})
-    for document in await results.to_list(length=25):
+    for document in await results.to_list(length=24):
         tags.append(document.get("tag"))
     return tags
 
@@ -98,14 +98,13 @@ async def search_name_with_tag(query):
         names.append(document.get("name") + " | " + document.get("tag"))
     return names
 
-async def search_clans(query):
+async def search_clans_with_tag(query):
     names = set()
     if len(query) == 0:
         results = ongoing_stats.find({})
         limit = await ongoing_stats.count_documents(filter={})
         for document in await results.to_list(length=limit):
-            c = document.get("clan")
-            names.add(c)
+            names.add(document.get("clan") + " | " + document.get("clan_tag"))
             if len(names) == 25:
                 return list(names)
 
@@ -113,8 +112,7 @@ async def search_clans(query):
     results = ongoing_stats.find({"clan": {"$regex": f"^(?i).*{query}.*$"}})
     limit = await ongoing_stats.count_documents(filter={"clan": {"$regex": f"^(?i).*{query}.*$"}})
     for document in await results.to_list(length=limit):
-        c = document.get("clan")
-        names.add(c)
+        names.add(document.get("clan") + " | " + document.get("clan_tag"))
         if len(names) == 25:
             return list(names)
     if list(names) != []:
@@ -124,7 +122,7 @@ async def search_clans(query):
         clan = await getClan(query)
         if clan is None:
             return names
-        names.add(clan.name)
+        names.add(clan.name + " | " + clan.tag)
         return list(names)
 
     return []

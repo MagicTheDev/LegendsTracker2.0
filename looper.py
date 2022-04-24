@@ -6,29 +6,29 @@ import os
 import motor.motor_asyncio
 from dotenv import load_dotenv
 load_dotenv()
+from customplayer import CustomPlayer
+SUPER_SCRIPTS=["⁰","¹","²","³","⁴","⁵","⁶", "⁷","⁸", "⁹"]
 
 COC_EMAIL = os.getenv("LOOPER_COC_EMAIL")
 COC_PASSWORD = os.getenv("LOOPER_COC_PASSWORD")
 DB_LOGIN = os.getenv("DB_LOGIN")
 
-coc_client_two = coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, key_names="DiscordBot",
-                           key_count=10, throttle_limit=25)
-
+coc_client_two = coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, key_names="Test",
+                           key_count=10, throttle_limit=25, cache_max_size=None)
 
 client = motor.motor_asyncio.AsyncIOMotorClient(DB_LOGIN)
 
 ongoing_db = client.legends_stats
 ongoing_stats = ongoing_db.ongoing_stats
 
-
 moved = True
 
-
 async def stats_update():
+
+    #Check & Start for EOS & EOD Movements
     now = datetime.utcnow()
     hour = str(now.hour)
     minute = now.minute
-
     global moved
     if (hour == "4") and (minute >= 50) and (moved is True):
         moved = False
@@ -37,167 +37,129 @@ async def stats_update():
         await moveStats()
         moved = True
 
+
+    #retrieve all tags
     tags = []
     tracked = ongoing_stats.find()
-    # await ongoing_stats.create_index([("tag", 1)], unique = True)
-
     limit = await ongoing_stats.count_documents(filter={})
-    # print(f"Loop 1 size {limit}")
     for document in await tracked.to_list(length=limit):
         tag = document.get("tag")
         if tag not in tags:
             tags.append(tag)
+        #if len(tags) == 20:
+            #break
 
-    w = 0
+    iterations = 0
     rtime = time.time()
-
     went_thru = tags
-    async for clash_player in coc_client_two.get_players(tags):
-        if w == 0:
-            w += 1
+    async for player in coc_client_two.get_players(tags, cls=CustomPlayer):
+        if iterations == 0:
+            iterations += 1
+            #time to fetch all tags
             print(time.time() - rtime)
 
-        player = await ongoing_stats.find_one({"tag": f"{clash_player.tag}"})
-        if player is None:
+        player: CustomPlayer
+        result = await ongoing_stats.find_one({"tag": player.tag})
+        went_thru.remove(player.tag)
+
+        await player.update_name(result)
+        await player.update_league(result)
+        await player.update_clan_name(result)
+        await player.update_clan_badge(result)
+        await player.update_th(result)
+        await player.update_clan_tag(result)
+
+        if player.is_legend() is False:
+            await player.update_trophies(result)
+            await player.set_season_hits()
             continue
 
-        went_thru.remove(clash_player.tag)
+        trophies_changed = player.trophies_changed(result)
 
-        player_name = player.get("name")
-        prev_trophies = int(player.get("trophies"))
-        prev_clan = player.get("clan")
-        prev_league = player.get("league")
-
-        current_trophies = clash_player.trophies
-        current_hits = clash_player.attack_wins
-        current_defenses = clash_player.defense_wins
-
-        current_clan = "No Clan"
-        try:
-            current_clan = clash_player.clan.name
-        except:
-            pass
-
-        if clash_player.name != player_name:
-            await ongoing_stats.update_one({'tag': f"{clash_player.tag}"}, {'$set': {'name': f'{clash_player.name}'}})
-
-        if current_clan != prev_clan:
-            await ongoing_stats.update_one({'tag': f"{clash_player.tag}"}, {'$set': {'clan': f'{current_clan}'}})
-
-        if str(clash_player.league) != prev_league:
-            await ongoing_stats.update_one({'tag': f"{clash_player.tag}"},
-                                           {'$set': {'league': str(clash_player.league)}})
-
-        if int(current_trophies) <= 4700:
-            continue
-
-        if str(clash_player.league) != prev_league:
-            await ongoing_stats.update_one({'tag': f"{clash_player.tag}"},
-                                           {'$set': {'league': f'{str(clash_player.league)}'}})
-
-        prev_def = player.get("num_season_defenses")
-        curr_def = clash_player.defense_wins
-
-        if prev_def != curr_def:
-            await ongoing_stats.update_one({'tag': f"{clash_player.tag}"},
-                                           {'$set': {'num_season_defenses': clash_player.defense_wins}})
-
-            await ongoing_stats.update_one({'tag': f"{clash_player.tag}"},
-                                           {'$push': {'today_defenses': 0}})
-
-            await ongoing_stats.update_one({'tag': f"{clash_player.tag}"},
-                                           {'$set': {
-                                               'change': f"<:clash:877681427129458739> -{str(0)} trophies | <:legends:881450752109850635> {str(current_trophies)}"}})
-
-        if current_trophies != prev_trophies:
+        if trophies_changed is not None:
+            await player.set_last_update()
             # went negative
-            if current_trophies < prev_trophies:
+            if trophies_changed<= -1:
+                await player.update_trophies(result)
+                await ongoing_stats.update_one({'tag': f"{player.tag}"},
+                                               {'$push': {'today_defenses': abs(trophies_changed)}})
 
-                await ongoing_stats.update_one({'tag': f"{clash_player.tag}"},
-                                               {'$set': {'trophies': current_trophies,
-                                                         "num_season_hits": clash_player.attack_wins,
-                                                         "num_season_defenses": clash_player.defense_wins}})
-
-
-                await ongoing_stats.update_one({'tag': f"{clash_player.tag}"},
-                                               {'$push': {'today_defenses': (prev_trophies - current_trophies)}})
-
-                await ongoing_stats.update_one({'tag': f"{clash_player.tag}"},
-                                               {'$set': {
-                                                   'change': f"<:clash:877681427129458739> -{str(prev_trophies - current_trophies)} trophies | <:legends:881450752109850635> {str(current_trophies)}"}})
-
+                await ongoing_stats.update_one({'tag': f"{player.tag}"},
+                                               {'$push': {
+                                                   'new_change': f"<:clash:877681427129458739> -{abs(trophies_changed)} | <:legends:881450752109850635>{player.trophies} | {player.name}"}})
 
             # went positive
-            elif current_trophies > prev_trophies:
-
-                seasonHits = int(player.get("num_season_hits"))
-                change = current_trophies - prev_trophies
-                diffHits = clash_player.attack_wins - seasonHits
-
-                # print(f"tag : {clash_player.tag}"
-                # f"season hits : {seasonHits}\n"
-                #  f"change : {change}\n"
-                #  f"diffhits : {diffHits}" )
+            elif trophies_changed>= 1:
+                diff_hits = player.attack_wins - player.db_season_hits(result)
 
                 multipleTriples = False
-                if diffHits >= 2 and change % 40 == 0:
+                number_of_triples = 0
+                if diff_hits >= 2 and trophies_changed % 40 == 0:
                     multipleTriples = True
-                    for x in range(0, diffHits):
-                        await ongoing_stats.update_one({'tag': f"{clash_player.tag}"},
-                                                       {'$push': {
-                                                           'today_hits': 40}})
-                        await ongoing_stats.update_one({'tag': f"{clash_player.tag}"},
-                                                       {'$inc': {'num_today_hits': 1}})
-                        await ongoing_stats.update_one({'tag': f"{clash_player.tag}"},
-                                                       {'$inc': {'row_triple': 1}})
+                    for x in range(0, diff_hits):
+                        await player.insert_attack(40)
+                        await player.increment_todays_hits()
+                        await player.increment_streak()
+                        number_of_triples+=1
                 else:
-                    await ongoing_stats.update_one({'tag': f"{clash_player.tag}"},
-                                                   {'$push': {
-                                                       'today_hits': (current_trophies - prev_trophies)}})
-                    for x in range(0, diffHits):
-                        await ongoing_stats.update_one({'tag': f"{clash_player.tag}"},
-                                                       {'$inc': {'num_today_hits': 1}})
-                    if diffHits == 1 and change == 40:
-                        await ongoing_stats.update_one({'tag': f"{clash_player.tag}"},
-                                                       {'$inc': {'row_triple': 1}})
+                    await player.update_trophies(result)
+                    for x in range(0, diff_hits):
+                        await player.increment_todays_hits()
+                    if diff_hits == 1 and trophies_changed == 40:
+                        await player.increment_streak()
                     else:
-                        await ongoing_stats.update_one({'tag': f"{clash_player.tag}"},
-                                                       {'$set': {'row_triple': 0}})
+                        await player.reset_streak()
 
-                results = await ongoing_stats.find_one({"tag": f"{clash_player.tag}"})
-                numberOfTriples = results.get("row_triple")
-                highest_streak = results.get("highest_streak")
-                if highest_streak is None:
-                    highest_streak = 0
-                if numberOfTriples > highest_streak:
-                    await ongoing_stats.update_one({'tag': f"{clash_player.tag}"},
-                                                   {'$set': {'highest_streak': numberOfTriples}})
+                current_streak = await player.db_current_streak()
+                highest_streak = player.db_highest_streak(result)
+                if current_streak > highest_streak:
+                    await player.update_highest_streak()
 
                 attacksText = ""
                 onfire = ""
 
-                if numberOfTriples >= 2:
-                    onfire = f"\nOn fire 🔥 {numberOfTriples} triples in a row 🔥"
+                if number_of_triples >= 2:
+                    onfire = f"| 🔥 `x{number_of_triples}`"
 
                 if multipleTriples is True:
-                    hits = results.get("today_hits")
-                    for x in range(1, diffHits + 1):
+                    hits = await player.get_todays_hits()
+                    for x in range(1, diff_hits + 1):
                         thisHit = hits[-x]
-                        attacksText += f"<:sword:825589136026501160> +{thisHit} trophies"
+                        attacksText += f"<:sword:825589136026501160> +{thisHit}"
+                        await player.insert_attack(thisHit)
+                        await ongoing_stats.update_one({'tag': f"{player.tag}"},
+                                                       {'$push': {
+                                                           'new_change': f"{attacksText} | <:legends:881450752109850635>{str(player.trophies)}{onfire} | {player.name}"
+                                                       }})
                 else:
-                    if diffHits >= 2:
-                        attacksText += f"<:sword:825589136026501160> `x{diffHits}`: +{change} trophies"
+                    if diff_hits >= 2:
+                        s = SUPER_SCRIPTS[diff_hits]
+                        attacksText += f"<:sword:825589136026501160> +{trophies_changed}{s}"
                     else:
-                        attacksText += f"<:sword:825589136026501160> +{change} trophies"
+                        attacksText += f"<:sword:825589136026501160> +{trophies_changed}"
 
-                await ongoing_stats.update_one({'tag': f"{clash_player.tag}"},
-                                               {'$set': {
-                                                   'change': f"{attacksText} | <:legends:881450752109850635> {str(current_trophies)}{onfire}"
-                                               }})
+                    await player.insert_attack(trophies_changed)
+                    await ongoing_stats.update_one({'tag': f"{player.tag}"},
+                                                   {'$push': {
+                                                       'new_change': f"{attacksText} | <:legends:881450752109850635>{str(player.trophies)}{onfire} | {player.name}"
+                                                   }})
 
-            await ongoing_stats.update_one({'tag': f"{clash_player.tag}"},
-                                           {'$set': {'trophies': current_trophies,
-                                                     "num_season_hits": clash_player.attack_wins}})
+
+            await ongoing_stats.update_one({'tag': f"{player.tag}"},
+                                           {'$set': {'trophies': player.trophies,
+                                                     "num_season_hits": player.attack_wins}})
+
+        if player.db_season_defs(result) != player.defense_wins:
+            await ongoing_stats.update_one({'tag': f"{player.tag}"},
+                                           {'$set': {'num_season_defenses': player.defense_wins}})
+
+            await player.insert_defense(0)
+
+            await ongoing_stats.update_one({'tag': f"{player.tag}"},
+                                           {'$push': {
+                                               'new_change': f"<:clash:877681427129458739> -{str(0)} | <:legends:881450752109850635>{str(player.trophies)} | {player.name}"}})
+
+            await player.set_last_update()
 
     removed = []
     for t in went_thru:
@@ -213,9 +175,9 @@ async def stats_update():
 
     if removed != []:
         print(f"Removed: {removed}")
-    #print(f"Loop 3: {time.time() - rtime}")
+    print(f"Loop : {time.time() - rtime}")
     cache = coc_client_two.http.cache
-    print("cache length: " + str(len(cache)))
+    #print("cache length: " + str(len(cache)))
     await asyncio.sleep(5)
 
 async def moveStats():
@@ -238,7 +200,6 @@ async def moveStats():
                                                   "previous_hits": today_hits,
                                                   "previous_defenses": today_defenses}})
     print("Stats Shifted & Stored")
-    os.system("pm2 restart looper")
 
 
 @coc.ClientEvents.new_season_start()
@@ -258,7 +219,9 @@ while True:
     try:
         loop = asyncio.get_event_loop()
         loop.run_until_complete(stats_update())
-    except:
-        continue
+    except Exception as e:
+        print(e)
+        pass
+
 
 

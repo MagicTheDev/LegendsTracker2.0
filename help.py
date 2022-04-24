@@ -1,81 +1,23 @@
 
 from disnake.ext import commands
 import disnake
-from utils.helper import ongoing_stats
-import os
-initial_extensions = (
-            "check.maincheck",
-            "feeds.feeds",
-            "leaderboards.leaderboard",
-            "stats.mainstats",
-            "track.track"  ,
-            "on_events",
-            "pepe.pepe",
-            "help",
-            "settings",
-            "patreon",
-            "check.poster"
-        )
+from collections import defaultdict
+from utils.components import create_components2
+
+check = ["MainCheck", "Poster"]
+track = ["Track"]
+stats = ["MainStats"]
+leaderboards = ["Leaderboards"]
+settings = ["bot_settings"]
+other = ["pepe", "help", "Patreon"]
+
+pages = [check, track, stats, leaderboards, settings,  other]
+page_names = ["Check", "Track", "Stats", "Leaderboards", "Settings", "Other"]
 
 class help(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-
-    def autocomp_names(self, query: str):
-        has = []
-        for i in initial_extensions:
-            if query in i:
-                has.append(i)
-        return has
-
-
-    @commands.slash_command(name='reload', guild_ids=[923764211845312533, 810466565744230410, 328997757048324101])
-    @commands.guild_permissions(923764211845312533, owner=True)
-    @commands.is_owner()
-    async def _reload(self,ctx, *, module: str = commands.Param(autocomplete=autocomp_names)):
-        """Reloads a module."""
-        try:
-            self.bot.unload_extension(module)
-            self.bot.load_extension(module)
-        except:
-            await ctx.send('<a:no:862552093324083221> Could not reload module.')
-        else:
-            await ctx.send('<a:check:861157797134729256> Reloaded module successfully')
-
-    @commands.command(name='leave')
-    @commands.is_owner()
-    async def leaveg(self, ctx, *, guild_name):
-        guild = disnake.utils.get(self.bot.guilds, name=guild_name)  # Get the guild by name
-        if guild is None:
-            await ctx.send("No guild with that name found.")  # No guild found
-            return
-        await guild.leave()  # Guild found
-        await ctx.send(f"I left: {guild.name}!")
-
-
-    @commands.command(name="migrate")
-    @commands.is_owner()
-    async def migrate(self, ctx):
-
-        tracked = ongoing_stats.find()
-        limit = await ongoing_stats.count_documents(filter={})
-        for document in await tracked.to_list(length=limit):
-            servers = document.get("servers")
-            if servers is None:
-                continue
-            tag = document.get("tag")
-            if 923764211845312533 in servers:
-                await ongoing_stats.update_one({'tag': tag},
-                                               {'$pull': {"servers": 923764211845312533}})
-        await ctx.send("done")
-
-    @commands.command(name="gitpull")
-    @commands.is_owner()
-    async def gitpull(self, ctx):
-        os.system("cd LegendsTracker2.0")
-        os.system("git pull https://github.com/MagicTheDev/LegendsTracker2.0.git")
-        await ctx.send("Bot using latest changes.")
 
     @commands.slash_command(name='invite',
                        description="Invite for bot.")
@@ -88,179 +30,81 @@ class help(commands.Cog):
         await ctx.send(
             "discord.gg/gChZm3XCrS")
 
-    @commands.slash_command(name="help", description="Help command")
+    @commands.slash_command(name="quick_start", description="Guide with tips & basic commands to get started")
+    async def quick_start(self, ctx: disnake.ApplicationCommandInteraction):
+        embed = disnake.Embed(title="Getting Started",
+                              color=disnake.Color.green())
+        embed.add_field(name="Checking & Tracking Players", value=
+                        "Players have to be tracked before they can be checked, a lot of players are already tracked however, but you can server track them to add them to your server"
+                        " leaderboards, statistics, and feed. To do so, use `/track add`. If one by one isn't your style, you can bulk add with the `/ctrack` or `/country track` commands."
+                        " With `/ctrack`, once you have linked clans to your server you can refresh your list of tracked players (putting them in sync) with `/ctrack sync`", inline=False)
+        embed.add_field(name="Feeds", value="There are 2 types of feeds - the main feed & clan feeds. The main feed will show stats for any server tracked players & the clan feed will show stats"
+                        " for the members in the respective clan - you can have 1 main feed & 5 clan feeds per a server. `/feed set` & `/clan-feed add` are the respective commands", inline=False)
+        embed.add_field(name="Other", value="There are plenty of other stats & little nuiances to learn, enjoy, & explore. the `/faq` & `/help` commands are a great place to start & if you have any questions"
+                                            " or suggestions to stop by the support server with `/server`", inline=False)
+        await ctx.send(embed)
+
+    @commands.slash_command(name="faq", description="Frequently asked questions & their answers")
+    async def faq(self, ctx: disnake.ApplicationCommandInteraction):
+        embed = disnake.Embed(title="Frequently Asked Questions",
+                              color=disnake.Color.green())
+        embed.add_field(name="**Q: I just tracked a player. Why is there no stats?**",
+                        value="A. Legends stats aren't given outright, so they have to be collected as they happen. Stats will appear from the moment tracked forward.", inline=False)
+        embed.add_field(name="**Q: THE STATS ARE WRONG ?!**",
+                        value="A: Well it depends. One, it helps to understand how this bot works, as mentioned above, there can be errors, why is that? "
+                              "The api doesn’t give legends stats. This bot (and any other legends bot) work by having a list of players & checking their trophies non-stop. If the trophies go up, it’s an attack. If the trophies go down, it’s a defense. Sounds good, except, the api doesn’t update immediately, i estimate it takes 3 to 5 minutes on average. In those few minutes, the trophies (how we’re checking hits/defenses) could change in a few ways that can trip up the bot. Which ways? 1. 2 attacks in a short time frame, "
+                              "in this case you will see stats like +68, that’s just 2 hits, & tbh it’s 100% accurate for all intents & purposes. 2. 2 defenses happen at same time, same as above but something like -68. And Lastly, 3,  where we can get some inaccuracy, a defense & attack happen at same time, u may get something like +4 if a +30 attack & -26 defense happen at same time. Always, the net gain/loss for the day will accurate & any overall stats only use the “accurate” hits.", inline=False)
+        embed.add_field(name="**Q: Where is this months history?**",
+                        value="A: The monthly history has to be downloaded in bulk - it contains about 700 thousand records on average. It also doesn't become available till several days after season ends. I try to download it & add it as soon as I can.", inline=False)
+        embed.add_field(name="**Q: Why doesn’t an account show country?**",
+                        value="A. The bot has never seen the player in the top 200 in a location or region")
+        await ctx.send(embed=embed)
+
+    @commands.slash_command(name='help', description="List of commands & descriptions for LegendsTracker")
     async def help(self, ctx: disnake.ApplicationCommandInteraction):
-        select = disnake.ui.Select(
-            options=[  # the options in your dropdown
-                disnake.SelectOption(label="Setup", value="1"),
-                disnake.SelectOption(label="Legends", value="2"),
-                disnake.SelectOption(label="Stats", value="3"),
-                disnake.SelectOption(label="Settings", value="4"),
-                disnake.SelectOption(label="Fun/Other", value="5")
-            ],
-            placeholder="Choose your option",  # the placeholder text to show when no options have been chosen
-            min_values=1,  # the minimum number of options a user must select
-            max_values=1,  # the maximum number of options a user can select
-        )
+        await ctx.response.defer()
+        cog_dict = defaultdict(list)
+        command_description = {}
+        for command in self.bot.slash_commands:
+            cog_name = command.cog_name
+            base_command = command.name
+            children = command.children
+            if children != {}:
+                for child in children:
+                    command = children[child]
+                    full_name = f"{base_command} {command.name}"
+                    # for option in command.body.options:
+                    # full_name += f" [{option.name}]"
+                    cog_dict[cog_name].append(full_name)
+                    desc = command.body.description
+                    command_description[full_name] = desc
+            else:
+                desc = command.description
+                # for option in command.body.options:
+                # base_command += f" [{option.name}]"
+                command_description[base_command] = desc
+                cog_dict[cog_name].append(base_command)
 
         embeds = []
-
-        embed5  = disnake.Embed(title="Quick Start",
-                               description=f"Thanks for using me!\n"
-                                           f"To get started there are 3 main components to the bot - tracking people & the feed, checking people, and stats.",
-                               color=disnake.Color.blue())
-
-        embed5.add_field(name="**Tracking People:**", value=f"There are 3 main ways to track people.\n"
-                                           f"> /track #playerTag\n"
-                                           f"> /ctrack #clanTag\n"
-                                           f"> /country track\n"
-                                           f"These 3 will add an individual player, people in a clan, or people on a countries leaderboard, in that order.\n"
-                                           f"When it comes to tracking, I split it into 2 parts - \"global\" and  \"server\", when you track someone on your server, it is adding it "
-                                           f"to server tracking, but also global tracking if they havent been already. Global tracking is just the global pool of players, so you can check someones "
-                                           f"stats even if you dont want them in your feed or tracked on your server.\n"
-                                           f"Of course any tracked players you can view in your feed if you set it up. With `/feed set`. Make sure it has correct perms.", inline=False)
-        embed5.add_field(name="**Checking People:**", value=f"So to check people, we have the aptly named /check commands.\n"
-                                           f"> /check search\n"
-                                           f"> /check user\n"
-                                           f"> /check clan\n"
-                                           f"> /quick_check\n"
-                                           f"Check search is the most powerful command on the bot. No more looking for a players tag to look them up (although you can). Just type in their name & let "
-                                           f"the autocomplete do the rest\n"
-                                           f"Check user uses any accounts linked to you, this is just a convenience feature, if you have an account linked to clash perk or sidekick it will show.\n"
-                                           f"Check clan will give a leaderboard view of legends stats in a clan. And lastly quick_check allows you to save players to your profile for quick checking, and also "
-                                           f"allows you to use the /daily_report command.", inline=False)
-        embed5.add_field(name="**Stats**", value=f"There are a plethora of stats available, checking the command list is best.\n"
-                                           f"However among the most popular are:\n"
-                                           f"> /poster #playerTag\n"
-                                           f"> /country leaderboards\n"
-                                           f"> /streak\n"
-                                           f"> /top", inline=False)
-        embed5.set_footer(text="Use dropdown below to navigate.")
-        embeds.append(embed5)
-
-        embed = disnake.Embed(title="Legends Tracker",
-                              description="Legends Commands",
-                              color=disnake.Color.blue())
-
-        embed.add_field(name=f"**/check search**",
-                        value="Check/Search a person's legends hits & defenses for today.\nSupports searching by name or player tag\n"
-                              "- Uses autocomplete to return matches as you type"
-                              "\nExamples:\n"
-                              "-/check search magic\n"
-                              "- /check search #PGY2YRQ\n",
-                        inline=False)
-
-        embed.add_field(name=f"**/check user**",
-                        value="Check/Search a person's legends hits & defenses for today.",
-                        inline=False)
-
-        embed.add_field(name=f"**/check clan**",
-                        value="Leaderboard results of how everyone in a clan is doing.\n"
-                              "If players are missing, lets you globally track the missing ones.",
-                        inline=False)
-
-        embed.add_field(name=f"**/quick_check**",
-                        value="Save up to 25 players to your profile to easily check them with **no** hassle.",
-                        inline=False)
-
-        embed.add_field(name=f"**/daily_report**",
-                        value="If opted in, get a daily end of day report of the players you have added to `/quick_check`.",
-                        inline=False)
-
-        embed.add_field(name=f"**/track add [#playerTag]**",
-                        value="Use this command to start tracking statistics on an account.",
-                        inline=False)
-        embed.add_field(name=f"**/track remove [#playerTag]**",
-                        value="Use this command to remove an account from server tracking.",
-                        inline=False)
-        embed.add_field(name=f"**/ctrack add [#clanTag]**",
-                        value="Manage Guild Required. Use this command to link & add a clan's accounts to your server.",
-                        inline=False)
-        embed.add_field(name=f"**/ctrack remove [#clanTag]**",
-                        value="Manage Guild Required. Use this command to remove a clan's accounts to your server.",
-                        inline=False)
-        embed.add_field(name=f"**/ctrack sync**",
-                        value="Manage Guild Required. Use this command to sync or add to your feed from your server's linked clans..",
-                        inline=False)
-        embed.add_field(name=f"**/ctrack list**",
-                        value="See server's linked clans.",
-                        inline=False)
-
-        embed.add_field(name="**/tracked_list [clans or players]**",
-                        value="List of clans found in your feed or players linked in your feed.",
-                        inline=False)
-        embed.add_field(name=f"**/country track**",
-                        value="Add the top # of players from a country leaderboard to your feed.",
-                        inline=False)
-
-        embeds.append(embed)
-
-        embed2 = disnake.Embed(title="Legends Tracker",
-                               description="Stats Commands",
-                               color=disnake.Color.blue())
-
-        embed2.add_field(name=f"**/poster**",
-                         value="Visual poster containing season legends stats.",
-                         inline=False)
-        embed2.add_field(name=f"**/top**",
-                         value="Use this command to get top hitters & defenders tracked.",
-                         inline=False)
-        embed2.add_field(name=f"**/streak**",
-                         value="Use this command to get current 3 star streak stats.",
-                         inline=False)
-        embed2.add_field(name=f"**/stats**",
-                         value="Bot statistics (Uptime, accounts tracked, etc)",
-                         inline=False)
-        embed2.add_field(name=f"**/breakdown**",
-                         value="Number of players tracked at each trophy range",
-                         inline=False)
-        embed2.add_field(name=f"**/popular**",
-                         value="Popularly tracked players across servers.",
-                         inline=False)
-        embed2.add_field(name=f"**/history [playerTag]**",
-                         value="Rankings & Trophies for end of previous seasons.",
-                         inline=False)
-        embed2.add_field(name=f"**/leaderboard**",
-                         value="Display server leaderboard of tracked players.",
-                         inline=False)
-        embed2.add_field(name=f"**/country leaderboards**",
-                         value="Top 200 Leaderboard of a country.",
-                         inline=False)
-        embeds.append(embed2)
-
-        embed3 = disnake.Embed(title="Legends Tracker",
-                               description="Settings Commands",
-                               color=disnake.Color.blue())
-        embed3.add_field(name=f"**/feed set**",
-                         value="Manage Guild Required.*\nCreates a feed in the channel you run the command.",
-                         inline=False)
-        embed3.add_field(name=f"**/feed remove**",
-                         value="Manage Guild Required.*\nRemove the channel for legends feed",
-                         inline=False)
-        embeds.append(embed3)
-
-        embed4 = disnake.Embed(title="Legends Tracker",
-                               description="Other Commands",
-                               color=disnake.Color.blue())
-
-        embed4.add_field(name=f"**/pepe [text]**",
-                         value="Use this command to create a pepe holding a sign with the text.",
-                         inline=False)
-
-        embed4.add_field(name=f"**/invite**",
-                         value="Link to invite bot.",
-                         inline=False)
-
-        embed4.add_field(name=f"**/server**",
-                         value="Link to support server.",
-                         inline=False)
-
-        embeds.append(embed4)
-
-        dropdown = disnake.ui.ActionRow()
-        dropdown.append_item(select)
-
-        await ctx.send(embed=embed5, components=[dropdown])
+        x = 0
+        for page in pages:
+            embed = disnake.Embed(title=page_names[x],
+                                  color=disnake.Color.green())
+            embed.set_footer(text=f"{len(command_description)} commands")
+            for cog in page:
+                text = ""
+                commands = cog_dict[cog]
+                for command in commands:
+                    description = command_description[command]
+                    if len(text) + len(f"`/{command}`\n{description}\n") >= 1020:
+                        embed.add_field(name=cog, value=text, inline=False)
+                        text = ""
+                    text += f"`/{command}`\n{description}\n"
+                embed.add_field(name=cog, value=text, inline=False)
+            embeds.append(embed)
+            x += 1
+        current_page = 0
+        await ctx.edit_original_message(embed=embeds[0], components=create_components2(current_page, embeds, True))
         msg = await ctx.original_message()
 
         def check(res: disnake.MessageInteraction):
@@ -274,12 +118,20 @@ class help(commands.Cog):
                 await msg.edit(components=[])
                 break
 
-            if res.author.id != ctx.author.id:
-                await res.send(content="You must run the command to interact with components.", ephemeral=True)
-                continue
+            if res.data.custom_id == "Previous":
+                current_page -= 1
+                await res.response.edit_message(embed=embeds[current_page],
+                                                components=create_components2(current_page, embeds, True))
 
-            # print(res.selected_options)
-            await res.response.edit_message(embed=embeds[int(res.values[0]) - 1])
+            elif res.data.custom_id == "Next":
+                current_page += 1
+                await res.response.edit_message(embed=embeds[current_page],
+                                                components=create_components2(current_page, embeds, True))
+
+            elif res.data.custom_id == "Print":
+                await msg.delete()
+                for embed in embeds:
+                    await ctx.channel.send(embed=embed)
 
 
 

@@ -12,8 +12,7 @@ from datetime import datetime
 import calendar
 from utils.search import search_name_with_tag
 import random
-import requests
-from io import BytesIO
+
 
 POSTER_LIST = {"Edrag" : "edrag",
                "Hogrider" : "hogrider",
@@ -60,7 +59,7 @@ class Poster(commands.Cog):
         if utils.is_valid_tag(smart_search) is False:
             if "|" not in smart_search:
                 embed = disnake.Embed(
-                    description=f"Invalid player tag or make sure you choose an option from the autocomplete.",
+                    description=f"Invalid player tag. If searching by name make sure you choose an option from the autocomplete.",
                     color=disnake.Color.red())
                 return await ctx.edit_original_message(embed=embed)
 

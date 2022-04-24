@@ -15,7 +15,7 @@ class Top(commands.Cog):
             ----------
             previous: (Optional) previous 3 days
         """
-
+        await ctx.response.defer()
         scope_type = "All"
         stat_type = "Hits"
         limit = 5000
@@ -93,7 +93,7 @@ class Top(commands.Cog):
 
         embed = await self.createBest(5000, 3000, stat_type, scope_type, ctx, previous=previous)
 
-        await ctx.send(embed=embed, components=selects)
+        await ctx.edit_original_message(embed=embed, components=selects)
         msg = await ctx.original_message()
 
         def check(res: disnake.MessageInteraction):
