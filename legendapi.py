@@ -32,7 +32,7 @@ try:
 except RuntimeError:
     loop = asyncio.get_event_loop()
 coc_client = coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, key_count=10, key_names="DiscordBot",
-                           throttle_limit=25)
+                           throttle_limit=25, loop=loop)
 
 
 db_client = motor.motor_asyncio.AsyncIOMotorClient(DB_LOGIN)
