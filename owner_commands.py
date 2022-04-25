@@ -55,6 +55,7 @@ class OwnerCommands(commands.Cog):
         os.system("git pull https://github.com/MagicTheDev/LegendsTracker2.0.git")
         await ctx.send("Bot using latest changes.")
 
+
     @commands.command(name="legendfix")
     @commands.is_owner()
     async def test(self, ctx):
@@ -68,18 +69,20 @@ class OwnerCommands(commands.Cog):
 
         async for player in coc_client.get_players(tags):
             try:
-                gspot = player.legend_statistics.previous_season.trophies
                 results = await ongoing_stats.find_one({'tag': f"{player.tag}"})
                 previous_days = results.get("end_of_day")
-                if previous_days == []:
+                if len(previous_days) < 3:
                     continue
-                if previous_days[-1] == gspot:
-                    continue
-                await ongoing_stats.update_one({'tag': f"{player.tag}"},
-                                               {'$push': {'end_of_day': gspot}})
-                print(gspot)
+
+                last = previous_days[-1]
+                two_last = previous_days[-2]
+                three_last = previous_days[-3]
+                if last == two_last:
+                    if two_last - three_last >= 100:
+                        await ongoing_stats.update_one({'tag': f"{player.tag}"},
+                                                       {'$set': {'end_of_day': previous_days[:-2]}})
             except:
-                continue
+                pass
 
         await ctx.send("Done")
 
