@@ -38,9 +38,8 @@ class CheckStats(commands.Cog):
             country_name = f"- Country: {player.location}\n"
             flag = f":flag_{player.location_code.lower()}:"
 
-        spots = [i for i, value in enumerate(rankings) if value == result]
+        spots = [i for i, value in enumerate(rankings) if value == player.tag]
 
-        print(spots)
         for r in spots:
             loc = rankings[r + 1]
             if loc == "global" :
