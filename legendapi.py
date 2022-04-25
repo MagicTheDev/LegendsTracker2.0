@@ -1,15 +1,19 @@
+import asyncio
 from typing import Optional
 import motor.motor_asyncio
 import uvicorn
+
 from datetime import datetime
 import pytz
 utc = pytz.utc
 from coc import utils
 import coc
+import uvloop
 
 from fastapi import FastAPI, Request, Response, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
+
 
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -22,8 +26,15 @@ DB_LOGIN = os.getenv("DB_LOGIN")
 COC_EMAIL = os.getenv("BETA_COC_EMAIL")
 COC_PASSWORD = os.getenv("BETA_COC_PASSWORD")
 
+uvloop.install()
+try:
+    loop = asyncio.get_running_loop()
+except RuntimeError:
+    loop = asyncio.get_event_loop()
 coc_client = coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, key_count=10, key_names="DiscordBot",
-                       throttle_limit=25)
+                           throttle_limit=25)
+
+
 db_client = motor.motor_asyncio.AsyncIOMotorClient(DB_LOGIN)
 legends_stats = db_client.legends_stats
 ongoing_stats = legends_stats.ongoing_stats
@@ -335,6 +346,6 @@ def season_hit_stats(player):
 
 
 
+if __name__ == '__main__':
 
-
-uvicorn.run("legendapi:app", port=8000, host='45.33.3.218')
+    uvicorn.run("legendapi:app", port=8000, host='45.33.3.218')
