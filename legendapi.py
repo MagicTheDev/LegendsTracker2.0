@@ -26,11 +26,6 @@ DB_LOGIN = os.getenv("DB_LOGIN")
 COC_EMAIL = os.getenv("BETA_COC_EMAIL")
 COC_PASSWORD = os.getenv("BETA_COC_PASSWORD")
 
-nest_asyncio.apply()
-loop = asyncio.new_event_loop()
-coc_client = coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, realtime=True, loop= loop)
-
-
 db_client = motor.motor_asyncio.AsyncIOMotorClient(DB_LOGIN)
 legends_stats = db_client.legends_stats
 ongoing_stats = legends_stats.ongoing_stats
@@ -40,60 +35,6 @@ limiter = Limiter(key_func=get_remote_address)
 app = FastAPI()
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-
-
-def fake_hash_password(password: str):
-    return "fakehashed" + password
-
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-
-class User(BaseModel):
-    username: str
-    email: Optional[str] = None
-    full_name: Optional[str] = None
-    disabled: Optional[bool] = None
-
-
-class UserInDB(User):
-    hashed_password: str
-
-
-def get_user(db, username: str):
-    if username in db:
-        user_dict = db[username]
-        return UserInDB(**user_dict)
-
-
-def fake_decode_token(token):
-    # This doesn't provide any security at all
-    # Check the next version
-    user = get_user(token, token)
-    return user
-
-
-async def get_current_user(token: str = Depends(oauth2_scheme)):
-    user = fake_decode_token(token)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    return user
-
-
-async def get_current_active_user(current_user: User = Depends(get_current_user)):
-    if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive user")
-    return current_user
-
-
-@app.get("/users/me")
-async def read_users_me(current_user: User = Depends(get_current_active_user)):
-    return current_user
-
 
 
 @app.get("/player/{player_tag}")
@@ -340,8 +281,8 @@ def season_hit_stats(player):
             three_stars_avg_def, average_offense, average_defense, average_net, len(hits), len(defs), length]
 
 
-
-
-
 if __name__ == '__main__':
+    nest_asyncio.apply()
+    loop = asyncio.new_event_loop()
+    coc_client = coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, loop=loop)
     uvicorn.run("legendapi:app", port=8000, host='45.33.3.218')
