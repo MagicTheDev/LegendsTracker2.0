@@ -6,6 +6,7 @@ import pytz
 utc = pytz.utc
 from coc import utils
 import coc
+coc_client = None
 
 from fastapi import FastAPI, Request, Response, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
