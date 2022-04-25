@@ -28,8 +28,7 @@ COC_PASSWORD = os.getenv("BETA_COC_PASSWORD")
 
 nest_asyncio.apply()
 loop = asyncio.new_event_loop()
-coc_client = coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, realtime=True, loop= loop, key_count=10, key_names="DiscordBot",
-                       throttle_limit=25)
+coc_client = coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, realtime=True, loop= loop)
 
 
 db_client = motor.motor_asyncio.AsyncIOMotorClient(DB_LOGIN)
