@@ -158,7 +158,8 @@ async def player(player_tag: str, request : Request, response: Response):
 async def player_add(player_tag: str, request : Request, response: Response):
         try:
             player = await coc_client.get_player(player_tag)
-        except:
+        except Exception as e:
+            print(e)
             raise HTTPException(status_code=404, detail="Invalid Player")
 
         if str(player.league) != "Legend League":
