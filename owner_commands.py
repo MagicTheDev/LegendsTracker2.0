@@ -69,11 +69,12 @@ class OwnerCommands(commands.Cog):
         async for player in coc_client.get_players(tags):
             try:
                 gspot = player.legend_statistics.previous_season.trophies
+                await ongoing_stats.update_one({'tag': f"{player.tag}"},
+                                               {'$push': {'end_of_day': gspot}})
                 print(gspot)
             except:
                 pass
-            await ongoing_stats.update_one({'tag': f"{player.tag}"},
-                                           {'$push': {'end_of_day': gspot}})
+
         await ctx.send("Done")
 
 
