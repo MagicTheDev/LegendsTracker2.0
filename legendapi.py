@@ -159,6 +159,7 @@ async def player(player_tag: str, request : Request, response: Response):
 async def player_add(player_tag: str, request : Request, response: Response):
     player_tag = utils.correct_tag(player_tag)
     data = None
+    print(BEARER)
     headers = {
         "Authorization": f"Bearer {BEARER}"}
     url = f"https://api.clashofclans.com/v1/players/{player_tag}"
