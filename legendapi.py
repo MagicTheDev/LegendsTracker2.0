@@ -1,6 +1,10 @@
 from typing import Optional
 import motor.motor_asyncio
 import uvicorn
+from datetime import datetime
+import pytz
+utc = pytz.utc
+from coc import utils
 
 from fastapi import FastAPI, Request, Response, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -74,19 +78,6 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
     return current_user
 
 
-@app.post("/token")
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user_dict = fake_users_db.get(form_data.username)
-    if not user_dict:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
-    user = UserInDB(**user_dict)
-    hashed_password = fake_hash_password(form_data.password)
-    if not hashed_password == user.hashed_password:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
-
-    return {"access_token": user.username, "token_type": "bearer"}
-
-
 @app.get("/users/me")
 async def read_users_me(current_user: User = Depends(get_current_active_user)):
     return current_user
@@ -111,11 +102,24 @@ async def player(player_tag: str, request : Request, response: Response):
     previous_defs = result.get("previous_defenses")
     end_of_days = result.get("end_of_day")
     highest_streak = result.get("highest_streak")
+    clan_tag = result.get("clan_tag")
+    th = result.get("th")
+    clan_badge = result.get("badge")
+    player_link = result.get("link")
+    location = result.get("location")
+    if location is None:
+        location = "Unknown"
+
+    season_stats = season_hit_stats(result)
 
     return{
         "name" : name,
         "tag" : tag,
+        "player_link" : player_link,
+        "location" : location,
         "clan" : clan,
+        "clan_tag" : clan_tag,
+        "clan_badge" : clan_badge,
         "trophies" : trophies,
         "league" : league,
         "num_season_hits" : num_season_hits,
@@ -127,7 +131,17 @@ async def player(player_tag: str, request : Request, response: Response):
         "num_yesterday_hits":num_yesterday_hits,
         "previous_hits" : previous_hits,
         "previous_defs" : previous_defs,
-        "end_of_days" : end_of_days
+        "end_of_days" : end_of_days,
+        "offense_season_one_star_average" : season_stats[0],
+        "offense_season_two_star_average"  :season_stats[1],
+        "offense_season_three_star_average" : season_stats[2],
+        "defense_season_one_star_average" : season_stats[3],
+        "defense_season_two_star_average" : season_stats[4],
+        "defense_season_three_star_average" : season_stats[5],
+        "season_average_offense" : season_stats[6],
+        "season_average_defense" : season_stats[7],
+        "season_average_net" : season_stats[8],
+        "season_days_tracked" : season_stats[11]
     }
 
 @app.get("/all_tags")
@@ -142,17 +156,124 @@ async def all_tags(request : Request, response: Response):
             tags.append(tag)
     return tags
 
-@app.get("/ordered_tags")
-@limiter.limit("10/minute")
-async def _ordered(request : Request, response: Response):
-    tags = []
-    tracked = ongoing_stats.find({"league" : {"$eq" : "Legend League"}}).sort("trophies", -1)
-    limit = await ongoing_stats.count_documents(filter={"league" : {"$eq" : "Legend League"}})
-    for document in await tracked.to_list(length=limit):
-        tag = document.get("tag")
-        if tag not in tags:
-            tags.append(tag)
-    return tags
+def season_hit_stats(player):
+    start = utils.get_season_start().replace(tzinfo=utc).date()
+    now = datetime.utcnow().replace(tzinfo=utc).date()
+    now_ = datetime.utcnow().replace(tzinfo=utc)
+    current_season_progress = now - start
+    current_season_progress = current_season_progress.days
+    if now_.hour <= 5:
+        current_season_progress -= 1
+    first_record = 0
+    last_record = current_season_progress
+    y = player.get("end_of_day")
+
+    len_y = len(y)
+    if last_record == len_y:
+        last_record -= 1
+    if last_record > len_y:
+        last_record = len(y) - 1
+
+    if first_record >= len_y - 2:
+        return [0, 0, 0, 0, 0,
+                0, None, None, None, 0, 0, 0]
+
+    one_stars = 0
+    two_stars = 0
+    three_stars = 0
+
+    zero_star_def = 0
+    one_stars_def = 0
+    two_stars_def = 0
+    three_stars_def = 0
+
+    hits = player.get("previous_hits")
+    defs = player.get("previous_defenses")
+    hits = hits[len(hits) - last_record:len(hits) - first_record]
+    defs = defs[len(defs) - last_record:len(defs) - first_record]
+    length = len(hits)
+
+    l_hit = 0
+    sum_hits = 0
+    for day in hits:
+        if len(day) >= 6:
+            sum_hits += sum(day)
+            l_hit += 1
+        for hit in day:
+            if hit >= 5 and hit <= 15:
+                one_stars += 1
+            elif hit >= 16 and hit <= 32:
+                two_stars += 1
+            elif hit >= 40:
+                if hit % 40 == 0:
+                    three_stars += (hit // 40)
+
+    total = one_stars + two_stars + three_stars
+    try:
+        one_stars_avg = int(round((one_stars / total), 2) * 100)
+    except:
+        one_stars_avg = 0
+    try:
+        two_stars_avg = int(round((two_stars / total), 2) * 100)
+    except:
+        two_stars_avg = 0
+    try:
+        three_stars_avg = int(round((three_stars / total), 2) * 100)
+    except:
+        three_stars_avg = 0
+
+    l_defs = 0
+    sum_defs = 0
+    for day in defs:
+        if len(day) >= 6:
+            sum_defs += sum(day)
+            l_defs+=1
+        for hit in day:
+            if hit >= 0 and hit <= 4:
+                zero_star_def += 1
+            if hit >= 5 and hit <= 15:
+                one_stars_def += 1
+            elif hit >= 16 and hit <= 32:
+                two_stars_def += 1
+            elif hit >= 40:
+                if hit % 40 == 0:
+                    three_stars_def += (hit // 40)
+
+    total_def = zero_star_def + one_stars_def + two_stars_def + three_stars_def
+    try:
+        zero_stars_avg_def = int(round((zero_star_def / total_def), 2) * 100)
+    except:
+        zero_stars_avg_def = 0
+    try:
+        one_stars_avg_def = int(round((one_stars_def / total_def), 2) * 100)
+    except:
+        one_stars_avg_def = 0
+    try:
+        two_stars_avg_def = int(round((two_stars_def / total_def), 2) * 100)
+    except:
+        two_stars_avg_def = 0
+    try:
+        three_stars_avg_def = int(round((three_stars_def / total_def), 2) * 100)
+    except:
+        three_stars_avg_def = 0
+
+    if l_hit == 0:
+        average_offense = l_hit
+    else:
+        average_offense = int(sum_hits/l_hit)
+
+    if l_defs == 0:
+        average_defense = l_defs
+    else:
+        average_defense = int(sum_defs/l_defs)
+    average_net = average_offense - average_defense
+
+    return [one_stars_avg, two_stars_avg, three_stars_avg, one_stars_avg_def, two_stars_avg_def,
+            three_stars_avg_def, average_offense, average_defense, average_net, len(hits), len(defs), length]
+
+
+
+
 
 if __name__ == '__main__':
     uvicorn.run("legendapi:app", port=8000, host='45.33.3.218')
