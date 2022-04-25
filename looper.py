@@ -37,6 +37,7 @@ async def stats_update():
         await moveStats()
         moved = True
 
+
     #retrieve all tags
     tags = []
     tracked = ongoing_stats.find()
@@ -194,7 +195,7 @@ async def moveStats():
                                                  "num_today_hits": 0,
                                                  "today_defenses": []}})
         await ongoing_stats.update_one({'tag': f"{tag}"},
-                                       {'$push': {
+                                       {'$push': {"end_of_day": trophies,
                                                   "previous_hits": today_hits,
                                                   "previous_defenses": today_defenses}})
     print("Stats Shifted & Stored")
@@ -202,6 +203,7 @@ async def moveStats():
 
 @coc.ClientEvents.new_season_start()
 async def new_Season():
+    await asyncio.sleep(600)
     tracked = ongoing_stats.find()
     limit = await ongoing_stats.count_documents(filter={})
     for document in await tracked.to_list(length=limit):
