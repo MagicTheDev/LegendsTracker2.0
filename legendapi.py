@@ -6,6 +6,8 @@ import pytz
 utc = pytz.utc
 from coc import utils
 import coc
+import nest_asyncio
+nest_asyncio.apply()
 
 from fastapi import FastAPI, Request, Response, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
