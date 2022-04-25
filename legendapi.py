@@ -6,7 +6,8 @@ import pytz
 utc = pytz.utc
 from coc import utils
 import coc
-coc_client = None
+import nest_asyncio
+
 
 from fastapi import FastAPI, Request, Response, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -22,6 +23,9 @@ load_dotenv()
 DB_LOGIN = os.getenv("DB_LOGIN")
 COC_EMAIL = os.getenv("BETA_COC_EMAIL")
 COC_PASSWORD = os.getenv("BETA_COC_PASSWORD")
+
+coc_client = coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, key_count=10, key_names="DiscordBot",
+                           throttle_limit=25)
 
 
 db_client = motor.motor_asyncio.AsyncIOMotorClient(DB_LOGIN)
@@ -336,6 +340,6 @@ def season_hit_stats(player):
 
 
 if __name__ == '__main__':
-    coc_client = coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, key_count=10, key_names="DiscordBot",
-                           throttle_limit=25)
+
+    nest_asyncio.apply()
     uvicorn.run("legendapi:app", port=8000, host='45.33.3.218')
