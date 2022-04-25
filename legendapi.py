@@ -153,7 +153,7 @@ async def player(player_tag: str, request : Request, response: Response):
     }
 
 @app.post("/add/{player_tag}")
-@limiter.limit("1/second")
+@limiter.limit("10/second")
 async def player_add(player_tag: str, request : Request, response: Response):
         try:
             player = await coc_client.get_player(player_tag)
@@ -162,6 +162,10 @@ async def player_add(player_tag: str, request : Request, response: Response):
 
         if str(player.league) != "Legend League":
             raise HTTPException(status_code=404, detail="Cannot add players not in legends")
+
+        result = await ongoing_stats.find_one({"tag": player.tag})
+        if result is not None:
+            raise HTTPException(status_code=404, detail="Player already added")
 
         clan_name = "No Clan"
 
