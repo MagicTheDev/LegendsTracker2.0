@@ -40,6 +40,7 @@ class CheckStats(commands.Cog):
 
         spots = [i for i, value in enumerate(rankings) if value == result]
 
+        print(spots)
         for r in spots:
             loc = rankings[r + 1]
             if loc == "global" :
