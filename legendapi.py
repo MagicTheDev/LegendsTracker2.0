@@ -2,13 +2,12 @@ import asyncio
 from typing import Optional
 import motor.motor_asyncio
 import uvicorn
-
+import aiohttp
 from datetime import datetime
 import pytz
 utc = pytz.utc
 from coc import utils
 import coc
-import uvloop
 
 from fastapi import FastAPI, Request, Response, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -23,16 +22,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DB_LOGIN = os.getenv("DB_LOGIN")
-COC_EMAIL = os.getenv("BETA_COC_EMAIL")
-COC_PASSWORD = os.getenv("BETA_COC_PASSWORD")
-
-uvloop.install()
-try:
-    loop = asyncio.get_running_loop()
-except RuntimeError:
-    loop = asyncio.get_event_loop()
-coc_client = coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, key_count=10, key_names="DiscordBot",
-                           throttle_limit=25, loop=loop)
 
 
 db_client = motor.motor_asyncio.AsyncIOMotorClient(DB_LOGIN)
@@ -168,52 +157,61 @@ async def player(player_tag: str, request : Request, response: Response):
 @app.post("/add/{player_tag}")
 @limiter.limit("10/second")
 async def player_add(player_tag: str, request : Request, response: Response):
-        try:
-            player = await coc_client.get_player(player_tag)
-        except Exception as e:
-            print(e)
-            raise HTTPException(status_code=404, detail="Invalid Player")
+    player_tag = utils.correct_tag(player_tag)
+    headers = {
+        "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6IjA5MWExYTAzLTczYTAtNGUzNC1hYjVmLWE2Y2MxOTU0MWVmYiIsImlhdCI6MTY0NTY5MTUzNiwic3ViIjoiZGV2ZWxvcGVyL2FlYjc2MDZhLTYxZTEtNDdiOC1kMGFlLWZhN2ViZGFiZjM0NCIsInNjb3BlcyI6WyJjbGFzaCJdLCJsaW1pdHMiOlt7InRpZXIiOiJkZXZlbG9wZXIvc2lsdmVyIiwidHlwZSI6InRocm90dGxpbmcifSx7ImNpZHJzIjpbIjIwOS4xNjYuMTI0LjE3MCJdLCJ0eXBlIjoiY2xpZW50In1dfQ.PGiRcTmqwN5NiNksS44fbdcs-PnpPJXisKTqw1th-zWrzEhrMKxRqKjRwkOIsK2fw_uh4ZdA8x9ITjbPvyDgKg"}
+    url = f"https://api.clashofclans.com/v1/players/{player_tag}"
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers=headers) as resp:
+                data = await resp.json(content_type=None)
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=404, detail="Invalid Player")
 
-        if str(player.league) != "Legend League":
-            raise HTTPException(status_code=404, detail="Cannot add players not in legends")
+    if data["league"]["name"] != "Legend League":
+        raise HTTPException(status_code=404, detail="Cannot add players not in legends")
 
-        result = await ongoing_stats.find_one({"tag": player.tag})
-        if result is not None:
-            raise HTTPException(status_code=404, detail="Player already added")
+    result = await ongoing_stats.find_one({"tag": player_tag})
+    if result is not None:
+        raise HTTPException(status_code=404, detail="Player already added")
 
-        clan_name = "No Clan"
+    clan_name = "No Clan"
+    badge = "No Clan"
+    try:
+        clan_name = data["clan"]["name"]
+    except:
+        pass
 
-        if player.clan is not None:
-            clan_name = player.clan.name
+    try:
+        badge = data["clan"]["badgeUrls"]["medium"]
+    except:
+        pass
 
-        if player.clan is not None:
-            badge = player.clan.badge.url
-        else:
-            badge = clan_name
-        await ongoing_stats.insert_one({
-            "tag": player.tag,
-            "name": player.name,
-            "trophies": player.trophies,
-            "th": 14,
-            "num_season_hits": player.attack_wins,
-            "num_season_defenses": player.defense_wins,
-            "row_triple": 0,
-            "today_hits": [],
-            "today_defenses": [],
-            "num_today_hits": 0,
-            "previous_hits": [],
-            "previous_defenses": [],
-            "num_yesterday_hits": 0,
-            "servers": [],
-            "end_of_day": [],
-            "clan": clan_name,
-            "badge": badge,
-            "link": player.share_link,
-            "league": str(player.league),
-            "highest_streak": 0,
-            "last_updated": None,
-            "change": None
-        })
+    await ongoing_stats.insert_one({
+        "tag": data["tag"],
+        "name": data["name"],
+        "trophies": data["trophies"],
+        "th": data["townHallLevel"],
+        "num_season_hits": data["attackWins"],
+        "num_season_defenses": data["defenseWins"],
+        "row_triple": 0,
+        "today_hits": [],
+        "today_defenses": [],
+        "num_today_hits": 0,
+        "previous_hits": [],
+        "previous_defenses": [],
+        "num_yesterday_hits": 0,
+        "servers": [],
+        "end_of_day": [],
+        "clan": clan_name,
+        "badge": badge,
+        "link": f"https://link.clashofclans.com/en?action=OpenPlayerProfile&tag={player_tag}",
+        "league": data["league"]["name"],
+        "highest_streak": 0,
+        "last_updated": None,
+        "change": None
+    })
 
 @app.get("/all_tags")
 @limiter.limit("10/minute")
