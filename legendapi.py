@@ -5,6 +5,7 @@ from datetime import datetime
 import pytz
 utc = pytz.utc
 from coc import utils
+import coc
 
 from fastapi import FastAPI, Request, Response, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -18,6 +19,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DB_LOGIN = os.getenv("DB_LOGIN")
+COC_EMAIL = os.getenv("BETA_COC_EMAIL")
+COC_PASSWORD = os.getenv("BETA_COC_PASSWORD")
+coc_client = coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, key_count=10, key_names="DiscordBot", throttle_limit = 25)
 
 db_client = motor.motor_asyncio.AsyncIOMotorClient(DB_LOGIN)
 legends_stats = db_client.legends_stats
@@ -83,10 +87,15 @@ async def read_users_me(current_user: User = Depends(get_current_active_user)):
     return current_user
 
 
+
 @app.get("/player/{player_tag}")
 @limiter.limit("60/second")
 async def player(player_tag: str, request : Request, response: Response):
+    player_tag = utils.correct_tag(player_tag)
     result = await ongoing_stats.find_one({"tag": player_tag})
+
+    if result is None:
+        raise HTTPException(status_code=404, detail="Item not found")
     name = result.get("name")
     tag = result.get("tag")
     clan = result.get("clan")
@@ -141,8 +150,53 @@ async def player(player_tag: str, request : Request, response: Response):
         "season_average_offense" : season_stats[6],
         "season_average_defense" : season_stats[7],
         "season_average_net" : season_stats[8],
-        "season_days_tracked" : season_stats[11]
+        "num_prev_season_days_tracked" : season_stats[11]
     }
+
+@app.post("/add/{player_tag}")
+@limiter.limit("1/second")
+async def player_add(player_tag: str, request : Request, response: Response):
+        try:
+            player = await coc_client.get_player(player_tag)
+        except:
+            raise HTTPException(status_code=404, detail="Invalid Player")
+
+        if str(player.league) != "Legend League":
+            raise HTTPException(status_code=404, detail="Cannot add players not in legends")
+
+        clan_name = "No Clan"
+
+        if player.clan is not None:
+            clan_name = player.clan.name
+
+        if player.clan is not None:
+            badge = player.clan.badge.url
+        else:
+            badge = clan_name
+        await ongoing_stats.insert_one({
+            "tag": player.tag,
+            "name": player.name,
+            "trophies": player.trophies,
+            "th": 14,
+            "num_season_hits": player.attack_wins,
+            "num_season_defenses": player.defense_wins,
+            "row_triple": 0,
+            "today_hits": [],
+            "today_defenses": [],
+            "num_today_hits": 0,
+            "previous_hits": [],
+            "previous_defenses": [],
+            "num_yesterday_hits": 0,
+            "servers": [],
+            "end_of_day": [],
+            "clan": clan_name,
+            "badge": badge,
+            "link": player.share_link,
+            "league": str(player.league),
+            "highest_streak": 0,
+            "last_updated": None,
+            "change": None
+        })
 
 @app.get("/all_tags")
 @limiter.limit("10/minute")
