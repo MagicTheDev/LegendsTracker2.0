@@ -158,6 +158,7 @@ async def player(player_tag: str, request : Request, response: Response):
 @limiter.limit("10/second")
 async def player_add(player_tag: str, request : Request, response: Response):
     player_tag = utils.correct_tag(player_tag)
+    data = None
     headers = {
         "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6IjA5MWExYTAzLTczYTAtNGUzNC1hYjVmLWE2Y2MxOTU0MWVmYiIsImlhdCI6MTY0NTY5MTUzNiwic3ViIjoiZGV2ZWxvcGVyL2FlYjc2MDZhLTYxZTEtNDdiOC1kMGFlLWZhN2ViZGFiZjM0NCIsInNjb3BlcyI6WyJjbGFzaCJdLCJsaW1pdHMiOlt7InRpZXIiOiJkZXZlbG9wZXIvc2lsdmVyIiwidHlwZSI6InRocm90dGxpbmcifSx7ImNpZHJzIjpbIjIwOS4xNjYuMTI0LjE3MCJdLCJ0eXBlIjoiY2xpZW50In1dfQ.PGiRcTmqwN5NiNksS44fbdcs-PnpPJXisKTqw1th-zWrzEhrMKxRqKjRwkOIsK2fw_uh4ZdA8x9ITjbPvyDgKg"}
     url = f"https://api.clashofclans.com/v1/players/{player_tag}"
@@ -169,6 +170,7 @@ async def player_add(player_tag: str, request : Request, response: Response):
         print(e)
         raise HTTPException(status_code=404, detail="Invalid Player")
 
+    print(data)
     if data["league"]["name"] != "Legend League":
         raise HTTPException(status_code=404, detail="Cannot add players not in legends")
 
