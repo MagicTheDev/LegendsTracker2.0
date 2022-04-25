@@ -22,7 +22,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DB_LOGIN = os.getenv("DB_LOGIN")
-BEARER = os.getenv("BEARER")
+from utils.helper import coc_client
 
 db_client = motor.motor_asyncio.AsyncIOMotorClient(DB_LOGIN)
 legends_stats = db_client.legends_stats
@@ -157,47 +157,36 @@ async def player(player_tag: str, request : Request, response: Response):
 @app.post("/add/{player_tag}")
 @limiter.limit("10/second")
 async def player_add(player_tag: str, request : Request, response: Response):
-    player_tag = utils.correct_tag(player_tag)
-    data = None
-    print(BEARER)
-    headers = {
-        "Authorization": f"Bearer {BEARER}"}
-    url = f"https://api.clashofclans.com/v1/players/{player_tag}"
+    print(coc_client.key_names)
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers) as resp:
-                data = await resp.json(content_type=None)
+        player = await coc_client.get_player(player_tag)
     except Exception as e:
         print(e)
         raise HTTPException(status_code=404, detail="Invalid Player")
 
-    print(data)
-    if data["league"]["name"] != "Legend League":
+    if str(player.league) != "Legend League":
         raise HTTPException(status_code=404, detail="Cannot add players not in legends")
 
-    result = await ongoing_stats.find_one({"tag": player_tag})
+    result = await ongoing_stats.find_one({"tag": player.tag})
     if result is not None:
         raise HTTPException(status_code=404, detail="Player already added")
 
     clan_name = "No Clan"
-    badge = "No Clan"
-    try:
-        clan_name = data["clan"]["name"]
-    except:
-        pass
 
-    try:
-        badge = data["clan"]["badgeUrls"]["medium"]
-    except:
-        pass
+    if player.clan is not None:
+        clan_name = player.clan.name
 
+    if player.clan is not None:
+        badge = player.clan.badge.url
+    else:
+        badge = clan_name
     await ongoing_stats.insert_one({
-        "tag": data["tag"],
-        "name": data["name"],
-        "trophies": data["trophies"],
-        "th": data["townHallLevel"],
-        "num_season_hits": data["attackWins"],
-        "num_season_defenses": data["defenseWins"],
+        "tag": player.tag,
+        "name": player.name,
+        "trophies": player.trophies,
+        "th": 14,
+        "num_season_hits": player.attack_wins,
+        "num_season_defenses": player.defense_wins,
         "row_triple": 0,
         "today_hits": [],
         "today_defenses": [],
@@ -209,8 +198,8 @@ async def player_add(player_tag: str, request : Request, response: Response):
         "end_of_day": [],
         "clan": clan_name,
         "badge": badge,
-        "link": f"https://link.clashofclans.com/en?action=OpenPlayerProfile&tag={player_tag}",
-        "league": data["league"]["name"],
+        "link": player.share_link,
+        "league": str(player.league),
         "highest_streak": 0,
         "last_updated": None,
         "change": None
