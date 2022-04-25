@@ -6,7 +6,6 @@ import pytz
 utc = pytz.utc
 from coc import utils
 import coc
-import asyncio
 
 from fastapi import FastAPI, Request, Response, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -157,54 +156,51 @@ async def player(player_tag: str, request : Request, response: Response):
 @app.post("/add/{player_tag}")
 @limiter.limit("10/second")
 async def player_add(player_tag: str, request : Request, response: Response):
-    loop = asyncio.get_event_loop()
-    coc_client = loop.run_until_complete(coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, key_count=10, key_names="DiscordBot",
-                       throttle_limit=25))
-    try:
-        player = await coc_client.get_player(player_tag)
-    except:
-        raise HTTPException(status_code=404, detail="Invalid Player")
+        try:
+            player = await coc_client.get_player(player_tag)
+        except:
+            raise HTTPException(status_code=404, detail="Invalid Player")
 
-    if str(player.league) != "Legend League":
-        raise HTTPException(status_code=404, detail="Cannot add players not in legends")
+        if str(player.league) != "Legend League":
+            raise HTTPException(status_code=404, detail="Cannot add players not in legends")
 
-    result = await ongoing_stats.find_one({"tag": player.tag})
-    if result is not None:
-        raise HTTPException(status_code=404, detail="Player already added")
+        result = await ongoing_stats.find_one({"tag": player.tag})
+        if result is not None:
+            raise HTTPException(status_code=404, detail="Player already added")
 
-    clan_name = "No Clan"
+        clan_name = "No Clan"
 
-    if player.clan is not None:
-        clan_name = player.clan.name
+        if player.clan is not None:
+            clan_name = player.clan.name
 
-    if player.clan is not None:
-        badge = player.clan.badge.url
-    else:
-        badge = clan_name
-    await ongoing_stats.insert_one({
-        "tag": player.tag,
-        "name": player.name,
-        "trophies": player.trophies,
-        "th": 14,
-        "num_season_hits": player.attack_wins,
-        "num_season_defenses": player.defense_wins,
-        "row_triple": 0,
-        "today_hits": [],
-        "today_defenses": [],
-        "num_today_hits": 0,
-        "previous_hits": [],
-        "previous_defenses": [],
-        "num_yesterday_hits": 0,
-        "servers": [],
-        "end_of_day": [],
-        "clan": clan_name,
-        "badge": badge,
-        "link": player.share_link,
-        "league": str(player.league),
-        "highest_streak": 0,
-        "last_updated": None,
-        "change": None
-    })
+        if player.clan is not None:
+            badge = player.clan.badge.url
+        else:
+            badge = clan_name
+        await ongoing_stats.insert_one({
+            "tag": player.tag,
+            "name": player.name,
+            "trophies": player.trophies,
+            "th": 14,
+            "num_season_hits": player.attack_wins,
+            "num_season_defenses": player.defense_wins,
+            "row_triple": 0,
+            "today_hits": [],
+            "today_defenses": [],
+            "num_today_hits": 0,
+            "previous_hits": [],
+            "previous_defenses": [],
+            "num_yesterday_hits": 0,
+            "servers": [],
+            "end_of_day": [],
+            "clan": clan_name,
+            "badge": badge,
+            "link": player.share_link,
+            "league": str(player.league),
+            "highest_streak": 0,
+            "last_updated": None,
+            "change": None
+        })
 
 @app.get("/all_tags")
 @limiter.limit("10/minute")
@@ -338,4 +334,6 @@ def season_hit_stats(player):
 
 
 if __name__ == '__main__':
+    coc_client = coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, key_count=10, key_names="DiscordBot",
+                           throttle_limit=25)
     uvicorn.run("legendapi:app", port=8000, host='45.33.3.218')
