@@ -73,8 +73,10 @@ class LeaderboardLoop(commands.Cog):
                     rr.append(country_code)
                     rr.append(x)
                     rr.append(country_name)
-                    await ongoing_stats.update_one({'tag': f"{player.tag}"},
-                                                   {'$set': {'location': country_name, "location_code": country_code}})
+                    results = await ongoing_stats.find_one({'tag': f"{player.tag}"})
+                    if results is not None:
+                        await ongoing_stats.update_one({'tag': f"{player.tag}"},
+                                                       {'$set': {'location': country_name, "location_code": country_code}})
                     try:
                         rr.append(player.clan.tag)
                         rr.append(player.clan.name)
