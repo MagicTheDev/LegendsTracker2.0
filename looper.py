@@ -37,7 +37,6 @@ async def stats_update():
         await moveStats()
         moved = True
 
-
     #retrieve all tags
     tags = []
     tracked = ongoing_stats.find()
@@ -195,7 +194,7 @@ async def moveStats():
                                                  "num_today_hits": 0,
                                                  "today_defenses": []}})
         await ongoing_stats.update_one({'tag': f"{tag}"},
-                                       {'$push': {"end_of_day": trophies,
+                                       {'$push': {
                                                   "previous_hits": today_hits,
                                                   "previous_defenses": today_defenses}})
     print("Stats Shifted & Stored")

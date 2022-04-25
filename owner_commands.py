@@ -1,5 +1,5 @@
 import asyncio
-from utils.helper import ongoing_stats
+from utils.helper import ongoing_stats, coc_client
 import disnake
 from disnake.ext import commands
 import os
@@ -54,6 +54,27 @@ class OwnerCommands(commands.Cog):
         os.system("cd LegendsTracker2.0")
         os.system("git pull https://github.com/MagicTheDev/LegendsTracker2.0.git")
         await ctx.send("Bot using latest changes.")
+
+    @commands.command(name="legendfix")
+    @commands.is_owner()
+    async def test(self, ctx):
+        tags = []
+        tracked = ongoing_stats.find()
+        limit = await ongoing_stats.count_documents(filter={})
+        for document in await tracked.to_list(length=limit):
+            tag = document.get("tag")
+            if tag not in tags:
+                tags.append(tag)
+
+        async for player in coc_client.get_players(tags):
+            try:
+                gspot = player.legend_statistics.previous_season.trophies
+                print(gspot)
+            except:
+                pass
+            await ongoing_stats.update_one({'tag': f"{player.tag}"},
+                                           {'$push': {'end_of_day': gspot}})
+        await ctx.send("Done")
 
 
 def setup(bot: commands.Bot):
