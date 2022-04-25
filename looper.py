@@ -203,7 +203,6 @@ async def moveStats():
 
 @coc.ClientEvents.new_season_start()
 async def new_Season():
-    await asyncio.sleep(300)
     tracked = ongoing_stats.find()
     limit = await ongoing_stats.count_documents(filter={})
     for document in await tracked.to_list(length=limit):
