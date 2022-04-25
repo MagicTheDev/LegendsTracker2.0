@@ -26,6 +26,11 @@ DB_LOGIN = os.getenv("DB_LOGIN")
 COC_EMAIL = os.getenv("BETA_COC_EMAIL")
 COC_PASSWORD = os.getenv("BETA_COC_PASSWORD")
 
+nest_asyncio.apply()
+loop = asyncio.new_event_loop()
+coc_client = coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, realtime=True, loop= loop, key_count=10, key_names="DiscordBot",
+                       throttle_limit=25)
+
 
 db_client = motor.motor_asyncio.AsyncIOMotorClient(DB_LOGIN)
 legends_stats = db_client.legends_stats
@@ -340,9 +345,4 @@ def season_hit_stats(player):
 
 
 if __name__ == '__main__':
-    nest_asyncio.apply()
-    loop = asyncio.new_event_loop()
-    coc_client = coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, realtime=True, loop= loop, key_count=10, key_names="DiscordBot",
-                           throttle_limit=25)
-
     uvicorn.run("legendapi:app", port=8000, host='45.33.3.218')
