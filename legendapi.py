@@ -21,7 +21,8 @@ load_dotenv()
 DB_LOGIN = os.getenv("DB_LOGIN")
 COC_EMAIL = os.getenv("BETA_COC_EMAIL")
 COC_PASSWORD = os.getenv("BETA_COC_PASSWORD")
-from utils.helper import coc_client
+
+
 db_client = motor.motor_asyncio.AsyncIOMotorClient(DB_LOGIN)
 legends_stats = db_client.legends_stats
 ongoing_stats = legends_stats.ongoing_stats
@@ -155,6 +156,8 @@ async def player(player_tag: str, request : Request, response: Response):
 @app.post("/add/{player_tag}")
 @limiter.limit("10/second")
 async def player_add(player_tag: str, request : Request, response: Response):
+        coc_client = coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, key_count=10, key_names="DiscordBot",
+                           throttle_limit=25)
         try:
             player = await coc_client.get_player(player_tag)
         except:
