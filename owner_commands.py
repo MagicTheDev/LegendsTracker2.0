@@ -64,25 +64,12 @@ class OwnerCommands(commands.Cog):
         limit = await ongoing_stats.count_documents(filter={})
         for document in await tracked.to_list(length=limit):
             tag = document.get("tag")
-            if tag not in tags:
-                tags.append(tag)
-
-        async for player in coc_client.get_players(tags):
-            try:
-                results = await ongoing_stats.find_one({'tag': f"{player.tag}"})
-                previous_days = results.get("end_of_day")
-                if len(previous_days) < 3:
-                    continue
-
-                last = previous_days[-1]
-                two_last = previous_days[-2]
-                three_last = previous_days[-3]
-                if last == two_last:
-                    if two_last - three_last >= 100:
-                        await ongoing_stats.update_one({'tag': f"{player.tag}"},
-                                                       {'$set': {'end_of_day': previous_days[:-2]}})
-            except:
-                pass
+            today_def = document.get("today_defenses")
+            if today_def == []:
+                continue
+            if today_def[0] == 0:
+                await ongoing_stats.update_one({'tag': f"{tag}"},
+                                               {'$pull': {'today_defenses': 0}})
 
         await ctx.send("Done")
 
