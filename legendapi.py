@@ -1,14 +1,11 @@
-import asyncio
-from typing import Optional
+
 import motor.motor_asyncio
-import nest_asyncio
 import uvicorn
 
 from datetime import datetime
 import pytz
 utc = pytz.utc
 from coc import utils
-import coc
 
 from fastapi import FastAPI, Request, Response, Depends, HTTPException, status
 
@@ -26,6 +23,7 @@ DB_LOGIN = os.getenv("DB_LOGIN")
 db_client = motor.motor_asyncio.AsyncIOMotorClient(DB_LOGIN)
 legends_stats = db_client.legends_stats
 ongoing_stats = legends_stats.ongoing_stats
+history_db = db_client.clan_tags
 logins = legends_stats.logins
 
 limiter = Limiter(key_func=get_remote_address)
@@ -34,6 +32,15 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 from clash import coc_client, setup_coc
+
+dates = ["2015-07", "2015-08", "2015-09", "2015-10", "2015-11", "2015-12",
+         "2016-01","2016-02","2016-03","2016-04","2016-05","2016-06","2016-07","2016-08","2016-09","2016-10","2016-11","2016-12",
+         "2017-01","2017-02","2017-03","2017-04","2017-05","2017-06","2017-07","2017-08","2017-09","2017-10","2017-11","2017-12",
+         "2018-01","2018-02","2018-03","2018-04","2018-05","2018-06","2018-07","2018-08","2018-09","2018-10","2018-11","2018-12",
+         "2019-01","2019-02","2019-03","2019-04", "2019-05", "2019-06", "2019-07", "2019-08","2019-09","2019-10","2019-11","2019-12",
+         "2020-01","2020-02","2020-03","2020-04","2020-05","2020-06","2020-07","2020-08","2020-09","2020-10","2020-11","2020-12",
+         "2021-01","2021-02","2021-03","2021-04","2021-05","2021-06","2021-07","2021-08", "2021-09", "2021-10", "2021-11", "2021-12",
+         "2022-01", "2022-02", "2022-03", "2022-04"]
 
 @app.on_event("startup")
 async def startup_event():
@@ -72,9 +79,11 @@ async def player(player_tag: str, request : Request, response: Response):
         location = "Unknown"
 
     season_stats = season_hit_stats(result)
+    prev_names = await previous_names(tag, name)
 
     return{
         "name" : name,
+        "previous_names": prev_names,
         "tag" : tag,
         "player_link" : player_link,
         "location" : location,
@@ -102,7 +111,8 @@ async def player(player_tag: str, request : Request, response: Response):
         "season_average_offense" : season_stats[6],
         "season_average_defense" : season_stats[7],
         "season_average_net" : season_stats[8],
-        "num_prev_season_days_tracked" : season_stats[11]
+        "num_prev_season_days_tracked" : season_stats[11],
+
     }
 
 @app.post("/add/{player_tag}")
@@ -167,6 +177,18 @@ async def all_tags(request : Request, response: Response):
         if tag not in tags:
             tags.append(tag)
     return tags
+
+async def previous_names(tag, current_name):
+    names = []
+    for date in dates:
+        season_stats = history_db[f"{date}"]
+        result = await season_stats.find_one({"tag": tag})
+        if result is not None:
+            name = result.get("name")
+            if (name != current_name) and (name not in names):
+                names.append(name)
+    return names
+
 
 def season_hit_stats(player):
     start = utils.get_season_start().replace(tzinfo=utc).date()
