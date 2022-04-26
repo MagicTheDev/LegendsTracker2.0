@@ -65,7 +65,7 @@ class CheckStats(commands.Cog):
             return embed
 
         embed = disnake.Embed(
-                              description=f"**Legends Overview**\n" +
+                              description=f"**Legends Overview** | [profile]({player.link})\n" +
                                           f"Start: {legend_shield} {str(player.trophies - player.todays_net)} | Now: {legend_shield} {player.trophies}\n" +
                                           f"- {player.num_hits} attacks for +{player.sum_hits} trophies\n" +
                                           f"- {player.num_def} defenses for -{player.sum_defs} trophies\n"
@@ -99,7 +99,7 @@ class CheckStats(commands.Cog):
             defi = "No Defenses Yet."
         embed.add_field(name="**Offense**", value=off, inline=True)
         embed.add_field(name="**Defense**", value=defi, inline=True)
-        embed.set_footer(text=random.choice(tips))
+        embed.set_footer(text=player.tag)
 
         return embed
 
