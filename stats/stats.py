@@ -259,7 +259,8 @@ class LegendStats(commands.Cog):
         return board
 
     @commands.slash_command(name="popular", description="View popular tracked players")
-    async def popular(self, ctx):
+    async def popular(self, ctx: disnake.ApplicationCommandInteraction):
+        await ctx.response.defer()
         tracked = ongoing_stats.find()
         limit = await ongoing_stats.count_documents(filter={})
         playerStats = []
@@ -284,7 +285,7 @@ class LegendStats(commands.Cog):
         board = disnake.Embed(title="🔥 Most popular tracked players 🔥 \n",
                               description=topTen,
                               color=disnake.Color.blue())
-        await ctx.send(embed=board)
+        await ctx.edit_original_message(embed=board)
 
     @commands.slash_command(name="breakdown",description="Trophy Breakdown for players tracked.")
     async def breakdown(self, ctx: disnake.ApplicationCommandInteraction):
