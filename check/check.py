@@ -229,7 +229,7 @@ class Check(commands.Cog):
                     footer = footer.replace("Page 2", "")
                     footer = footer.replace("\n", "")
                     footer += "\n"
-                embed.set_footer(text=f"{footer}Page {res.values[0]}")
+                embed.set_footer(text=f"{footer}Page {int(res.values[0])+1}")
                 await res.response.edit_message(embed=embed)
 
             else:
