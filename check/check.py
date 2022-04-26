@@ -154,7 +154,7 @@ class Check(commands.Cog):
             text += f"\u200e**<:trophyy:849144172698402817>{trophies} | \u200e{name}**\n➼ <:cw:948845649229647952> {hits}{numHits} <:sh:948845842809360424> {defs}{numDefs}\n"
             x += 1
             if x == 25:
-                embed = disnake.Embed(title=f"__**{results.name} Legends Check**__",
+                embed = disnake.Embed(title=f"__**{results.name}**__",
                                       description=text)
                 embed.set_thumbnail(url=results.badge.large)
                 if num_not != 0:
@@ -165,7 +165,7 @@ class Check(commands.Cog):
 
 
         if text != "":
-            embed = disnake.Embed(title=f"__**{results.name} Legends Check**__",
+            embed = disnake.Embed(title=f"__**{results.name}**__",
                                   description=text)
             embed.set_thumbnail(url=results.badge.large)
             if num_not != 0:
@@ -173,7 +173,7 @@ class Check(commands.Cog):
             embeds.append(embed)
 
         if len(embeds) == 0:
-            embed = disnake.Embed(title=f"__**{results.name} Legends Check**__",
+            embed = disnake.Embed(title=f"__**{results.name}**__",
                                   description="No players tracked, use select menu below to track missing players in clan.")
             embed.set_thumbnail(url=results.badge.large)
             if num_not != 0:
@@ -183,7 +183,7 @@ class Check(commands.Cog):
         options = []
         if len(embeds) == 2:
             options.append(disnake.SelectOption(label="Page 1 (1-25)", value=f"0", emoji="📄"))
-            options.append(disnake.SelectOption(label="Page 2 (25-50)", value=f"1", emoji="📄"))
+            options.append(disnake.SelectOption(label=f"Page 2 (25-{len(ranking)})", value=f"1", emoji="📄"))
 
         if num_not != 0:
             options.append(disnake.SelectOption(label="Track Missing Players", value=f"{results.tag}", emoji="🔀"))
@@ -222,8 +222,7 @@ class Check(commands.Cog):
             # print(res.custom_id)
             if res.values[0] in ("0", "1"):
                 current_page = int(res.values[0])
-                await res.response.edit_message(embed=embeds[current_page],
-                                                components=[action_row])
+                await res.response.edit_message(embed=embeds[current_page])
 
             else:
                 embed = disnake.Embed(
@@ -251,7 +250,7 @@ class Check(commands.Cog):
                 options = []
                 if len(embeds) == 2:
                     options.append(disnake.SelectOption(label="Page 1 (1-25)", value=f"0", emoji="📄"))
-                    options.append(disnake.SelectOption(label="Page 2 (25-50)", value=f"1", emoji="📄"))
+                    options.append(disnake.SelectOption(label=f"Page 2 (25-f{len(ranking)}", value=f"1", emoji="📄"))
 
                 if options == []:
                     e = embeds[0]
