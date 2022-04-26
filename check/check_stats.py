@@ -127,7 +127,8 @@ class CheckStats(commands.Cog):
         now_ = datetime.utcnow().replace(tzinfo=utc)
         current_season_progress = now - start
         current_season_progress = current_season_progress.days
-        if now_.hour <= 5:
+
+        if now_.hour < 5:
             current_season_progress -= 1
         first_record = 0
         last_record = current_season_progress
@@ -135,17 +136,16 @@ class CheckStats(commands.Cog):
         eod = result.get("end_of_day")
 
         len_y = len(eod)
-        if last_record == len_y:
-            last_record -= 1
         if last_record > len_y:
-            last_record = len(eod) - 1
+            last_record = len(eod)
 
         text = f""
         initial = f"**Attacks Won:** {player.num_season_hits} | **Def Won:** {player.num_season_defs}\n"
         text += initial
-        day = (((last_record-real) * -1))
+        day = (((last_record - real) * -1))
         hits = player.previous_hits[len(player.previous_hits) - last_record:len(player.previous_hits) - first_record]
         defs = player.previous_defs[len(player.previous_defs) - last_record:len(player.previous_defs) - first_record]
+
         spot = 0
         for hit in hits:
             day+=1
