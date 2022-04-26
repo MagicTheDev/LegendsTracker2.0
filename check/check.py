@@ -158,7 +158,7 @@ class Check(commands.Cog):
                                       description=text)
                 embed.set_thumbnail(url=results.badge.large)
                 if num_not != 0:
-                    embed.set_footer(text=f"{num_not} players untracked.")
+                    embed.set_footer(text=f"{num_not} players untracked.\nPage 1")
                 x = 0
                 embeds.append(embed)
                 text = ""
@@ -169,7 +169,7 @@ class Check(commands.Cog):
                                   description=text)
             embed.set_thumbnail(url=results.badge.large)
             if num_not != 0:
-                embed.set_footer(text=f"{num_not} players untracked.")
+                embed.set_footer(text=f"{num_not} players untracked.\nPage 2")
             embeds.append(embed)
 
         if len(embeds) == 0:
@@ -177,7 +177,7 @@ class Check(commands.Cog):
                                   description="No players tracked, use select menu below to track missing players in clan.")
             embed.set_thumbnail(url=results.badge.large)
             if num_not != 0:
-                embed.set_footer(text=f"{num_not} players untracked.")
+                embed.set_footer(text=f"{num_not} players untracked.\nPage 2")
             embeds.append(embed)
 
         options = []
@@ -219,8 +219,13 @@ class Check(commands.Cog):
             if res.values[0] in ("0", "1"):
                 current_page = int(res.values[0])
                 embed = embeds[current_page]
-                footer = embed.footer
-                embed.set_footer(text=f"{footer}\nPage {res.values[0]}")
+                footer = embed.footer.text
+                if footer != "":
+                    footer = footer.replace("Page 1", "")
+                    footer = footer.replace("Page 2", "")
+                    footer = footer.replace("\n", "")
+                    footer += "\n"
+                embed.set_footer(text=f"{footer}Page {res.values[0]}")
                 await res.response.edit_message(embed=embed)
 
             else:
