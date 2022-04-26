@@ -108,18 +108,17 @@ class LegendsFeed(commands.Cog):
                         off_cresults = []
 
                     if len(def_text_changes) >= 10:
-                        if server_def == "Off":
-                            continue
+
                         change_text = "\n".join(def_text_changes)
                         embed = disnake.Embed(description=change_text, color=disnake.Color.red())
                         if len(def_cresults) <= 25:
                             components = self.feed_components(def_cresults)
                         else:
                             components = []
-                        if thread_id is None:
+                        if thread_id is None and server_def != "Off":
                             await webhook.send(embed=embed, avatar_url=self.bot.user.display_avatar.url,
                                                components=components)
-                        else:
+                        elif server_def != "Off":
                             await webhook.send(embed=embed, avatar_url=self.bot.user.display_avatar.url,
                                                components=components)
                         def_text_changes = []
@@ -140,18 +139,16 @@ class LegendsFeed(commands.Cog):
                                            components=components)
 
                 if len(def_text_changes) > 0:
-                    if server_def == "Off":
-                        continue
                     change_text = "\n".join(def_text_changes)
                     embed = disnake.Embed(description=change_text, color=disnake.Color.red())
                     if len(def_cresults) <= 25:
                         components = self.feed_components(def_cresults)
                     else:
                         components = []
-                    if thread_id is None:
+                    if thread_id is None and server_def != "Off":
                         await webhook.send(embed=embed, avatar_url=self.bot.user.display_avatar.url,
                                            components=components)
-                    else:
+                    elif server_def != "Off":
                         await webhook.send(embed=embed, avatar_url=self.bot.user.display_avatar.url,
                                            components=components)
 
@@ -239,17 +236,15 @@ class LegendsFeed(commands.Cog):
 
 
                     if len(def_text_changes) >= 10:
-                        if server_def == "Off":
-                            continue
                         change_text = "\n".join(def_text_changes)
                         embed = disnake.Embed(description=change_text, color=disnake.Color.red())
                         if len(def_cresults)<= 25:
                             components = self.feed_components(def_cresults)
                         else:
                             components = []
-                        if thread_id is None:
+                        if thread_id is None and server_def != "Off":
                             await webhook.send(embed=embed, avatar_url=self.bot.user.display_avatar.url, components=components)
-                        else:
+                        elif server_def != "Off":
                             await webhook.send(embed=embed, avatar_url=self.bot.user.display_avatar.url, components=components, thread=thread)
                         def_text_changes = []
                         def_cresults = []
@@ -275,9 +270,9 @@ class LegendsFeed(commands.Cog):
                         components = self.feed_components(def_cresults)
                     else:
                         components = []
-                    if thread_id is None:
+                    if thread_id is None and server_def != "Off":
                         await webhook.send(embed=embed, avatar_url=self.bot.user.display_avatar.url, components=components)
-                    else:
+                    elif server_def != "Off":
                         await webhook.send(embed=embed, avatar_url=self.bot.user.display_avatar.url, components=components, thread=thread)
 
                 '''
