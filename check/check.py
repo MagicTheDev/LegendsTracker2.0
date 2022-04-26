@@ -163,10 +163,7 @@ class Check(commands.Cog):
                 embeds.append(embed)
                 text = ""
 
-        print(embeds)
-        print(ranking)
-        print(text)
-        print(num_not)
+
         if text != "":
             embed = disnake.Embed(title=f"__**{results.name} Legends Check**__",
                                   description=text)
@@ -174,7 +171,8 @@ class Check(commands.Cog):
             if num_not != 0:
                 embed.set_footer(text=f"{num_not} players untracked.")
             embeds.append(embed)
-        else:
+
+        if len(embeds) == 0:
             embed = disnake.Embed(title=f"__**{results.name} Legends Check**__",
                                   description="No players tracked, use select menu below to track missing players in clan.")
             embed.set_thumbnail(url=results.badge.large)
