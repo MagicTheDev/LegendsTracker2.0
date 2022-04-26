@@ -3,7 +3,7 @@ from typing import Optional
 import motor.motor_asyncio
 import nest_asyncio
 import uvicorn
-import aiohttp
+
 from datetime import datetime
 import pytz
 utc = pytz.utc
@@ -11,8 +11,6 @@ from coc import utils
 import coc
 
 from fastapi import FastAPI, Request, Response, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from pydantic import BaseModel
 
 
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -23,8 +21,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DB_LOGIN = os.getenv("DB_LOGIN")
-COC_EMAIL = os.getenv("BETA_COC_EMAIL")
-COC_PASSWORD = os.getenv("BETA_COC_PASSWORD")
+
 
 db_client = motor.motor_asyncio.AsyncIOMotorClient(DB_LOGIN)
 legends_stats = db_client.legends_stats
@@ -36,6 +33,12 @@ app = FastAPI()
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+from clash import coc_client, setup_coc
+
+@app.on_event("startup")
+async def startup_event():
+    await setup_coc()
+    print("App started and coc connection established successfully")
 
 @app.get("/player/{player_tag}")
 @limiter.limit("60/second")
@@ -282,7 +285,4 @@ def season_hit_stats(player):
 
 
 if __name__ == '__main__':
-    nest_asyncio.apply()
-    loop = asyncio.new_event_loop()
-    coc_client = coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, loop=loop)
     uvicorn.run("legendapi:app", port=8000, host='45.33.3.218')
