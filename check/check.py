@@ -183,7 +183,7 @@ class Check(commands.Cog):
         options = []
         if len(embeds) == 2:
             options.append(disnake.SelectOption(label="Page 1 (1-25)", value=f"0", emoji="📄"))
-            options.append(disnake.SelectOption(label=f"Page 2 (25-{len(ranking)})", value=f"1", emoji="📄"))
+            options.append(disnake.SelectOption(label=f"Page 2 (26-{len(ranking)})", value=f"1", emoji="📄"))
 
         if num_not != 0:
             options.append(disnake.SelectOption(label="Track Missing Players", value=f"{results.tag}", emoji="🔀"))
@@ -215,14 +215,13 @@ class Check(commands.Cog):
                 await msg.edit(components=[])
                 break
 
-            if res.author.id != ctx.author.id:
-                await res.send(content="You must run the command yourself to interact with components.", ephemeral=True)
-                continue
-
             # print(res.custom_id)
             if res.values[0] in ("0", "1"):
                 current_page = int(res.values[0])
-                await res.response.edit_message(embed=embeds[current_page])
+                embed = embeds[current_page]
+                footer = embed.footer
+                embed.set_footer(text=f"{footer}\nPage {res.values[0]}")
+                await res.response.edit_message(embed=embed)
 
             else:
                 embed = disnake.Embed(
@@ -250,7 +249,7 @@ class Check(commands.Cog):
                 options = []
                 if len(embeds) == 2:
                     options.append(disnake.SelectOption(label="Page 1 (1-25)", value=f"0", emoji="📄"))
-                    options.append(disnake.SelectOption(label=f"Page 2 (25-f{len(ranking)}", value=f"1", emoji="📄"))
+                    options.append(disnake.SelectOption(label=f"Page 2 (26-f{len(ranking)}", value=f"1", emoji="📄"))
 
                 if options == []:
                     e = embeds[0]
