@@ -138,12 +138,10 @@ class Check(commands.Cog):
         ranking = sorted(ranking, key=lambda l: l[6], reverse=True)
 
         text = ""
-        initial = f"__**{results.name} Legends Check**__\n"
         embeds = []
         x = 0
         for player in ranking:
             name = player[0]
-            hits = player[2]
             hits = player[2]
             numHits = player[3]
             if numHits >= 9:
@@ -165,6 +163,10 @@ class Check(commands.Cog):
                 embeds.append(embed)
                 text = ""
 
+        print(embeds)
+        print(ranking)
+        print(text)
+        print(num_not)
         if text != "":
             embed = disnake.Embed(title=f"__**{results.name} Legends Check**__",
                                   description=text)
