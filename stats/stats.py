@@ -279,7 +279,7 @@ class LegendStats(commands.Cog):
 
         playerStats.sort(key=lambda row: (row[2]), reverse=True)
         topTen = "**Name | Tag | # of servers tracked in**\n"
-        for x in range (0,10):
+        for x in range (0,25):
             topTen+=f"{playerStats[x][0]} | {playerStats[x][1]} | {playerStats[x][2]}\n"
 
         board = disnake.Embed(title="🔥 Most popular tracked players 🔥 \n",
