@@ -62,7 +62,7 @@ class LegendsFeed(commands.Cog):
                         member_tags.append(member.tag)
 
                 server_results = await server_db.find_one({"server": server_id})
-                server_def = server_results.get("server_def")
+                server_def = server_results.get("feed_def")
                 trophy_change_results = ongoing_stats.find({"$and": [
                     {"tag": {"$in": member_tags}},
                     {"new_change": {"$ne": None}}
@@ -189,7 +189,7 @@ class LegendsFeed(commands.Cog):
                     continue
 
                 tracked_members = server_result.get("tracked_members")
-                server_def = server_result.get("server_def")
+                server_def = server_result.get("feed_def")
                 trophy_change_results = ongoing_stats.find({"$and": [
                     {"tag": {"$in": tracked_members}},
                     {"new_change": {"$ne": None}}
