@@ -233,6 +233,10 @@ class Check(commands.Cog):
                 await res.response.edit_message(embed=embed)
 
             else:
+                if res.author.id != ctx.author.id:
+                    await res.send(content="You must run the command to interact with components.", ephemeral=True)
+                    continue
+
                 embed = disnake.Embed(
                     description="<a:loading:884400064313819146> Adding players...",
                     color=disnake.Color.green())
