@@ -159,6 +159,8 @@ class Check(commands.Cog):
                 embed.set_thumbnail(url=results.badge.large)
                 if num_not != 0:
                     embed.set_footer(text=f"{num_not} players untracked.\nPage 1")
+                else:
+                    embed.set_footer(text=f"Page 1")
                 x = 0
                 embeds.append(embed)
                 text = ""
@@ -170,6 +172,8 @@ class Check(commands.Cog):
             embed.set_thumbnail(url=results.badge.large)
             if num_not != 0:
                 embed.set_footer(text=f"{num_not} players untracked.\nPage 2")
+            else:
+                embed.set_footer(text=f"Page 2")
             embeds.append(embed)
 
         if len(embeds) == 0:
@@ -177,7 +181,7 @@ class Check(commands.Cog):
                                   description="No players tracked, use select menu below to track missing players in clan.")
             embed.set_thumbnail(url=results.badge.large)
             if num_not != 0:
-                embed.set_footer(text=f"{num_not} players untracked.\nPage 2")
+                embed.set_footer(text=f"{num_not} players untracked.")
             embeds.append(embed)
 
         options = []
