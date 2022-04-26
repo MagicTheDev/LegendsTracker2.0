@@ -52,7 +52,7 @@ class FeedButtons(commands.Cog):
                 await ctx.send(embed=embed, components=components)
             else:
                 components = await self.create_components(results, trophy_results, current_page, is_many and ez_look)
-                await ctx.send(embed=stats_page[0], components=components)
+                await ctx.send(embed=stats_page[0], components=components, delete_after=300)
 
             msg= await ctx.original_message()
             def check(res: disnake.MessageInteraction):
@@ -61,7 +61,7 @@ class FeedButtons(commands.Cog):
             while True:
                 try:
                     res: disnake.MessageInteraction = await self.bot.wait_for("message_interaction", check=check,
-                                                                              timeout=600)
+                                                                              timeout=120)
                 except:
                     await msg.edit(components=[])
                     break
