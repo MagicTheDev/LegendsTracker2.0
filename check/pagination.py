@@ -20,8 +20,8 @@ class Pagination(commands.Cog):
         results = []
         is_many = len(tags) > 1
         if is_many and ez_look:
+            results.append("x")
             x= 1
-            current_page = 1
         text = ""
         for tag in tags:
             r = await ongoing_stats.find_one({"tag": tag})
