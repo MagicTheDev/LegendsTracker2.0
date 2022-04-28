@@ -286,7 +286,8 @@ class Check(commands.Cog):
     async def legends(self, ctx, msg, search_query, ez_look):
 
         results = await search_results(ctx, search_query)
-        if results is None and utils.is_valid_tag(search_query):
+        if results is None:
+            if utils.is_valid_tag(search_query[:-1]):
             results = await search_results(ctx, search_query[:-1])
 
         #track for them if not found
