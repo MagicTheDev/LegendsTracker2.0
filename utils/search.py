@@ -71,7 +71,7 @@ async def search_name(query):
 
 async def search_name_with_tag(query, poster=False):
     names = []
-    if query is not "" and poster != False:
+    if query is not "" and poster is False:
         names.append(query)
     #if search is a player tag, pull stats of the player tag
 
