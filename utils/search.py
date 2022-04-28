@@ -69,9 +69,9 @@ async def search_name(query):
         names.append(document.get("name"))
     return names
 
-async def search_name_with_tag(query):
+async def search_name_with_tag(query, poster=False):
     names = []
-    if query is not "":
+    if query is not "" and poster != False:
         names.append(query)
     #if search is a player tag, pull stats of the player tag
 

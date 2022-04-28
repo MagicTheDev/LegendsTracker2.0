@@ -39,7 +39,7 @@ class Poster(commands.Cog):
         self.bot = bot
 
     async def autocomp_names(self, user_input: str):
-        results = await search_name_with_tag(user_input)
+        results = await search_name_with_tag(user_input, True)
         return results
 
     @commands.slash_command(name="poster", description="Poster w/ graph & stats to show off season legends stats")
