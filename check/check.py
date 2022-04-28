@@ -6,6 +6,7 @@ from utils.db import addLegendsPlayer_GLOBAL
 from utils.search import search_clans_with_tag, search_clan_tag, search_results, search_name_with_tag
 SUPER_SCRIPTS=["⁰","¹","²","³","⁴","⁵","⁶", "⁷","⁸", "⁹"]
 import emoji
+from coc import utils
 
 class Check(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -285,6 +286,8 @@ class Check(commands.Cog):
     async def legends(self, ctx, msg, search_query, ez_look):
 
         results = await search_results(ctx, search_query)
+        if results is None and utils.is_valid_tag(search_query):
+            results = await search_results(ctx, search_query[:-1])
 
         #track for them if not found
         if results == []:
