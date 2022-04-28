@@ -71,7 +71,8 @@ async def search_name(query):
 
 async def search_name_with_tag(query):
     names = []
-    names.append(query)
+    if query is not "":
+        names.append(query)
     #if search is a player tag, pull stats of the player tag
 
     if utils.is_valid_tag(query) is True:
