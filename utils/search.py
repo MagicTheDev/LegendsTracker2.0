@@ -71,6 +71,7 @@ async def search_name(query):
 
 async def search_name_with_tag(query):
     names = []
+    names.append(query)
     #if search is a player tag, pull stats of the player tag
 
     if utils.is_valid_tag(query) is True:
@@ -80,7 +81,7 @@ async def search_name_with_tag(query):
         results = ongoing_stats.find({"$and": [
             {"tag": {"$regex": f"^(?i).*{t}.*$"}}
         ]})
-        for document in await results.to_list(length=25):
+        for document in await results.to_list(length=24):
             names.append(document.get("name") + " | " + document.get("tag"))
         return names
 
@@ -94,7 +95,7 @@ async def search_name_with_tag(query):
     results = ongoing_stats.find({"$and" : [
         {"name": {"$regex": f"^(?i).*{query}.*$"}}
     ]})
-    for document in await results.to_list(length=25):
+    for document in await results.to_list(length=24):
         names.append(document.get("name") + " | " + document.get("tag"))
     return names
 
