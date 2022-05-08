@@ -131,7 +131,8 @@ class Pagination(commands.Cog):
                     continue
                 tags = presults.get("profile_tags")
                 result = results[current_page]
-                print(result)
+                if result == "x":
+                    continue
                 tag = result.get("tag")
                 if tag in tags:
                     continue
@@ -142,6 +143,8 @@ class Pagination(commands.Cog):
                     continue
                 tags = presults.get("profile_tags")
                 result = results[current_page]
+                if result == "x":
+                    continue
                 print(result)
                 tag = result.get("tag")
                 if tag in tags:
