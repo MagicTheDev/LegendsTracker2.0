@@ -1,5 +1,5 @@
 from disnake.ext import commands
-from utils.helper import profile_db
+from utils.helper import profile_db, ongoing_stats
 import disnake
 
 
@@ -21,6 +21,12 @@ class QuickCheck(commands.Cog):
         results = await profile_db.find_one({'discord_id': ctx.author.id})
         if results is not None:
             tags = results.get("profile_tags")
+            for tag in tags:
+                r = await ongoing_stats.find_one({"tag": tag})
+                if r is None:
+                    tags.remove(tag)
+                    await profile_db.update_one({'discord_id': ctx.author.id},
+                                                {'$pull': {"profile_tags": tag}})
             if tags != []:
                 pagination = self.bot.get_cog("MainCheck")
                 return await pagination.button_pagination(msg, tags, len(tags) > 1)
