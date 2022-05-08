@@ -3,7 +3,7 @@ from disnake.ext import commands
 from utils.helper import ongoing_stats, profile_db, getPlayer
 from dbplayer import DB_Player
 
-stat_types = ["Previous Days", "Legends Overview", "Graph & Stats", "Legends History", "Add to Quick Check"]
+stat_types = ["Previous Days", "Legends Overview", "Graph & Stats", "Legends History", "Quick Check & Daily Report Add", "Quick Check & Daily Report Remove"]
 
 class Pagination(commands.Cog):
 
@@ -42,10 +42,10 @@ class Pagination(commands.Cog):
             trophy_results.insert(0, disnake.SelectOption(label=f"Results Overview", value=f"0"))
             embed.set_footer(text="Use `Player Results` menu Below to switch btw players")
             stats_page.insert(0, embed)
-            components = await self.create_components(results, trophy_results, current_page, is_many and ez_look)
+            components = await self.create_components(results, trophy_results, current_page, is_many and ez_look, msg.author.id)
             await msg.edit(embed=embed, components=components)
         else:
-            components = await self.create_components(results, trophy_results, current_page, is_many and ez_look)
+            components = await self.create_components(results, trophy_results, current_page, is_many and ez_look, msg.author.id)
             await msg.edit(embed=stats_page[0], components=components)
 
         def check(res: disnake.MessageInteraction):
@@ -59,7 +59,9 @@ class Pagination(commands.Cog):
                 break
 
             if res.values[0] in stat_types:
-                if res.values[0] == "Add to Quick Check":
+                if "Quick Check & Daily Report" in res.values[0]:
+                    components = await self.create_components(results, trophy_results, current_page,
+                                                              is_many and ez_look, msg.author.id)
                     await self.add_profile(res, results[current_page], components, msg)
                 else:
                     current_stat = stat_types.index(res.values[0])
@@ -72,7 +74,7 @@ class Pagination(commands.Cog):
                     previous_page = current_page
                     current_page = int(res.values[0])
                     if previous_page == 0 or current_page == 0:
-                        components = await self.create_components(results, trophy_results, current_page, is_many and ez_look)
+                        components = await self.create_components(results, trophy_results, current_page, is_many and ez_look, msg.author.id)
                     embed = stats_page[current_page]
                     await res.response.edit_message(embed=embed,
                                    components=components)
@@ -88,22 +90,22 @@ class Pagination(commands.Cog):
             await profile_db.insert_one({'discord_id': res.author.id,
                                          "profile_tags" : [f"{tag}"]})
             player = await getPlayer(tag)
-            await res.send(content=f"Added {player.name} to your Quick Check list.", ephemeral=True)
+            await res.send(content=f"Added {player.name} to your Quick Check & Daily Report list.", ephemeral=True)
         else:
             profile_tags = results.get("profile_tags")
             if tag in profile_tags:
                 await profile_db.update_one({'discord_id': res.author.id},
                                                {'$pull': {"profile_tags": tag}})
                 player = await getPlayer(tag)
-                await res.send(content=f"Removed {player.name} from your Quick Check list.", ephemeral=True)
+                await res.send(content=f"Removed {player.name} from your Quick Check & Daily Report list.", ephemeral=True)
             else:
-                if len(profile_tags) > 25:
-                    await res.send(content=f"Can only have 25 players on your Quick Check list. Please remove one.", ephemeral=True)
+                if len(profile_tags) > 24:
+                    await res.send(content=f"Can only have 24 players on your Quick Check & Daily Report list. Please remove one.", ephemeral=True)
                 else:
                     await profile_db.update_one({'discord_id': res.author.id},
                                                {'$push': {"profile_tags": tag}})
                     player = await getPlayer(tag)
-                    await res.send(content=f"Added {player.name} to your Quick Check list.", ephemeral=True)
+                    await res.send(content=f"Added {player.name} to your Quick Check & Daily Report list.", ephemeral=True)
 
 
     async def display_embed(self, results, stat_type, current_page):
@@ -119,13 +121,30 @@ class Pagination(commands.Cog):
         elif stat_type == "Legends History":
             return await check.create_history(results[current_page].get("tag"))
 
-    async def create_components(self, results, trophy_results, current_page, is_many):
+    async def create_components(self, results, trophy_results, current_page, is_many, author_id):
         length = len(results)
         options = []
 
         for stat in stat_types:
-            if stat == "Add to Quick Check":
-                options.append(disnake.SelectOption(label=f"{stat}", value=f"{stat}", description="(If already added, will remove player instead)"))
+            if stat == "Quick Check & Daily Report Add":
+                presults = await profile_db.find_one({'discord_id': author_id})
+                if presults is None:
+                    continue
+                tags = presults.get("profile_tags")
+                result = results[current_page]
+                tag = result.get("tag")
+                if tag in tags:
+                    continue
+                options.append(disnake.SelectOption(label=f"{stat}", value=f"{stat}"))
+            elif stat == "Quick Check & Daily Report Remove":
+                presults = await profile_db.find_one({'discord_id': author_id})
+                if presults is None:
+                    continue
+                tags = presults.get("profile_tags")
+                result = results[current_page]
+                tag = result.get("tag")
+                if tag in tags:
+                    options.append(disnake.SelectOption(label=f"{stat}", value=f"{stat}"))
             else:
                 options.append(disnake.SelectOption(label=f"{stat}", value=f"{stat}"))
 
