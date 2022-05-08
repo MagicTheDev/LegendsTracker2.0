@@ -29,7 +29,7 @@ class QuickCheck(commands.Cog):
                                                 {'$pull': {"profile_tags": tag}})
             if tags != []:
                 pagination = self.bot.get_cog("MainCheck")
-                return await pagination.button_pagination(msg, tags, len(tags) > 1)
+                return await pagination.button_pagination(msg, tags, len(tags) > 1, ctx)
 
         embed = disnake.Embed(
             description="**No players saved to your profile.**\nTo save a player:\n- Look them up with `/check`\n- Under `Stat Pages & Settings`, click `Add to Quick Check`.\n- Picture Below.",

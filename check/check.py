@@ -316,7 +316,7 @@ class Check(commands.Cog):
                 return await msg.edit(content=None, embed=embed)
 
         pagination = self.bot.get_cog("MainCheck")
-        await pagination.button_pagination(msg, results, ez_look)
+        await pagination.button_pagination(msg, results, ez_look, ctx)
 
     async def check_global_tracked(self,player):
         results = await ongoing_stats.find_one({"tag": f"{player.tag}"})

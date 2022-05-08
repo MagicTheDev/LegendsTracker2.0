@@ -10,7 +10,7 @@ class Pagination(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    async def button_pagination(self, msg, tags, ez_look):
+    async def button_pagination(self, msg, tags, ez_look, ctx):
         check = self.bot.get_cog("MainCheck")
         current_page = 0
         stats_page = []
@@ -42,10 +42,10 @@ class Pagination(commands.Cog):
             trophy_results.insert(0, disnake.SelectOption(label=f"Results Overview", value=f"0"))
             embed.set_footer(text="Use `Player Results` menu Below to switch btw players")
             stats_page.insert(0, embed)
-            components = await self.create_components(results, trophy_results, current_page, is_many and ez_look, msg.author.id)
+            components = await self.create_components(results, trophy_results, current_page, is_many and ez_look, ctx)
             await msg.edit(embed=embed, components=components)
         else:
-            components = await self.create_components(results, trophy_results, current_page, is_many and ez_look, msg.author.id)
+            components = await self.create_components(results, trophy_results, current_page, is_many and ez_look, ctx)
             await msg.edit(embed=stats_page[0], components=components)
 
         def check(res: disnake.MessageInteraction):
@@ -61,7 +61,7 @@ class Pagination(commands.Cog):
             if res.values[0] in stat_types:
                 if "Quick Check & Daily Report" in res.values[0]:
                     components = await self.create_components(results, trophy_results, current_page,
-                                                              is_many and ez_look, msg.author.id)
+                                                              is_many and ez_look, res)
                     await self.add_profile(res, results[current_page], components, msg)
                 else:
                     current_stat = stat_types.index(res.values[0])
@@ -74,7 +74,7 @@ class Pagination(commands.Cog):
                     previous_page = current_page
                     current_page = int(res.values[0])
                     if previous_page == 0 or current_page == 0:
-                        components = await self.create_components(results, trophy_results, current_page, is_many and ez_look, msg.author.id)
+                        components = await self.create_components(results, trophy_results, current_page, is_many and ez_look, res)
                     embed = stats_page[current_page]
                     await res.response.edit_message(embed=embed,
                                    components=components)
@@ -121,13 +121,12 @@ class Pagination(commands.Cog):
         elif stat_type == "Legends History":
             return await check.create_history(results[current_page].get("tag"))
 
-    async def create_components(self, results, trophy_results, current_page, is_many, author_id):
+    async def create_components(self, results, trophy_results, current_page, is_many, ctx):
         length = len(results)
         options = []
-
         for stat in stat_types:
             if stat == "Quick Check & Daily Report Add":
-                presults = await profile_db.find_one({'discord_id': author_id})
+                presults = await profile_db.find_one({'discord_id': ctx.author.id})
                 if presults is None:
                     continue
                 tags = presults.get("profile_tags")
@@ -137,7 +136,7 @@ class Pagination(commands.Cog):
                     continue
                 options.append(disnake.SelectOption(label=f"{stat}", value=f"{stat}"))
             elif stat == "Quick Check & Daily Report Remove":
-                presults = await profile_db.find_one({'discord_id': author_id})
+                presults = await profile_db.find_one({'discord_id': ctx.author.id})
                 if presults is None:
                     continue
                 tags = presults.get("profile_tags")
