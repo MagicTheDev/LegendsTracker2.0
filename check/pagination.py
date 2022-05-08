@@ -145,7 +145,6 @@ class Pagination(commands.Cog):
                 result = results[current_page]
                 if result == "x":
                     continue
-                print(result)
                 tag = result.get("tag")
                 if tag in tags:
                     options.append(disnake.SelectOption(label=f"{stat}", value=f"{stat}"))
