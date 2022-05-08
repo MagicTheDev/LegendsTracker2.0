@@ -71,8 +71,7 @@ class Pagination(commands.Cog):
                 try:
                     previous_page = current_page
                     current_page = int(res.values[0])
-                    if previous_page == 0 or current_page == 0:
-                        components = await self.create_components(results, trophy_results, current_page, is_many and ez_look, res)
+                    components = await self.create_components(results, trophy_results, current_page, is_many and ez_look, res)
                     embed = stats_page[current_page]
                     await res.response.edit_message(embed=embed,
                                    components=components)
