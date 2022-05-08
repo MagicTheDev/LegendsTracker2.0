@@ -60,7 +60,7 @@ class Pagination(commands.Cog):
 
             if res.values[0] in stat_types:
                 if "Quick Check & Daily Report" in res.values[0]:
-                    await self.add_profile(res, results[current_page], msg, trophy_results, current_page, is_many and ez_look)
+                    await self.add_profile(res, results[current_page], msg, trophy_results, current_page, is_many and ez_look, results)
                 else:
                     current_stat = stat_types.index(res.values[0])
                     await res.response.defer()
@@ -80,7 +80,7 @@ class Pagination(commands.Cog):
                     continue
 
 
-    async def add_profile(self, res, tag, msg, trophy_results, current_page, is_true):
+    async def add_profile(self, res, tag, msg, trophy_results, current_page, is_true, rresult):
         tag = tag.get("tag")
         results = await profile_db.find_one({'discord_id': res.author.id})
         if results is None:
@@ -104,7 +104,7 @@ class Pagination(commands.Cog):
                     player = await getPlayer(tag)
                     await res.send(content=f"Added {player.name} to your Quick Check & Daily Report list.", ephemeral=True)
 
-        components = await self.create_components(results, trophy_results, current_page, is_true, res)
+        components = await self.create_components(rresults, trophy_results, current_page, is_true, res)
         await msg.edit(components=components)
 
     async def display_embed(self, results, stat_type, current_page):
@@ -129,7 +129,6 @@ class Pagination(commands.Cog):
                 if presults is None:
                     continue
                 tags = presults.get("profile_tags")
-                print(results)
                 result = results[current_page]
                 if result == "x":
                     continue
