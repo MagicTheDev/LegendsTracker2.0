@@ -104,7 +104,7 @@ class Pagination(commands.Cog):
                     player = await getPlayer(tag)
                     await res.send(content=f"Added {player.name} to your Quick Check & Daily Report list.", ephemeral=True)
 
-        components = await self.create_components(rresults, trophy_results, current_page, is_true, res)
+        components = await self.create_components(rresult, trophy_results, current_page, is_true, res)
         await msg.edit(components=components)
 
     async def display_embed(self, results, stat_type, current_page):
