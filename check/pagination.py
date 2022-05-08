@@ -131,6 +131,7 @@ class Pagination(commands.Cog):
                     continue
                 tags = presults.get("profile_tags")
                 result = results[current_page]
+                print(result)
                 tag = result.get("tag")
                 if tag in tags:
                     continue
@@ -141,6 +142,7 @@ class Pagination(commands.Cog):
                     continue
                 tags = presults.get("profile_tags")
                 result = results[current_page]
+                print(result)
                 tag = result.get("tag")
                 if tag in tags:
                     options.append(disnake.SelectOption(label=f"{stat}", value=f"{stat}"))
