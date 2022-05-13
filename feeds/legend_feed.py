@@ -41,6 +41,8 @@ class LegendsFeed(commands.Cog):
                     webhook = await self.bot.fetch_webhook(webhook_id)
                     if thread_id is not None:
                         thread = await self.bot.fetch_channel(thread_id)
+                        if thread.locked:
+                            continue
                 except (disnake.NotFound, disnake.Forbidden):
                     await clan_feed_db.update_one({"server": server_id}, {'$set': {"webhook": None}})
                     await clan_feed_db.update_one({"server": server_id}, {'$set': {"thread": None}})
@@ -177,6 +179,8 @@ class LegendsFeed(commands.Cog):
                     webhook = await self.bot.fetch_webhook(webhook_id)
                     if thread_id is not None:
                         thread = await self.bot.fetch_channel(thread_id)
+                        if thread.locked:
+                            continue
                 except (disnake.NotFound, disnake.Forbidden):
                     await server_db.update_one({"server": server_id}, {'$set': {"webhook": None}})
                     await server_db.update_one({"server": server_id}, {'$set': {"thread": None}})
