@@ -28,8 +28,14 @@ class Pagination(commands.Cog):
             results.append(r)
             player = DB_Player(r)
             SUPER_SCRIPTS = ["⁰", "¹", "²", "³", "⁴", "⁵", "⁶", "⁷", "⁸", "⁹"]
-            numHits = SUPER_SCRIPTS[player.num_hits]
-            numDefs = SUPER_SCRIPTS[player.num_def]
+            try:
+                numHits = SUPER_SCRIPTS[player.num_hits]
+            except:
+                numHits = "⁸"
+            try:
+                numDefs = SUPER_SCRIPTS[player.num_def]
+            except:
+                numDefs = "⁸"
             text += f"\u200e**<:trophyy:849144172698402817>{player.trophies} | \u200e{player.name}**\n➼ <:cw:948845649229647952> {player.sum_hits}{numHits} <:sh:948845842809360424> {player.sum_defs}{numDefs}\n"
             trophy_results.append(disnake.SelectOption(label=f"{player.name} | 🏆{player.trophies}", value=f"{x}"))
             embed = await check.checkEmbed(r)
