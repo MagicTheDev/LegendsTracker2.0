@@ -30,10 +30,10 @@ async def stats_update():
     hour = str(now.hour)
     minute = now.minute
     global moved
-    if (hour == "4") and (minute >= 50) and (moved is True):
+    if (hour == "6") and (minute >= 30) and (moved is True):
         moved = False
 
-    if (hour == "5") and (minute >= 3) and (minute <= 8) and (moved is False):
+    if (hour == "6") and (minute >= 30) and (minute <= 40) and (moved is False):
         await moveStats()
         moved = True
 
