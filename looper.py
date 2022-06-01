@@ -21,7 +21,7 @@ client = motor.motor_asyncio.AsyncIOMotorClient(DB_LOGIN)
 ongoing_db = client.legends_stats
 ongoing_stats = ongoing_db.ongoing_stats
 
-moved = False
+moved = True
 
 async def stats_update():
 
@@ -33,7 +33,7 @@ async def stats_update():
     if (hour == "4") and (minute >= 50) and (moved is True):
         moved = False
 
-    if (hour == "7") and (minute >= 0) and (minute <= 8) and (moved is False):
+    if (hour == "5") and (minute >= 0) and (minute <= 8) and (moved is False):
         await moveStats()
         moved = True
 
