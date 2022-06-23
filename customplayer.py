@@ -112,34 +112,6 @@ class CustomPlayer(coc.Player):
         return sum_hits - sum_defs
 
 
-    async def bot_rank(self, day):
-        rankings = []
-        tracked = ongoing_stats.find()
-        limit = await ongoing_stats.count_documents(filter={})
-        for document in await tracked.to_list(length=limit):
-            tag = document.get("tag")
-            if day == 0:
-                trophy = document.get("trophies")
-            else:
-                record = day + 1
-                eod = document.get("end_of_day")
-                if record > len(eod):
-                    continue
-                trophy = eod[-record]
-            rr = []
-            rr.append(tag)
-            rr.append(trophy)
-            rankings.append(rr)
-
-        ranking = sorted(rankings, key=lambda l: l[1], reverse=True)
-        async def get_rank(tag, ranking):
-            for i, x in enumerate(ranking):
-                if tag in x:
-                    return i
-        ranking = await get_rank(self.tag, ranking)
-        return str(ranking + 1)
-
-
     #SET/UPDATE DB METHODS
     async def update_clan_name(self, player):
         if self.clan_name != self.db_clan_name(player):
