@@ -28,7 +28,7 @@ LINK_API_PW = os.getenv("LINK_API_PW")
 PATREON_BEARER = os.getenv("PATREON_BEARER")
 
 
-coc_client = coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, key_count=10, key_names="DiscordBot", throttle_limit = 25)
+coc_client = coc.login(COC_EMAIL, COC_PASSWORD, client=coc.EventsClient, key_count=10, key_names="DiscordBot", throttle_limit = 25 , cache_max_size=None)
 link_client = discordlinks.login(LINK_API_USER, LINK_API_PW)
 
 db_client = motor.motor_asyncio.AsyncIOMotorClient(DB_LOGIN)
