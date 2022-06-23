@@ -174,21 +174,14 @@ async def stats_update():
     if removed != []:
         print(f"Removed: {removed}")
 
-    rank = 1
-    tracked = ongoing_stats.find().sort("trophies",-1)
-    limit = await ongoing_stats.count_documents(filter={})
-    for document in await tracked.to_list(length=limit):
-        tag = document.get("tag")
-        await ongoing_stats.update_one({'tag': f"{tag}"},
-                                       {'$set': {"rank": rank}})
-        rank+=1
-
     print(f"Loop : {time.time() - rtime}")
     cache = coc_client_two.http.cache
     #print("cache length: " + str(len(cache)))
 
 async def moveStats():
-    tracked = ongoing_stats.find()
+    rank = 1
+
+    tracked = ongoing_stats.find().sort("trophies", -1)
     limit = await ongoing_stats.count_documents(filter={})
     for document in await tracked.to_list(length=limit):
         tag = document.get("tag")
@@ -201,11 +194,14 @@ async def moveStats():
                                        {'$set': {"num_yesterday_hits": num_today_hits,
                                                  "today_hits": [],
                                                  "num_today_hits": 0,
-                                                 "today_defenses": []}})
+                                                 "today_defenses": [],
+                                                 "rank": rank}})
+
         await ongoing_stats.update_one({'tag': f"{tag}"},
                                        {'$push': {"end_of_day": trophies,
                                                   "previous_hits": today_hits,
                                                   "previous_defenses": today_defenses}})
+        rank += 1
     print("Stats Shifted & Stored")
 
 
