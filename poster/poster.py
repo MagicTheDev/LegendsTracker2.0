@@ -1,8 +1,10 @@
+import time
+
 import coc
 from disnake.ext import commands
 import disnake
 import matplotlib.pyplot as plt
-from utils.helper import ongoing_stats, getPlayer, history_db
+from utils.helper import ongoing_stats, getPlayer, has_guild_plan, has_single_plan, decrement_usage, translate
 from PIL import Image, ImageDraw, ImageFont
 import io
 from coc import utils
@@ -55,11 +57,22 @@ class Poster(commands.Cog):
             background: Which background for poster to use (optional)
             previous_season: (optional)
         """
+        t = time.time()
+        '''
+        SINGLE_PLAN = await has_single_plan(ctx)
+        GUILD_PLAN = await has_guild_plan(ctx)
+        TIER, NUM_COMMANDS, MESSAGE = await decrement_usage(ctx, SINGLE_PLAN, GUILD_PLAN)
+        if MESSAGE is not None:
+            await ctx.response.defer(ephemeral=True)
+            return await ctx.send(content=MESSAGE)
+        '''
+
         await ctx.response.defer()
+
         if utils.is_valid_tag(smart_search) is False:
             if "|" not in smart_search:
                 embed = disnake.Embed(
-                    description=f"Invalid player tag. If searching by name make sure you choose an option from the autocomplete.",
+                    description=translate("invalid_tag_autocomplete", ctx),
                     color=disnake.Color.red())
                 return await ctx.edit_original_message(embed=embed)
 
@@ -73,12 +86,12 @@ class Poster(commands.Cog):
         result = await ongoing_stats.find_one({"tag": tag})
         if result is None:
             embed = disnake.Embed(
-                description=f"Player not tracked.\nUse `/track add` to add players for tracking & view stats on them.",
+                description=translate("not_tracked", ctx),
                 color=disnake.Color.red())
             return await ctx.edit_original_message(embed=embed)
 
 
-
+        print(f"#1 : {time.time()-t}")
         if previous_season == "Yes":
             # current season start date
             # use to get previous season (month - 1)
@@ -112,6 +125,7 @@ class Poster(commands.Cog):
             first_record = 0
             last_record = current_season_progress
 
+        print(f"#2 : {time.time() - t}")
         name = result.get("name")
         y = result.get("end_of_day")
 
@@ -124,12 +138,12 @@ class Poster(commands.Cog):
         if first_record >= len_y - 2:
             if previous_season == "Yes":
                 embed = disnake.Embed(
-                    description=f"Not enough data collected to make a poster for {name}. Minimum 3 days collected last season required.",
+                    description=f"{translate('not_enough_data_poster', ctx).format(name=name)}. {translate('minimum_last_season', ctx)}",
                     color=disnake.Color.red())
                 return await ctx.edit_original_message(embed=embed)
             else:
                 embed = disnake.Embed(
-                    description=f"Not enough data collected to make a poster for {name}. {str(len(y))} day collected, minimum 3 required.",
+                    description=f"{translate('not_enough_data_poster', ctx).format(name=name)}. {translate('minimum_this_season', ctx).format(day=str(len(y)))}",
                     color=disnake.Color.red())
                 return await ctx.edit_original_message(embed=embed)
 
@@ -148,6 +162,8 @@ class Poster(commands.Cog):
 
         if previous_season != "Yes":
             x.reverse()
+
+        print(f"#3 : {time.time() - t}")
         plt.plot(x, y, color='white', linestyle='dashed', linewidth=3,
                       marker="*", markerfacecolor="white", markeredgecolor="yellow", markersize=20)
         plt.ylim(min(y) - 100, max(y) + 100)
@@ -182,6 +198,7 @@ class Poster(commands.Cog):
         else:
             poster = Image.open(f"poster/backgrounds/{POSTER_LIST.get(background)}.png")
 
+        print(f"#4 : {time.time() - t}")
         player: coc.Player = await getPlayer(tag)
 
         gspot = None
@@ -210,6 +227,7 @@ class Poster(commands.Cog):
             if gspot != None and gspot > 99999:
                 gspot = None
 
+        print(f"#5 : {time.time() - t}")
         poster.paste(graph, (1175, 475), graph.convert("RGBA"))
 
         font = ImageFont.truetype("poster/fonts/code.TTF", 80)
@@ -238,17 +256,21 @@ class Poster(commands.Cog):
             watermark.putalpha(watermask)
             poster.paste(watermark, None, watermark)
 
-
+        print(f"#6 : {time.time() - t}")
         averages = await self.averages(result, first_record, last_record)
         if averages[2] >= 0:
             avg3 = f"+{str(averages[2])}"
         else:
             avg3 = f"{str(averages[2])}"
-        rank = await self.rank(tag, first_record, previous_season)
+
+        rank = result.get("rank")
         hitstats = await self.hit_stats(result, first_record, last_record)
+
+        print(f"#7 : {time.time() - t}")
 
         draw = ImageDraw.Draw(poster)
         draw.text((585, 95), name, anchor="mm", fill=(255,255,255), font=font)
+        print(f"#7.1 : {time.time() - t}")
         draw.text((570, 175), f"Stats collected from {len(y)} days of data", anchor="mm", fill=(255, 255, 255), font=font5)
 
         draw.text((360, 275), f"+{str(averages[0])} CUPS A DAY", anchor="mm", fill=(255, 255, 255), font=font2)
@@ -256,6 +278,7 @@ class Poster(commands.Cog):
         draw.text((570, 400), f"{avg3} CUPS A DAY", anchor="mm", fill=(255, 255, 255), font=font2)
         draw.text((1240, 400), f"{current} | Bot Rank #{rank}", fill=(255, 255, 255), font=font3)
         draw.text((295, 670), f"{hitstats[0]}%", anchor="mm", fill=(255, 255, 255), font=font4)
+        print(f"#7.2 : {time.time() - t}")
         draw.text((295, 790), f"{hitstats[1]}%", anchor="mm", fill=(255, 255, 255), font=font4)
         draw.text((295, 910), f"{hitstats[2]}%", anchor="mm", fill=(255, 255, 255), font=font4)
 
@@ -264,6 +287,7 @@ class Poster(commands.Cog):
         draw.text((840, 910), f"{hitstats[5]}%", anchor="mm", fill=(255, 255, 255), font=font4)
         draw.text((75, 1020), f"{month} {start.year} Season", fill=(255, 255, 255), font=font4)
 
+        print(f"#8 : {time.time() - t}")
         if gspot is not None:
             globe = Image.open("poster/globe.png")
             size = 75,75
@@ -286,6 +310,7 @@ class Poster(commands.Cog):
         except:
             pass
 
+        print(f"#9 : {time.time() - t}")
 
         #poster.show()
         temp = io.BytesIO()
@@ -293,6 +318,7 @@ class Poster(commands.Cog):
         temp.seek(0)
         file = disnake.File(fp=temp, filename="filename.png")
 
+        print(f"#10 : {time.time() - t}")
         await ctx.edit_original_message(file=file)
 
 

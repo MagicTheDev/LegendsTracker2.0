@@ -91,57 +91,56 @@ async def stats_update():
             # went positive
             elif trophies_changed>= 1:
                 diff_hits = player.attack_wins - player.db_season_hits(result)
-
-                multipleTriples = False
-                number_of_triples = 0
-                if diff_hits >= 2 and trophies_changed % 40 == 0:
-                    multipleTriples = True
-                    for x in range(0, diff_hits):
-                        await player.insert_attack(40)
-                        await player.increment_todays_hits()
-                        await player.increment_streak()
-                        number_of_triples+=1
-                else:
-                    await player.update_trophies(result)
-                    for x in range(0, diff_hits):
-                        await player.increment_todays_hits()
-                    if diff_hits == 1 and trophies_changed == 40:
-                        await player.increment_streak()
+                hits = player.db_num_hits(result)
+                if hits != 8:
+                    multipleTriples = False
+                    number_of_triples = 0
+                    if diff_hits >= 2 and trophies_changed % 40 == 0:
+                        multipleTriples = True
+                        for x in range(0, trophies_changed/40):
+                            await player.insert_attack(40)
+                            await player.increment_todays_hits()
+                            await player.increment_streak()
+                            number_of_triples+=1
+                        await player.update_trophies(result)
                     else:
-                        await player.reset_streak()
+                        await player.update_trophies(result)
+                        for x in range(0, diff_hits):
+                            await player.increment_todays_hits()
+                        if diff_hits == 1 and trophies_changed == 40:
+                            await player.increment_streak()
+                        else:
+                            await player.reset_streak()
 
-                current_streak = await player.db_current_streak()
-                highest_streak = player.db_highest_streak(result)
-                if current_streak > highest_streak:
-                    await player.update_highest_streak()
+                    current_streak = await player.db_current_streak()
+                    highest_streak = player.db_highest_streak(result)
+                    if current_streak > highest_streak:
+                        await player.update_highest_streak()
 
-                attacksText = ""
-                onfire = ""
+                    attacksText = ""
+                    onfire = ""
 
-                if number_of_triples >= 2:
-                    onfire = f"| 🔥 `x{number_of_triples}`"
+                    if number_of_triples >= 2:
+                        onfire = f"| 🔥 `x{number_of_triples}`"
 
-                if multipleTriples is True:
-                    hits = await player.get_todays_hits()
-                    for x in range(1, diff_hits + 1):
-                        thisHit = hits[-x]
-                        attacksText += f"<:sword:825589136026501160> +{thisHit}"
+                    if multipleTriples is True:
+                        attacksText += f"<:sword:825589136026501160> +{40}"
                         await ongoing_stats.update_one({'tag': f"{player.tag}"},
                                                        {'$push': {
                                                            'new_change': f"{attacksText} | <:legends:881450752109850635>{str(player.trophies)}{onfire} | {player.name}"
                                                        }})
-                else:
-                    if diff_hits >= 2:
-                        s = SUPER_SCRIPTS[diff_hits]
-                        attacksText += f"<:sword:825589136026501160> +{trophies_changed}{s}"
                     else:
-                        attacksText += f"<:sword:825589136026501160> +{trophies_changed}"
+                        if diff_hits >= 2:
+                            s = SUPER_SCRIPTS[diff_hits]
+                            attacksText += f"<:sword:825589136026501160> +{trophies_changed}{s}"
+                        else:
+                            attacksText += f"<:sword:825589136026501160> +{trophies_changed}"
 
-                    await player.insert_attack(trophies_changed)
-                    await ongoing_stats.update_one({'tag': f"{player.tag}"},
-                                                   {'$push': {
-                                                       'new_change': f"{attacksText} | <:legends:881450752109850635>{str(player.trophies)}{onfire} | {player.name}"
-                                                   }})
+                        await player.insert_attack(trophies_changed)
+                        await ongoing_stats.update_one({'tag': f"{player.tag}"},
+                                                       {'$push': {
+                                                           'new_change': f"{attacksText} | <:legends:881450752109850635>{str(player.trophies)}{onfire} | {player.name}"
+                                                       }})
 
 
             await ongoing_stats.update_one({'tag': f"{player.tag}"},
@@ -174,10 +173,19 @@ async def stats_update():
 
     if removed != []:
         print(f"Removed: {removed}")
+
+    rank = 1
+    tracked = ongoing_stats.find().sort("trophies",-1)
+    limit = await ongoing_stats.count_documents(filter={})
+    for document in await tracked.to_list(length=limit):
+        tag = document.get("tag")
+        await ongoing_stats.update_one({'tag': f"{tag}"},
+                                       {'$set': {"rank": rank}})
+        rank+=1
+
     print(f"Loop : {time.time() - rtime}")
     cache = coc_client_two.http.cache
     #print("cache length: " + str(len(cache)))
-    await asyncio.sleep(5)
 
 async def moveStats():
     tracked = ongoing_stats.find()
