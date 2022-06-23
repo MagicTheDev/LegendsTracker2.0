@@ -5,6 +5,7 @@ import pytz
 utc = pytz.utc
 from utils.helper import server_db, ongoing_stats, clan_feed_db, getClan, coc_client
 from utils.db import addLegendsPlayer_GLOBAL
+import time
 
 class LegendsFeed(commands.Cog):
 
@@ -15,8 +16,9 @@ class LegendsFeed(commands.Cog):
     def cog_unload(self):
         self.feed_update.cancel()
 
-    @tasks.loop(seconds=300)
+    @tasks.loop(seconds=600)
     async def feed_update(self):
+        t = time.time()
         all_tags = []
         tracked = ongoing_stats.find()
         limit = await ongoing_stats.count_documents(filter={})
@@ -296,6 +298,8 @@ class LegendsFeed(commands.Cog):
             e = str(e)
             e = e[0:2000]
             await c.send(content=e)
+
+        print(time.time()-t)
 
 
     def feed_components(self, results, color="red"):
