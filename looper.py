@@ -97,7 +97,7 @@ async def stats_update():
                     number_of_triples = 0
                     if diff_hits >= 2 and trophies_changed % 40 == 0:
                         multipleTriples = True
-                        for x in range(0, trophies_changed/40):
+                        for x in range(0, int(trophies_changed/40)):
                             await player.insert_attack(40)
                             await player.increment_todays_hits()
                             await player.increment_streak()
