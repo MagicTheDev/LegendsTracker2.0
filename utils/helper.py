@@ -17,7 +17,7 @@ load_dotenv()
 if not IS_BETA:
     COC_EMAIL = os.getenv("COC_EMAIL")
     COC_PASSWORD = os.getenv("COC_PASSWORD")
-    DB_LOGIN = os.getenv("DB_LOGIN")
+    DB_LOGIN = os.getenv("BETA_DB_LOGIN")
 else:
     COC_EMAIL = os.getenv("BETA_COC_EMAIL")
     COC_PASSWORD = os.getenv("BETA_COC_PASSWORD")
