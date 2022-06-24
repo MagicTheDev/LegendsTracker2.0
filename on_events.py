@@ -1,6 +1,6 @@
 from disnake.ext import commands
 import disnake
-from utils.helper import server_db, MissingGuildPlan, DMCommand
+from utils.helper import server_db, MissingGuildPlan
 import traceback
 
 class Bot_Events(commands.Cog):
@@ -27,10 +27,10 @@ class Bot_Events(commands.Cog):
     @commands.Cog.listener()
     async def on_application_command(self,ctx):
         channel = self.bot.get_channel(936069341693231155)
-        try:
-            server = ctx.guild.name
-        except:
+        if ctx.guild is None:
             server = "None"
+        else:
+            server = ctx.guild.name
         user = ctx.author
         command = ctx.data.name
         embed = disnake.Embed(description=f"**{command} {ctx.filled_options}** \nused by {user.mention} [{user.name}] in {server} server",
@@ -88,21 +88,23 @@ class Bot_Events(commands.Cog):
                 description=f"**This command requires a [guild subscription](https://www.patreon.com/magicbots).**",
                 color=disnake.Color.red())
             return await ctx.send(embed=embed)
-        elif isinstance(error, DMCommand):
-            embed = disnake.Embed(
-                description=f"**This bot no longer responds to commands in DM, pls use a server.**",
-                color=disnake.Color.red())
-            return await ctx.send(embed=embed)
+
         else:
-            embed = disnake.Embed(
-                description=f"Unhandled Error: {str(error)[0:3000]}\nPlease report this bug at https://discord.gg/gChZm3XCrS",
-                color=disnake.Color.red())
-            embed2 = disnake.Embed(
-                description=f"Unhandled Error: {''.join(traceback.format_tb(error.__traceback__))[0:3000]}",
-                color=disnake.Color.red())
-            channel = await self.bot.fetch_channel(989919520405725264)
-            await channel.send(content=f"`/{ctx.application_command.qualified_name} {ctx.filled_options}`", embeds=[embed2,embed])
-            return await ctx.send(embed=embed)
+            if ctx.guild is None:
+                embed = disnake.Embed(
+                    description=f"This bot no longer allows commands in DM, please use commands in a server.",
+                    color=disnake.Color.red())
+                await ctx.send(embed=embed, ephemeral=True)
+            else:
+                embed = disnake.Embed(
+                    description=f"Unhandled Error: {str(error)[0:3000]}\nPlease report this bug at https://discord.gg/gChZm3XCrS",
+                    color=disnake.Color.red())
+                embed2 = disnake.Embed(
+                    description=f"Unhandled Error: {''.join(traceback.format_tb(error.__traceback__))[0:3000]}",
+                    color=disnake.Color.red())
+                channel = await self.bot.fetch_channel(989919520405725264)
+                await channel.send(content=f"`/{ctx.application_command.qualified_name} {ctx.filled_options}`", embeds=[embed2,embed])
+                return await ctx.send(embed=embed)
 
 
 

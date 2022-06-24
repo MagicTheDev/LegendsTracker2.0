@@ -74,9 +74,9 @@ class PlayerTrack(commands.Cog):
                 embed = disnake.Embed(description=translate("already_glob_add_server",ctx).format(player_name=player.name),
                                       color=disnake.Color.green())
                 page_buttons = [
-                    disnake.ui.Button(label=translate("Yes", ctx), emoji="✅", style=disnake.ButtonStyle.green,
+                    disnake.ui.Button(label=translate("yes", ctx), emoji="✅", style=disnake.ButtonStyle.green,
                                       custom_id="Yes"),
-                    disnake.ui.Button(label=translate("No", ctx), emoji="❌", style=disnake.ButtonStyle.red,
+                    disnake.ui.Button(label=translate("no", ctx), emoji="❌", style=disnake.ButtonStyle.red,
                                       custom_id="No")
                 ]
                 buttons = disnake.ui.ActionRow()

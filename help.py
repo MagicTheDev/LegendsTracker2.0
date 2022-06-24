@@ -105,7 +105,6 @@ class help(commands.Cog):
         current_page = 0
         await ctx.edit_original_message(embed=embeds[0], components=create_components(self.bot, current_page, embeds, True))
         msg = await ctx.original_message()
-
         def check(res: disnake.MessageInteraction):
             return res.message.id == msg.id
 
@@ -114,7 +113,6 @@ class help(commands.Cog):
                 res: disnake.MessageInteraction = await self.bot.wait_for("message_interaction", check=check,
                                                                           timeout=600)
             except:
-                await msg.edit(components=[])
                 break
 
             if res.data.custom_id == "Previous":
