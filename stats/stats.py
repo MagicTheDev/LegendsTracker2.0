@@ -335,7 +335,7 @@ class LegendStats(commands.Cog):
 
         await ctx.response.defer()
         y = []
-        dates = await coc_client.get_seasons()
+        dates = await coc_client.get_seasons(league_id=29000022)
         for date in dates:
             season_stats = history_db[f"{date}"]
             limit = await season_stats.count_documents(filter={})

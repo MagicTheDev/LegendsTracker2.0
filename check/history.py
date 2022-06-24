@@ -32,7 +32,7 @@ class History(commands.Cog):
       await ctx.edit_original_message(embed=embed)
 
     async def create_history(self, tag, ctx: disnake.ApplicationCommandInteraction):
-        dates = await coc_client.get_seasons()
+        dates = await coc_client.get_seasons(league_id=29000022)
         stats = []
         names = []
         player = await getPlayer(tag)
