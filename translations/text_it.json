@@ -104,7 +104,7 @@
   "not_tracked": "Giocatore non tracciato.\nUsa '/track add' per aggiungere giocatori per il monitoraggio e visualizzare le statistiche su di essi.",
   "not_enough_data_poster": "Dati raccolti insufficienti per creare un poster per {name}",
   "minimum_last_season": "Minimo 3 giorni raccolti la scorsa stagione richiesti.",
-  "mimimum_this_season": "{day} giorni raccolti, minimo 3 richiesti.",
+  "minimum_this_season": "{day} giorni raccolti, minimo 3 richiesti.",
   "#1_finish": "#1 Finisher per EOS",
   "trophy_breakdown": "Ripartizione dei trofei per i giocatori monitorati.",
   "most_popular": "I giocatori tracciati più popolari",

@@ -105,7 +105,7 @@
   "not_tracked" : "Player not tracked.\nUse `/track add` to add players for tracking & view stats on them.",
   "not_enough_data_poster" : "Not enough data collected to make a poster for {name}",
   "minimum_last_season": "Minimum 3 days collected last season required.",
-  "mimimum_this_season" : "{day} days collected, minimum 3 required.",
+  "minimum_this_season" : "{day} days collected, minimum 3 required.",
   "#1_finish" : "#1 Finishers for EOS",
   "trophy_breakdown" : "Trophy Breakdown for players tracked.",
   "most_popular" : "Most popular tracked players",

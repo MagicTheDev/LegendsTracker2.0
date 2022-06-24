@@ -96,7 +96,7 @@ class Bot_Events(commands.Cog):
                 description=f"Unhandled Error: {''.join(traceback.format_tb(error.__traceback__))[0:3000]}",
                 color=disnake.Color.red())
             channel = await self.bot.fetch_channel(989919520405725264)
-            await channel.send(content=f"`/{ctx.application_command.qualified_name}`", embeds=[embed2,embed])
+            await channel.send(content=f"`/{ctx.application_command.qualified_name} {ctx.filled_options}`", embeds=[embed2,embed])
             return await ctx.send(embed=embed)
 
 
