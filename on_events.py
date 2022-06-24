@@ -74,7 +74,7 @@ class Bot_Events(commands.Cog):
         channel = self.bot.get_channel(937528755973419048)
         await channel.edit(name=f"LegendsBot: {len_g} Servers")
 
-
+    '''
     @commands.Cog.listener()
     async def on_slash_command_error(self, ctx: disnake.ApplicationCommandInteraction, error: disnake.ext.commands.CommandError):
         if isinstance(error, commands.MissingPermissions):
@@ -98,7 +98,7 @@ class Bot_Events(commands.Cog):
             channel = await self.bot.fetch_channel(989919520405725264)
             await channel.send(content=f"`/{ctx.application_command.qualified_name} {ctx.filled_options}`", embeds=[embed2,embed])
             return await ctx.send(embed=embed)
-
+    '''
 
 
 
