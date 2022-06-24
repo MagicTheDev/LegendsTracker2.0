@@ -152,7 +152,7 @@
   "feed_set_up" : "Feed channel setup.\nView feeds with `/feed list`",
   "no_players_tracked_server" : "No players tracked on this server.",
   "tracked_list" : "Tracked List",
-  "max_5_feed" : "This server has the meximum of 5 clan feeds, remove one before adding another.",
+  "max_5_feed" : "This server has the maximum of 5 clan feeds, remove one before adding another.",
   "another_feed_set" : "Another feed already set up here, use a different channel or thread.",
   "clan_feed_set_up" : "feed now set up.\\nView all feeds & status with `/feed list`",
   "clan_feed_alr_set" : "{clan_name} already has a feed set up.\\nView all feeds & status with `/feed list`",

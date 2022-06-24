@@ -385,7 +385,7 @@ class LegendStats(commands.Cog):
         oldyear = "2015"
         embed = disnake.Embed(title=translate("#1_finish", ctx),
                               color=disnake.Color.blue())
-        dates = await coc_client.get_seasons()
+        dates = await coc_client.get_seasons(league_id=29000022)
         for date in dates:
             season_stats = history_db[f"{date}"]
             result = await season_stats.find_one({"rank": 1})
