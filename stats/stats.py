@@ -258,10 +258,9 @@ class LegendStats(commands.Cog):
             return await ctx.send(content=MESSAGE)
 
         await ctx.response.defer()
-        tracked = ongoing_stats.find()
-        limit = await ongoing_stats.count_documents(filter={})
+        tracked = ongoing_stats.find().sort("popularity", -1)
         playerStats = []
-        for document in await tracked.to_list(length=limit):
+        for document in await tracked.to_list(length=25):
             try:
                 player = []
                 servers = document.get("servers")
@@ -274,7 +273,6 @@ class LegendStats(commands.Cog):
             except:
                 continue
 
-        playerStats.sort(key=lambda row: (row[2]), reverse=True)
         topTen = f"**{translate('popular_bar', ctx)}**\n"
         for x in range (0,25):
             topTen+=f"{playerStats[x][0]} | {playerStats[x][1]} | {playerStats[x][2]}\n"
