@@ -314,7 +314,7 @@ class LegendsFeed(commands.Cog):
             tag = result.get("tag")
             if tag not in tags:
                 tags.append(tag)
-                options.append(disnake.SelectOption(label=f"{name} | 🏆{trophies}", value=f"{tag}"))
+                options.append(disnake.SelectOption(label=f"{name} | 🏆{trophies}", value=f"feed{tag}"))
 
         stat_select = disnake.ui.Select(
             options=options,

@@ -18,9 +18,9 @@ class FeedButtons(commands.Cog):
 
     @commands.Cog.listener()
     async def on_dropdown(self, ctx: disnake.MessageInteraction):
-        if utils.is_valid_tag(ctx.values[0]):
+        if "feed" in ctx.values[0]:
             tag = ctx.values[0]
-            print(tag)
+            tag = tag.replace("feed","")
             ez_look = False
             check = self.bot.get_cog("MainCheck")
             current_page = 0
