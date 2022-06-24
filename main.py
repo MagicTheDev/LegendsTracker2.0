@@ -4,25 +4,46 @@ import traceback
 from utils.helper import IS_BETA
 
 
-bot = commands.Bot(command_prefix=commands.when_mentioned,
-                   sync_commands_debug=True)
-initial_extensions = (
-            "check.maincheck",
-            "leaderboards.leaderboard",
-            "stats.mainstats",
-            "track.track",
-            "on_events",
-            "pepe.pepe",
-            "help",
-            "settings",
-            "patreon",
-            "feeds.dm_feed",
-            "feeds.feed_buttons",
-            "feeds.legend_feed",
-            "leaderboards.leaderboard_loop",
-            "poster.poster",
-            "owner_commands"
-        )
+if IS_BETA:
+    bot = commands.Bot(command_prefix=commands.when_mentioned,
+                       sync_commands_debug=True, test_guilds=[923764211845312533, 792191365215813642])
+    initial_extensions = (
+        "check.maincheck",
+        "leaderboards.leaderboard",
+        "stats.mainstats",
+        "track.track",
+        "on_events",
+        "pepe.pepe",
+        "help",
+        "settings",
+        "patreon",
+        #   "feeds.dm_feed",
+        #   "feeds.feed_buttons",
+        #   "feeds.legend_feed",
+        #   "leaderboards.leaderboard_loop",
+        "poster.poster",
+        "owner_commands"
+    )
+else:
+    bot = commands.Bot(command_prefix=commands.when_mentioned,
+                       sync_commands_debug=True)
+    initial_extensions = (
+                "check.maincheck",
+                "leaderboards.leaderboard",
+                "stats.mainstats",
+                "track.track",
+                "on_events",
+                "pepe.pepe",
+                "help",
+                "settings",
+                "patreon",
+                "feeds.dm_feed",
+                "feeds.feed_buttons",
+                "feeds.legend_feed",
+                "leaderboards.leaderboard_loop",
+                "poster.poster",
+                "owner_commands"
+            )
 
 
 
