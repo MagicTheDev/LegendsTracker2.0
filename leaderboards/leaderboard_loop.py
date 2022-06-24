@@ -100,6 +100,8 @@ class LeaderboardLoop(commands.Cog):
         limit = await ongoing_stats.count_documents(filter={})
         for document in await tracked.to_list(length=limit):
             servers = document.get("servers")
+            if servers is None:
+                continue
             tag = document.get("tag")
             await ongoing_stats.update_one({'tag': f"{tag}"},
                                            {'$set': {"rank": rank,
