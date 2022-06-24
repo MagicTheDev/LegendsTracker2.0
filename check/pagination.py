@@ -138,6 +138,8 @@ class Pagination(commands.Cog):
                 if presults is None:
                     continue
                 tags = presults.get("profile_tags")
+                if tags is None:
+                    tags = []
                 result = results[current_page]
                 if result == "x":
                     continue
