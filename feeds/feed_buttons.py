@@ -34,6 +34,8 @@ class FeedButtons(commands.Cog):
             text = ""
             for tag in tags:
                 r = await ongoing_stats.find_one({"tag": tag})
+                if r is None:
+                    return await ctx.send(content="This player does not exist.", ephemeral=True)
                 results.append(r)
                 player = DB_Player(r)
                 SUPER_SCRIPTS = ["⁰", "¹", "²", "³", "⁴", "⁵", "⁶", "⁷", "⁸", "⁹"]
@@ -61,10 +63,10 @@ class FeedButtons(commands.Cog):
                                                               emoji=r_emoji))
                 embed.set_footer(text=translate("switch_tip", ctx))
                 stats_page.insert(0, embed)
-                components = await self.create_components(results, trophy_results, current_page, is_many and ez_look)
+                components = await self.create_components(results, trophy_results, current_page, is_many and ez_look, ctx)
                 await ctx.send(embed=embed, components=components)
             else:
-                components = await self.create_components(results, trophy_results, current_page, is_many and ez_look)
+                components = await self.create_components(results, trophy_results, current_page, is_many and ez_look, ctx)
                 await ctx.send(embed=stats_page[0], components=components, delete_after=300)
 
             msg= await ctx.original_message()
@@ -73,10 +75,8 @@ class FeedButtons(commands.Cog):
 
             while True:
                 try:
-                    res: disnake.MessageInteraction = await self.bot.wait_for("message_interaction", check=check,
-                                                                              timeout=120)
+                    res: disnake.MessageInteraction = await self.bot.wait_for("message_interaction", check=check,timeout=300)
                 except:
-                    await msg.edit(components=[])
                     break
 
                 if res.values[0] in stat_types:
@@ -126,7 +126,7 @@ class FeedButtons(commands.Cog):
                 numDefs = SUPER_SCRIPTS[player.num_def]
                 text += f"\u200e**<:trophyy:849144172698402817>{player.trophies} | \u200e{player.name}**\n➼ <:cw:948845649229647952> {player.sum_hits}{numHits} <:sh:948845842809360424> {player.sum_defs}{numDefs}\n"
                 trophy_results.append(disnake.SelectOption(label=f"{player.name} | 🏆{player.trophies}", value=f"{x}"))
-                embed = await check.checkEmbed(r)
+                embed = await check.checkEmbed(r, ctx)
                 stats_page.append(embed)
                 x += 1
 
@@ -136,10 +136,10 @@ class FeedButtons(commands.Cog):
                 trophy_results.insert(0, disnake.SelectOption(label=f"Results Overview", value=f"0"))
                 embed.set_footer(text="Use `Player Results` menu Below to switch btw players")
                 stats_page.insert(0, embed)
-                components = await self.create_components(results, trophy_results, current_page, is_many and ez_look)
+                components = await self.create_components(results, trophy_results, current_page, is_many and ez_look, ctx)
                 await ctx.send(embed=embed, components=components)
             else:
-                components = await self.create_components(results, trophy_results, current_page, is_many and ez_look)
+                components = await self.create_components(results, trophy_results, current_page, is_many and ez_look, ctx)
                 await ctx.send(embed=stats_page[0], components=components)
 
             msg = await ctx.original_message()
@@ -156,17 +156,21 @@ class FeedButtons(commands.Cog):
                     break
 
                 if res.values[0] in stat_types:
-                    if res.values[0] == "Add to Quick Check":
-                        await self.add_profile(res, results[current_page], components, msg)
+                    if "Quick Check & Daily Report" in res.values[0]:
+                        await self.add_profile(res, results[current_page], msg, trophy_results, current_page,
+                                               is_many and ez_look, results)
                     else:
                         current_stat = stat_types.index(res.values[0])
                         await res.response.defer()
-                        embed = await self.display_embed(results, stat_types[current_stat], current_page)
+                        embed = await self.display_embed(results, stat_types[current_stat], current_page, ctx)
                         await msg.edit(embed=embed,
                                        components=components)
                 else:
                     try:
+                        previous_page = current_page
                         current_page = int(res.values[0])
+                        components = await self.create_components(results, trophy_results, current_page,
+                                                                  is_many and ez_look, res)
                         embed = stats_page[current_page]
                         await res.response.edit_message(embed=embed,
                                                         components=components)
@@ -207,13 +211,13 @@ class FeedButtons(commands.Cog):
     async def display_embed(self, results, stat_type, current_page, ctx):
         check = self.bot.get_cog("MainCheck")
 
-        if stat_type == translate("Legends Overview", ctx):
+        if stat_type == "Legends Overview":
             return await check.checkEmbed(results[current_page], ctx)
-        elif stat_type == translate("Previous Days", ctx):
+        elif stat_type == "Previous Days":
             return await check.checkYEmbed(results[current_page], ctx)
-        elif stat_type == translate("Graph & Stats", ctx):
+        elif stat_type == "Graph & Stats":
             return await check.createGraphEmbed(results[current_page], ctx)
-        elif stat_type == translate("Legends History", ctx):
+        elif stat_type == "Legends History":
             return await check.create_history(results[current_page].get("tag"), ctx)
 
 

@@ -99,6 +99,8 @@ class Pagination(commands.Cog):
             await res.send(content=f"Added {player.name} to your Quick Check & Daily Report list.", ephemeral=True)
         else:
             profile_tags = results.get("profile_tags")
+            if profile_tags is None:
+                profile_tags = []
             if tag in profile_tags:
                 await profile_db.update_one({'discord_id': res.author.id},
                                                {'$pull': {"profile_tags": tag}})

@@ -1,6 +1,6 @@
 from disnake.ext import commands
 import disnake
-from utils.helper import server_db, MissingGuildPlan
+from utils.helper import server_db, MissingGuildPlan, DMCommand
 import traceback
 
 class Bot_Events(commands.Cog):
@@ -86,6 +86,11 @@ class Bot_Events(commands.Cog):
         elif isinstance(error, MissingGuildPlan):
             embed = disnake.Embed(
                 description=f"**This command requires a [guild subscription](https://www.patreon.com/magicbots).**",
+                color=disnake.Color.red())
+            return await ctx.send(embed=embed)
+        elif isinstance(error, DMCommand):
+            embed = disnake.Embed(
+                description=f"**This bot no longer responds to commands in DM, pls use a server.**",
                 color=disnake.Color.red())
             return await ctx.send(embed=embed)
         else:

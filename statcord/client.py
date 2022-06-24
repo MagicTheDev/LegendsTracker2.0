@@ -220,7 +220,7 @@ class Client:
                 print("Got error, dispatching error handlers.")
                 await self.on_error(e)
             else:
-                print("Posted stats successfully.")
+                pass
             await asyncio.sleep(60)
 
     async def on_error(self, error: BaseException) -> None:

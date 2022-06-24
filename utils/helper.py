@@ -305,4 +305,7 @@ async def getClanWar(clanTag):
 class MissingGuildPlan(commands.CommandError):
     pass
 
+class DMCommand(commands.CommandError):
+    pass
+
 
