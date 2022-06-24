@@ -66,6 +66,9 @@ class LegendsFeed(commands.Cog):
                         member_tags.append(member.tag)
 
                 server_results = await server_db.find_one({"server": server_id})
+                tier = server_results.get("tier")
+                if tier is None or tier == 0:
+                    continue
                 server_def = server_results.get("feed_def")
                 trophy_change_results = ongoing_stats.find({"$and": [
                     {"tag": {"$in": member_tags}},

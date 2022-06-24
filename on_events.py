@@ -1,6 +1,7 @@
 from disnake.ext import commands
 import disnake
-from utils.helper import server_db
+from utils.helper import server_db, MissingGuildPlan
+import traceback
 
 class Bot_Events(commands.Cog):
 
@@ -72,6 +73,32 @@ class Bot_Events(commands.Cog):
             activity=disnake.Activity(name=f'{len_g} servers', type=3))  # type 3 watching type#1 - playing
         channel = self.bot.get_channel(937528755973419048)
         await channel.edit(name=f"LegendsBot: {len_g} Servers")
+
+
+    @commands.Cog.listener()
+    async def on_slash_command_error(self, ctx: disnake.ApplicationCommandInteraction, error: disnake.ext.commands.CommandError):
+        if isinstance(error, commands.MissingPermissions):
+            embed = disnake.Embed(
+                description=f"You are missing permissions to use `/{ctx.application_command.qualified_name}`.\n"
+                            f"**Permissions Required**: `{' '.join(error.missing_permissions)}`",
+                color=disnake.Color.red())
+            return await ctx.send(embed=embed)
+        elif isinstance(error, MissingGuildPlan):
+            embed = disnake.Embed(
+                description=f"**This command requires a [guild subscription](https://www.patreon.com/magicbots).**",
+                color=disnake.Color.red())
+            return await ctx.send(embed=embed)
+        else:
+            embed = disnake.Embed(
+                description=f"Unhandled Error: {str(error)[0:3000]}\nPlease report this bug at https://discord.gg/gChZm3XCrS",
+                color=disnake.Color.red())
+            embed2 = disnake.Embed(
+                description=f"Unhandled Error: {''.join(traceback.format_tb(error.__traceback__))[0:3000]}",
+                color=disnake.Color.red())
+            channel = await self.bot.fetch_channel(989919520405725264)
+            await channel.send(content=f"`/{ctx.application_command.qualified_name}`", embeds=[embed2,embed])
+            return await ctx.send(embed=embed)
+
 
 
 

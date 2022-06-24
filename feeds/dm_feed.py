@@ -1,6 +1,6 @@
 
 from disnake.ext import commands, tasks
-from utils.helper import profile_db, ongoing_stats
+from utils.helper import profile_db, ongoing_stats, translate
 import datetime as dt
 import emoji
 SUPER_SCRIPTS=["⁰","¹","²","³","⁴","⁵","⁶", "⁷","⁸", "⁹"]
@@ -22,13 +22,13 @@ class DMFeed(commands.Cog):
         if results is None:
             if opt == "Opt-In":
                 try:
-                    await ctx.author.send(content=f"Opted you in. You don't have any players tracked, use `/quick_check` to get started.")
-                    await ctx.send(content=f"Opted you in. You don't have any players tracked, use `/quick_check` to get started.", ephemeral=True)
+                    await ctx.author.send(content=translate("opted_in_no_track", ctx))
+                    await ctx.send(content=translate("opted_in_no_track", ctx), ephemeral=True)
                 except:
                     return await ctx.send(content="Could not send you a dm. Make sure you have dm's enabled.\n"
                                            "`User Settings> Privacy & Safety> Toggle “Allow DMs from server members”`", ephemeral=True)
             else:
-                await ctx.send(content=f"Opted you out of daily DM reports", ephemeral=True)
+                await ctx.send(content=translate("opted_out",ctx), ephemeral=True)
 
             await profile_db.insert_one({'discord_id': ctx.author.id,
                                          "profile_tags": [],
@@ -37,20 +37,20 @@ class DMFeed(commands.Cog):
             profile_tags = results.get("profile_tags")
             if opt == "Opt-In" and profile_tags == []:
                 try:
-                    await ctx.author.send(content=f"Opted you in. You don't have any players tracked, use `/quick_check` to get started.")
-                    await ctx.send(content=f"Opted you in. You don't have any players tracked, use `/quick_check` to get started.",ephemeral=True)
+                    await ctx.author.send(content=translate("opted_in_no_track", ctx))
+                    await ctx.send(content=translate("opted_in_no_track", ctx),ephemeral=True)
                 except:
                     return await ctx.send(content="Could not send you a dm. Make sure you have dm's enabled.\n"
                                            "`User Settings> Privacy & Safety> Toggle “Allow DMs from server members”`", ephemeral=True)
             elif opt == "Opt-In":
                 try:
-                    await ctx.author.send(content=f"Opted you in for daily DM reports")
-                    await ctx.send(content=f"Opted you in for daily DM reports",ephemeral=True)
+                    await ctx.author.send(content=translate("opted_in", ctx))
+                    await ctx.send(content=translate("opted_in", ctx),ephemeral=True)
                 except:
                     return await ctx.send(content="Could not send you a dm. Make sure you have dm's enabled.\n"
                                            "`User Settings> Privacy & Safety> Toggle “Allow DMs from server members”`", ephemeral=True)
             else:
-                await ctx.send(content=f"Opted you out of daily DM reports", ephemeral=True)
+                await ctx.send(content=translate("opted_out", ctx), ephemeral=True)
 
             await profile_db.update_one({'discord_id': ctx.author.id},
                                         {'$set': {"opt": opt}})
@@ -110,7 +110,7 @@ class DMFeed(commands.Cog):
                 ranking = sorted(ranking, key=lambda l: l[6], reverse=True)
 
                 text = ""
-                initial = f"__**Daily Legends Report**__"
+                initial = f"__**{translate('daily_report', None, user_id)}**__"
                 for player in ranking:
                     name = player[0]
                     hits = player[2]
@@ -127,7 +127,7 @@ class DMFeed(commands.Cog):
 
                 embed = disnake.Embed(title=initial,
                                       description=text)
-                embed.set_footer(text="Opt out at any time.")
+                embed.set_footer(text=translate("opt_out_time", None, user_id))
                 user = await self.bot.get_or_fetch_user(user_id=user_id)
                 try:
                     await user.send(embed=embed, components=[buttons])
@@ -142,7 +142,7 @@ class DMFeed(commands.Cog):
             user_id = data[1]
             await profile_db.update_one({'discord_id': int(user_id)},
                                         {'$set': {"opt": "Opt-Out"}})
-            await res.send(content=f"Opted you out of daily DM reports. Use `/daily_report` to opt back in.", ephemeral=True)
+            await res.send(content=translate("opted_out_button", None, user_id), ephemeral=True)
 
     @dm_check.before_loop
     async def before_printer(self):

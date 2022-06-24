@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import io
 import gc
 from dbplayer import DB_Player
+from utils.helper import translate
 
 
 class Graph(commands.Cog):
@@ -11,7 +12,7 @@ class Graph(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    async def createGraphEmbed(self, result):
+    async def createGraphEmbed(self, result, ctx):
         player = DB_Player(result)
 
         y = result.get("end_of_day")
@@ -22,7 +23,7 @@ class Graph(commands.Cog):
 
         if len(y) < 2:
             embed = disnake.Embed(
-                description=f"Not enough data collected to make a graph for {name}. {str(len(y))} day collected, minimum 2 required.",
+                description=translate("not_enough_data", ctx).format(name=name, num_day=str(len(y))),
                 color=disnake.Color.red())
             return embed
 
@@ -48,16 +49,16 @@ class Graph(commands.Cog):
         buf.seek(0)
 
         if player.length == None or player.length== 0:
-            text = f"**Average Offense:** No stats collected yet.\n" \
-                   f"**Average Defense:** No stats collected yet.\n" \
-                   f"**Average Net Gain:** No stats collected yet.\n"
+            text = f"**{translate('avg_offense',ctx)}:** {translate('no_stats_collected',ctx)}.\n" \
+                   f"**{translate('avg_defense',ctx)}:** {translate('no_stats_collected',ctx)}.\n" \
+                   f"**{translate('avg_net_gain',ctx)}:** {translate('no_stats_collected',ctx)}.\n"
         else:
-            text = f"**Average Offense:** {player.average_off} cups a day.\n" \
-                   f"**Average Defense:** {player.average_def} cups a day.\n" \
-                   f"**Average Net Gain:** {player.average_net} cups a day.\n" \
-                   f"*Stats collected from {player.length} days of data.*"
+            text = f"**{translate('avg_offense',ctx)}:** {player.average_off} {translate('cups_day',ctx)}\n" \
+                   f"**{translate('avg_defense',ctx)}:** {player.average_def} {translate('cups_day',ctx)}\n" \
+                   f"**{translate('avg_net_gain',ctx)}:** {player.average_net} {translate('cups_day',ctx)}\n" \
+                   f"{translate('stats_collected', ctx).format(length=player.length)}"
 
-        embed = disnake.Embed(title=f"{name}'s Season Stats",
+        embed = disnake.Embed(title=f"{name}'s {translate('season_stats', ctx)}",
                               description=text,
                               color=disnake.Color.blue())
         file = disnake.File(fp=buf, filename="filename.png")
@@ -69,16 +70,15 @@ class Graph(commands.Cog):
         plt.close("all")
         gc.collect()
 
-        embed.add_field(name="**Offensive Stats:**",
-                        value=f"- One Star: {player.one_star_avg_off}%\n"
-                              f"- Two Star: {player.two_star_avg_off}%\n"
-                              f"- Three Star: {player.three_star_avg_off}%\n"
-                              f"- Total {player.season_hits_len} attacks accurately tracked.")
+        embed.add_field(name=f"**{translate('offensive_stats', ctx)}:**",
+                        value=f"- {translate('one_star', ctx)}: {player.one_star_avg_off}%\n"
+                              f"- {translate('two_star', ctx)}: {player.two_star_avg_off}%\n"
+                              f"- {translate('three_star', ctx)}: {player.three_star_avg_off}%\n")
+
         embed.add_field(name="**Defensive Stats:**",
-                        value=f"- One Star: {player.one_star_avg_def}%\n"
-                              f"- Two Star: {player.two_star_avg_def}%\n"
-                              f"- Three Star: {player.three_star_avg_def}%\n"
-                              f"- Total {player.season_defs_len} defenses accurately tracked."
+                        value=f"- {translate('one_star', ctx)}: {player.one_star_avg_def}%\n"
+                              f"- {translate('two_star', ctx)}: {player.two_star_avg_def}%\n"
+                              f"- {translate('three_star', ctx)}: {player.three_star_avg_def}%\n"
                         )
 
         return embed

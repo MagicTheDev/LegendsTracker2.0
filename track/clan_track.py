@@ -1,5 +1,5 @@
 from disnake.ext import commands
-from utils.helper import getClan, ongoing_stats, server_db, coc_client
+from utils.helper import getClan, ongoing_stats, server_db, coc_client, has_guild_plan, has_single_plan, decrement_usage, translate, MissingGuildPlan, highest_tier
 from utils.db import addLegendsPlayer_SERVER, addLegendsPlayer_GLOBAL, removeLegendsPlayer_SERVER
 import disnake
 
@@ -20,7 +20,8 @@ class ClanTrack(commands.Cog):
     async def ctrack(self, ctx):
         pass
 
-    @ctrack.sub_command(name="add", description="Add players in a clan to legends tracking" )
+    @ctrack.sub_command(name="add", description="Add players in a clan to legends tracking")
+    @commands.has_guild_permissions(manage_guild=True)
     async def ctrack_add(self,ctx: disnake.ApplicationCommandInteraction, clan_tag: str):
         """
             Parameters
@@ -28,15 +29,18 @@ class ClanTrack(commands.Cog):
             clan_tag: Clan to track
           """
 
-        perms = ctx.author.guild_permissions.manage_guild
-        if not perms:
-            embed = disnake.Embed(description="Command requires `Manage Server` permissions.",
-                                  color=disnake.Color.red())
-            return await ctx.send(embed=embed)
+        SINGLE_PLAN = await has_single_plan(ctx)
+        GUILD_PLAN = await has_guild_plan(ctx)
+        if GUILD_PLAN is False:
+            raise MissingGuildPlan
+        TIER, NUM_COMMANDS, MESSAGE = await decrement_usage(ctx, SINGLE_PLAN, GUILD_PLAN, True)
+        if MESSAGE is not None:
+            await ctx.response.defer(ephemeral=True)
+            return await ctx.send(content=MESSAGE)
 
         clan = await getClan(clan_tag)
         if clan is None:
-            embed = disnake.Embed(description="Not a valid clan tag. Check the spelling or a different tag.",
+            embed = disnake.Embed(description=translate("not_valid_clan_tag", ctx),
                                   color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
@@ -46,29 +50,32 @@ class ClanTrack(commands.Cog):
             tracked_clans = []
 
         if clan.tag in tracked_clans:
-            embed = disnake.Embed(description="Clan already tracked.\nUse `/clan_track sync` to sync your feed with players from this clan.",
+            embed = disnake.Embed(description=translate("clan_already_tracked", ctx),
                                   color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
         tracked_members = results.get("tracked_members")
-        feed = results.get("channel_id")
-        if len(tracked_members) > 500 and feed is not None:
+
+        TIER = await highest_tier(ctx)
+        LIMITS = {0: 50, 1: 50, 2: 250, 3: 500}
+        limit = LIMITS[TIER]
+        is_full = (len(tracked_members) > limit)
+
+        if len(tracked_members) > limit:
             embed = disnake.Embed(
-                description="Sorry this command cannot be used while you have more than 500 people tracked and have feed enabled.\n"
-                            "Please clear some members with `/clear_under`, sync members with `/clan_track sync`, or remove individual accounts with `/track remove`",
+                description=translate("choose_limit", ctx).format(num=limit),
                 color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
         allowed_num = await self.sync_limit(ctx)
         if len(tracked_clans) >= allowed_num:
             embed = disnake.Embed(
-                description="Sorry you have linked the max amount of clans.\n"
-                            "All patreons can link up to 20 clans.",
+                description=translate("max_linked_clans", ctx),
                 color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
         embed = disnake.Embed(
-            description="<a:loading:884400064313819146> Adding players...",
+            description=f"<a:loading:884400064313819146> {translate('adding_players', ctx)}",
             color=disnake.Color.green())
         await ctx.send(embed=embed)
         msg = await ctx.original_message()
@@ -91,33 +98,37 @@ class ClanTrack(commands.Cog):
                                    {'$push': {"tracked_clans": clan.tag}})
 
         embed = disnake.Embed(
-                title=f"{clan.name} linked to your server.",
-                description=f"{num_global_tracked} members added to global tracking.\n"
-                            f"{num_server_tracked} members added to server tracking.",
+                title=f"{clan.name} {translate('linked_to_server', ctx)}",
+                description=f"{translate('added_to_global', ctx).format(num=num_global_tracked)}\n"
+                            f"{translate('added_to_server', ctx).format(num_server_tracked=num_server_tracked)}",
                 color=disnake.Color.green())
         embed.set_thumbnail(url=clan.badge.large)
         return await msg.edit(embed=embed)
 
 
     @ctrack.sub_command(name="remove", description="Remove players in a clan from legends tracking")
+    @commands.has_guild_permissions(manage_guild=True)
     async def ctrack_remove(self,ctx: disnake.ApplicationCommandInteraction, clan_tag: str):
         """
             Parameters
             ----------
             clan_tag: Clan to remove tracking from
         """
-        await ctx.response.defer()
+        SINGLE_PLAN = await has_single_plan(ctx)
+        GUILD_PLAN = await has_guild_plan(ctx)
+        if GUILD_PLAN is False:
+            raise MissingGuildPlan
+        TIER, NUM_COMMANDS, MESSAGE = await decrement_usage(ctx, SINGLE_PLAN, GUILD_PLAN, True)
+        if MESSAGE is not None:
+            await ctx.response.defer(ephemeral=True)
+            return await ctx.send(content=MESSAGE)
 
-        perms = ctx.author.guild_permissions.manage_guild
-        if not perms:
-            embed = disnake.Embed(description="Command requires `Manage Server` permissions.",
-                                  color=disnake.Color.red())
-            return await ctx.edit_original_message(embed=embed)
+        await ctx.response.defer()
 
         clan = await getClan(clan_tag)
 
         if clan is None:
-            embed = disnake.Embed(description="Not a valid clan tag. Check the spelling or a different tag.",
+            embed = disnake.Embed(description=translate('not_valid_clan_tag', ctx),
                                   color=disnake.Color.red())
             return await ctx.edit_original_message(embed=embed)
 
@@ -128,7 +139,7 @@ class ClanTrack(commands.Cog):
 
         if clan.tag not in tracked_clans:
             embed = disnake.Embed(
-                description="Clan not tracked.\nUse `/clan_track add` to add this clan to your server.",
+                description=translate("clan_not_tracked", ctx),
                 color=disnake.Color.red())
             return await ctx.edit_original_message(embed=embed)
 
@@ -146,7 +157,7 @@ class ClanTrack(commands.Cog):
 
         embed = disnake.Embed(
             title=f"{clan.name}",
-            description=f"{num_server_tracked} members removed from server tracking.",
+            description=translate("members_removed", ctx).format(num_server_tracked=num_server_tracked),
             color=disnake.Color.green())
         embed.set_thumbnail(url=clan.badge.large)
         await ctx.edit_original_message(embed=embed)
@@ -154,6 +165,13 @@ class ClanTrack(commands.Cog):
 
     @ctrack.sub_command(name="list", description="List of clans linked to server")
     async def ctrack_list(self, ctx: disnake.ApplicationCommandInteraction):
+        SINGLE_PLAN = await has_single_plan(ctx)
+        GUILD_PLAN = await has_guild_plan(ctx)
+        TIER, NUM_COMMANDS, MESSAGE = await decrement_usage(ctx, SINGLE_PLAN, GUILD_PLAN)
+        if MESSAGE is not None:
+            await ctx.response.defer(ephemeral=True)
+            return await ctx.send(content=MESSAGE)
+
         await ctx.response.defer()
 
         results = await server_db.find_one({"server": ctx.guild.id})
@@ -163,7 +181,7 @@ class ClanTrack(commands.Cog):
 
         if tracked_clans == []:
             embed = disnake.Embed(
-                description="No clans linked to this server.\nUse `clan_track add` to get started.",
+                description=translate("no_clans_linked", ctx),
                 color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
@@ -171,21 +189,25 @@ class ClanTrack(commands.Cog):
         async for clan in coc_client.get_clans(tracked_clans):
             text += f"{clan.name} | {clan.tag}\n"
 
-        embed = disnake.Embed(title=f"{ctx.guild.name} Linked Clans",
+        embed = disnake.Embed(title=f"{ctx.guild.name} {translate('linked_clans',ctx)}",
             description=text,
             color=disnake.Color.blue())
         return await ctx.edit_original_message(embed=embed)
 
 
     @ctrack.sub_command(name="sync", description="Sync players with the clans linked to server")
+    @commands.has_guild_permissions(manage_guild=True)
     async def ctrack_sync(self, ctx: disnake.ApplicationCommandInteraction):
-        await ctx.response.defer()
+        SINGLE_PLAN = await has_single_plan(ctx)
+        GUILD_PLAN = await has_guild_plan(ctx)
+        if GUILD_PLAN is False:
+            raise MissingGuildPlan
+        TIER, NUM_COMMANDS, MESSAGE = await decrement_usage(ctx, SINGLE_PLAN, GUILD_PLAN, True)
+        if MESSAGE is not None:
+            await ctx.response.defer(ephemeral=True)
+            return await ctx.send(content=MESSAGE)
 
-        perms = ctx.author.guild_permissions.manage_guild
-        if not perms:
-            embed = disnake.Embed(description="Command requires `Manage Server` permissions.",
-                                  color=disnake.Color.red())
-            return await ctx.edit_original_message(embed=embed)
+        await ctx.response.defer()
 
         results = await server_db.find_one({"server": ctx.guild.id})
         tracked_clans = results.get("tracked_clans")
@@ -194,20 +216,19 @@ class ClanTrack(commands.Cog):
 
         if tracked_clans == []:
             embed = disnake.Embed(
-                description="No clans linked to this server.\nUse `clan_track add` to get started.",
+                description=translate("no_clans_linked", ctx),
                 color=disnake.Color.red())
             return await ctx.edit_original_message(embed=embed)
 
-        embed = disnake.Embed(description=f"**Would you like to remove tracked players outside of the linked clans?**\n"
-                                          f"if **yes**, this will set your feed & leaderboard to just members of the clans in `/clan_track` list.\n",
+        embed = disnake.Embed(description=translate("remove_warning_sync", ctx),
                               color=disnake.Color.green())
 
         select1 = disnake.ui.Select(
             options=[
-                disnake.SelectOption(label="Yes", value=f"Yes", emoji="✅"),
-                disnake.SelectOption(label="No", value=f"No", emoji="❌")
+                disnake.SelectOption(label=translate("yes",ctx), value=f"Yes", emoji="✅"),
+                disnake.SelectOption(label=translate("no",ctx), value=f"No", emoji="❌")
             ],
-            placeholder="Choose your option",
+            placeholder=translate("choose_option", ctx),
             min_values=1,  # the minimum number of options a user must select
             max_values=1  # the maximum number of options a user can select
         )
@@ -231,19 +252,23 @@ class ClanTrack(commands.Cog):
                 break
 
             if res.author.id != ctx.author.id:
-                await res.send(content="You must run the command to interact with components.", ephemeral=True)
+                await res.send(content=translate("run_to_interact",ctx), ephemeral=True)
                 continue
 
             chose = res.values[0]
             # print(chose)
 
+
+
         if chose == "No":
             tracked_members = results.get("tracked_members")
-            feed = results.get("channel_id")
-            if len(tracked_members) > 500 and feed is not None:
+            TIER = await highest_tier(ctx)
+            LIMITS = {0: 50, 1: 50, 2: 250, 3: 500}
+            limit = LIMITS[TIER]
+            is_full = (len(tracked_members) > limit)
+            if is_full:
                 embed = disnake.Embed(
-                    description="Sorry this command cannot be used while you have more than 500 people tracked and have feed enabled.\n"
-                                "Please clear some members with `/clear_under`, sync members with `/clan_track sync`, or remove individual accounts with `/track remove`",
+                    description=translate("choose_limit", ctx).format(num=limit),
                     color=disnake.Color.red())
                 return await msg.edit(embed=embed, components=[])
 
@@ -296,9 +321,9 @@ class ClanTrack(commands.Cog):
                                                {'$pull': {"tracked_members": mem}})
 
             embed = disnake.Embed(
-                description=f"{num_global_tracked} members added to global tracking.\n"
-                            f"{num_server_tracked} members added to server tracking.\n"
-                            f"{remove_num} members removed from server tracking.",
+                description=f"{translate('added_to_global', ctx).format(num=num_global_tracked)}\n"
+                            f"{translate('added_to_server', ctx).format(num_server_tracked=num_server_tracked)}\n"
+                            f"{remove_num} {translate('removed_server_tracking', ctx)}",
                 color=disnake.Color.green())
             if ctx.guild.icon is not None:
                 embed.set_thumbnail(url=ctx.guild.icon.url)
@@ -310,7 +335,7 @@ class ClanTrack(commands.Cog):
         pat = results.get("patreon_sub")
         if pat is not None:
             return 20
-        return 10
+        return 0
 
     async def check_global_tracked(self,player):
         results = await ongoing_stats.find_one({"tag": f"{player.tag}"})
@@ -334,13 +359,13 @@ class ClanTrack(commands.Cog):
 
     async def valid_player_check(self, ctx, player):
         if player is None:
-            embed = disnake.Embed(description="Not a valid player tag. Check the spelling or a different tag.",
+            embed = disnake.Embed(description=translate("not_valid_player", ctx),
                                   color=disnake.Color.red())
             await ctx.send(embed=embed)
             return False
 
         if str(player.league) != "Legend League":
-            embed = disnake.Embed(description="Sorry, cannot track players that are not in legends.",
+            embed = disnake.Embed(description=translate("cannot_track_not_legends", ctx),
                                   color=disnake.Color.red())
             await ctx.send(embed=embed)
             return False

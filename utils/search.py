@@ -71,7 +71,7 @@ async def search_name(query):
 
 async def search_name_with_tag(query, poster=False):
     names = []
-    if query is not "" and poster is False:
+    if query != "" and poster is False:
         names.append(query)
     #if search is a player tag, pull stats of the player tag
 
@@ -81,6 +81,7 @@ async def search_name_with_tag(query, poster=False):
         query = re.escape(query)
         results = ongoing_stats.find({"$and": [
             {"tag": {"$regex": f"^(?i).*{t}.*$"}}
+            , {"league": {"$eq": "Legend League"}}
         ]})
         for document in await results.to_list(length=24):
             names.append(document.get("name") + " | " + document.get("tag"))
@@ -95,6 +96,7 @@ async def search_name_with_tag(query, poster=False):
     query = re.escape(query)
     results = ongoing_stats.find({"$and" : [
         {"name": {"$regex": f"^(?i).*{query}.*$"}}
+        , {"league": {"$eq": "Legend League"}}
     ]})
     for document in await results.to_list(length=24):
         names.append(document.get("name") + " | " + document.get("tag"))

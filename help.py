@@ -2,7 +2,7 @@
 from disnake.ext import commands
 import disnake
 from collections import defaultdict
-from utils.components import create_components2
+from utils.components import create_components
 
 check = ["MainCheck", "Poster"]
 track = ["Track"]
@@ -103,7 +103,7 @@ class help(commands.Cog):
             embeds.append(embed)
             x += 1
         current_page = 0
-        await ctx.edit_original_message(embed=embeds[0], components=create_components2(current_page, embeds, True))
+        await ctx.edit_original_message(embed=embeds[0], components=create_components(self.bot, current_page, embeds, True))
         msg = await ctx.original_message()
 
         def check(res: disnake.MessageInteraction):
@@ -120,12 +120,12 @@ class help(commands.Cog):
             if res.data.custom_id == "Previous":
                 current_page -= 1
                 await res.response.edit_message(embed=embeds[current_page],
-                                                components=create_components2(current_page, embeds, True))
+                                                components=create_components(self.bot, current_page, embeds, True))
 
             elif res.data.custom_id == "Next":
                 current_page += 1
                 await res.response.edit_message(embed=embeds[current_page],
-                                                components=create_components2(current_page, embeds, True))
+                                                components=create_components(self.bot, current_page, embeds, True))
 
             elif res.data.custom_id == "Print":
                 await msg.delete()

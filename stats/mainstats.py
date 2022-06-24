@@ -1,8 +1,7 @@
 from disnake.ext import commands
 from .stats import LegendStats
-from .top import Top
 
-class MainStats(LegendStats, Top,  commands.Cog):
+class MainStats(LegendStats, commands.Cog):
     def __init__(self, bot):
         super().__init__(bot)
         self.bot = bot

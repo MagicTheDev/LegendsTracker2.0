@@ -56,6 +56,7 @@ class OwnerCommands(commands.Cog):
         await ctx.send("Bot using latest changes.")
 
 
+
     @commands.command(name="legendfix")
     @commands.is_owner()
     async def test(self, ctx):

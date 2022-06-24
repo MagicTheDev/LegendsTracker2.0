@@ -1,8 +1,9 @@
 import coc
 import disnake
 from disnake.ext import commands
-from utils.helper import getPlayer, ongoing_stats
+from utils.helper import getPlayer, ongoing_stats, translate, has_single_plan, has_guild_plan, decrement_usage, coc_client
 from utils.db import addLegendsPlayer_GLOBAL
+from utils.components import leaderboard_components
 from utils.search import search_clans_with_tag, search_clan_tag, search_results, search_name_with_tag
 SUPER_SCRIPTS=["⁰","¹","²","³","⁴","⁵","⁶", "⁷","⁸", "⁹"]
 import emoji
@@ -16,7 +17,6 @@ class Check(commands.Cog):
         results = await search_name_with_tag(user_input)
         return results
 
-
     async def autocomp_clans(self, user_input: str):
         results = await search_clans_with_tag(user_input)
         return results
@@ -24,7 +24,6 @@ class Check(commands.Cog):
     @commands.slash_command(name="check")
     async def check(self, ctx):
         pass
-
 
     @check.sub_command(name="search", description="Search by player tag or name to find a player")
     async def check_search(self, ctx: disnake.ApplicationCommandInteraction,
@@ -34,7 +33,15 @@ class Check(commands.Cog):
             ----------
             smart_search: Type a search, pick an option, or don't to get multiple results back
         """
+        SINGLE_PLAN = await has_single_plan(ctx)
+        GUILD_PLAN = await has_guild_plan(ctx)
+        TIER, NUM_COMMANDS, MESSAGE = await decrement_usage(ctx, SINGLE_PLAN, GUILD_PLAN)
+        if MESSAGE is not None:
+            await ctx.response.defer(ephemeral=True)
+            return await ctx.send(content=MESSAGE)
+
         await ctx.response.defer()
+
         if "|" in smart_search and "#" in smart_search:
             search = smart_search.split("|")
             tag = search[-1]
@@ -42,7 +49,7 @@ class Check(commands.Cog):
             tag = smart_search
 
         embed = disnake.Embed(
-            description="<a:loading:884400064313819146> Fetching Stats. | Searches of 10+ players can take a few seconds, refine your search or use playertag if needed.",
+            description=translate("check_loading", ctx),
             color=disnake.Color.green())
         await ctx.edit_original_message(embed=embed)
         msg = await ctx.original_message()
@@ -56,13 +63,20 @@ class Check(commands.Cog):
             ----------
             discord_user: Search by @discordUser
         """
+        SINGLE_PLAN = await has_single_plan(ctx)
+        GUILD_PLAN = await has_guild_plan(ctx)
+        TIER, NUM_COMMANDS, MESSAGE = await decrement_usage(ctx, SINGLE_PLAN, GUILD_PLAN)
+        if MESSAGE is not None:
+            await ctx.response.defer(ephemeral=True)
+            return await ctx.send(content=MESSAGE)
+
         if discord_user is None:
             discord_user = str(ctx.author.id)
         else:
             discord_user = str(discord_user.id)
 
         embed = disnake.Embed(
-            description="<a:loading:884400064313819146> Fetching Stats. | Searches of 10+ players can take a few seconds, refine your search or use playertag if needed.",
+            description=translate("check_loading", ctx),
             color=disnake.Color.green())
         await ctx.send(embed=embed)
         msg = await ctx.original_message()
@@ -77,6 +91,13 @@ class Check(commands.Cog):
             ----------
             smart_search: Autocompletes clans using clans tracked members are in
         """
+        SINGLE_PLAN = await has_single_plan(ctx)
+        GUILD_PLAN = await has_guild_plan(ctx)
+        TIER, NUM_COMMANDS, MESSAGE = await decrement_usage(ctx, SINGLE_PLAN, GUILD_PLAN)
+        if MESSAGE is not None:
+            await ctx.response.defer(ephemeral=True)
+            return await ctx.send(content=MESSAGE)
+
         await ctx.response.defer()
         if "|" in smart_search and "#" in smart_search:
             search = smart_search.split("|")
@@ -88,7 +109,7 @@ class Check(commands.Cog):
 
         if results is None or results.member_count == 0:
             embed = disnake.Embed(
-                description=f"Not a valid clan tag.",
+                description=translate("not_valid_clan_tag", ctx),
                 color=disnake.Color.red())
             return await ctx.edit_original_message(content=None, embed=embed)
 
@@ -97,9 +118,11 @@ class Check(commands.Cog):
         for member in results.members:
             person = await ongoing_stats.find_one({'tag': member.tag})
             if person is None:
-                if str(member.league) == "Legend League":
-                    num_not += 1
-                continue
+                if str(member.league) == "Legend League" and member.trophies >= 5000:
+                    await addLegendsPlayer_GLOBAL(member, results.name, True)
+                    person = await ongoing_stats.find_one({'tag': member.tag})
+                else:
+                    continue
 
             league = person.get("league")
             if league != "Legend League":
@@ -132,12 +155,102 @@ class Check(commands.Cog):
 
         if len(ranking) == 0:
             embed = disnake.Embed(
-                description=f"No legends players in this clan.",
+                description=translate("no_legend_players", ctx),
                 color=disnake.Color.red())
             return await ctx.edit_original_message(content=None, embed=embed)
 
         ranking = sorted(ranking, key=lambda l: l[6], reverse=True)
 
+        ALPHABET = 0; STARTED = 1; OFFENSE = 2; DEFENSE = 4; TROPHIES = 6
+        sort_types = {0: "Alphabetically", 1: "by Start Trophies", 2: "by Offense", 4: "by Defense", 6: "by Current Trophies"}
+        sort_type = 6
+        embeds = await self.create_embed(ctx, ranking, results)
+        embed = embeds[0]
+        embed.set_footer(text=f"Sorted {sort_types[sort_type]}")
+        current_page = 0
+        await ctx.edit_original_message(embed=embed,
+                                        components=leaderboard_components(self.bot, current_page, embeds, ctx))
+        msg = await ctx.original_message()
+
+        def check(res: disnake.MessageInteraction):
+            return res.message.id == msg.id
+
+        while True:
+            try:
+                res: disnake.MessageInteraction = await self.bot.wait_for("message_interaction", check=check,
+                                                                          timeout=600)
+            except:
+                await msg.edit(components=[])
+                break
+
+            if res.data.component_type.value == 2:
+                if res.data.custom_id == "Previous":
+                    current_page -= 1
+                    embed = embeds[current_page]
+                    embed.set_footer(text=f"{translate('sorted', ctx)} {translate(sort_types[sort_type], ctx)}")
+                    await res.response.edit_message(embed=embed,
+                                                    components=leaderboard_components(self.bot, current_page, embeds,
+                                                                                      ctx))
+
+                elif res.data.custom_id == "Next":
+                    current_page += 1
+                    embed = embeds[current_page]
+                    embed.set_footer(text=f"{translate('sorted', ctx)} {translate(sort_types[sort_type], ctx)}")
+                    await res.response.edit_message(embed=embed,
+                                                    components=leaderboard_components(self.bot, current_page, embeds,
+                                                                                      ctx))
+            else:
+                current_page = 0
+                sort_type = int(res.values[0])
+                ranking = sorted(ranking, key=lambda l: l[int(res.values[0])],
+                                 reverse=int(res.values[0]) != 0 and int(res.values[0]) != 4)
+                embeds = await self.create_embed(ctx, ranking, results)
+                embed = embeds[current_page]
+                embed.set_footer(text=f"{translate('sorted', ctx)} {translate(sort_types[sort_type], ctx)}")
+                await res.response.edit_message(embed=embed,
+                                                components=leaderboard_components(self.bot, current_page, embeds, ctx))
+
+
+    async def legends(self, ctx, msg, search_query, ez_look):
+        results = await search_results(ctx, search_query)
+
+        if results == []:
+            if utils.is_valid_tag(search_query[:-1]):
+                results = await search_results(ctx, search_query[:-1])
+
+        #track for them if not found
+        if results == []:
+            player = await getPlayer(search_query)
+            if player is not None:
+                if str(player.league) != "Legend League":
+                    embed = disnake.Embed(
+                        description=translate("not_tracked_nor_legends",ctx).format(player_name=player.name),
+                        color=disnake.Color.red())
+                    return await msg.edit(content=None, embed=embed)
+
+                clan_name = translate("no_clan", ctx)
+                if player.clan is not None:
+                    clan_name = player.clan.name
+                await addLegendsPlayer_GLOBAL(player=player, clan_name=clan_name)
+                embed = disnake.Embed(
+                    description=translate("now_tracked",ctx).format(player_name=player.name, player_tag=player.tag),
+                    color=disnake.Color.green())
+                return await msg.edit(content=None,embed=embed)
+            else:
+                embed = disnake.Embed(
+                    description=translate("no_results", ctx),
+                    color=disnake.Color.red())
+                return await msg.edit(content=None, embed=embed)
+
+        pagination = self.bot.get_cog("MainCheck")
+        await pagination.button_pagination(msg, results, ez_look, ctx)
+
+    async def check_global_tracked(self,player):
+        results = await ongoing_stats.find_one({"tag": f"{player.tag}"})
+        return results is not None
+
+
+    async def create_embed(self, ctx, ranking, results):
         text = ""
         embeds = []
         x = 0
@@ -158,168 +271,20 @@ class Check(commands.Cog):
                 embed = disnake.Embed(title=f"__**{results.name}**__",
                                       description=text)
                 embed.set_thumbnail(url=results.badge.large)
-                if num_not != 0:
-                    embed.set_footer(text=f"{num_not} players untracked.\nPage 1")
-                else:
-                    embed.set_footer(text=f"Page 1")
                 x = 0
                 embeds.append(embed)
                 text = ""
-
 
         if text != "":
             embed = disnake.Embed(title=f"__**{results.name}**__",
                                   description=text)
             embed.set_thumbnail(url=results.badge.large)
-            if num_not != 0:
-                embed.set_footer(text=f"{num_not} players untracked.\nPage 2")
-            else:
-                embed.set_footer(text=f"Page 2")
             embeds.append(embed)
 
         if len(embeds) == 0:
             embed = disnake.Embed(title=f"__**{results.name}**__",
-                                  description="No players tracked, use select menu below to track missing players in clan.")
+                                  description=translate("no_players_tracked", ctx))
             embed.set_thumbnail(url=results.badge.large)
-            if num_not != 0:
-                embed.set_footer(text=f"{num_not} players untracked.")
             embeds.append(embed)
 
-        options = []
-        if len(embeds) == 2:
-            options.append(disnake.SelectOption(label="Page 1 (1-25)", value=f"0", emoji="📄"))
-            options.append(disnake.SelectOption(label=f"Page 2 (26-{len(ranking)})", value=f"1", emoji="📄"))
-
-        if num_not != 0:
-            options.append(disnake.SelectOption(label="Track Missing Players", value=f"{results.tag}", emoji="🔀"))
-
-        if options == []:
-            return await ctx.edit_original_message(embed=embeds[0])
-
-        select1 = disnake.ui.Select(
-            options=options,
-            placeholder="Page Navigation",
-            min_values=1,  # the minimum number of options a user must select
-            max_values=1  # the maximum number of options a user can select
-        )
-        action_row = disnake.ui.ActionRow()
-        action_row.append_item(select1)
-
-        current_page = 0
-        await ctx.edit_original_message(embed=embeds[0], components=[action_row])
-        msg = await ctx.original_message()
-
-        def check(res: disnake.MessageInteraction):
-            return res.message.id == msg.id
-
-        while True:
-            try:
-                res: disnake.MessageInteraction = await self.bot.wait_for("message_interaction", check=check,
-                                                                          timeout=600)
-            except:
-                await msg.edit(components=[])
-                break
-
-            # print(res.custom_id)
-            if res.values[0] in ("0", "1"):
-                current_page = int(res.values[0])
-                embed = embeds[current_page]
-                footer = embed.footer.text
-                if footer != "":
-                    footer = footer.replace("Page 1", "")
-                    footer = footer.replace("Page 2", "")
-                    footer = footer.replace("\n", "")
-                    footer += "\n"
-                embed.set_footer(text=f"{footer}Page {int(res.values[0])+1}")
-                await res.response.edit_message(embed=embed)
-
-            else:
-                if res.author.id != ctx.author.id:
-                    await res.send(content="You must run the command to interact with components.", ephemeral=True)
-                    continue
-
-                embed = disnake.Embed(
-                    description="<a:loading:884400064313819146> Adding players...",
-                    color=disnake.Color.green())
-                await res.send(embed=embed, ephemeral=True)
-
-                num_global_tracked = 0
-                async for player in results.get_detailed_members():
-                    if str(player.league) == "Legend League":
-                        is_global_tracked = await self.check_global_tracked(player=player)
-                        if not is_global_tracked:
-                            num_global_tracked += 1
-                            await addLegendsPlayer_GLOBAL(player=player, clan_name=results.name)
-
-
-                embed = disnake.Embed(
-                    title=f"{results.name}",
-                    description=f"{num_global_tracked} members added to global tracking.",
-                    color=disnake.Color.green())
-                embed.set_thumbnail(url=results.badge.large)
-                og = await res.original_message()
-                await og.edit(embed=embed)
-
-                options = []
-                if len(embeds) == 2:
-                    options.append(disnake.SelectOption(label="Page 1 (1-25)", value=f"0", emoji="📄"))
-                    options.append(disnake.SelectOption(label=f"Page 2 (26-f{len(ranking)}", value=f"1", emoji="📄"))
-
-                if options == []:
-                    e = embeds[0]
-                    e.set_footer(text="")
-                    await ctx.edit_original_message(embed=e, components=[])
-                else:
-                    select1 = disnake.ui.Select(
-                        options=options,
-                        placeholder="Page Navigation",
-                        min_values=1,  # the minimum number of options a user must select
-                        max_values=1  # the maximum number of options a user can select
-                    )
-                    action_row = disnake.ui.ActionRow()
-                    action_row.append_item(select1)
-                    e = embeds[0]
-                    e.set_footer(text="")
-                    await ctx.edit_original_message(embed=e, components=[action_row])
-
-
-    async def legends(self, ctx, msg, search_query, ez_look):
-
-        results = await search_results(ctx, search_query)
-
-        if results == []:
-            if utils.is_valid_tag(search_query[:-1]):
-                results = await search_results(ctx, search_query[:-1])
-
-        #track for them if not found
-        if results == []:
-            player = await getPlayer(search_query)
-            if player is not None:
-                if str(player.league) != "Legend League":
-                    embed = disnake.Embed(
-                        description=f"{player.name} is not tracked nor is in legends.",
-                        color=disnake.Color.red())
-                    return await msg.edit(content=None, embed=embed)
-
-                clan_name = "No Clan"
-                if player.clan is not None:
-                    clan_name = player.clan.name
-                await addLegendsPlayer_GLOBAL(player=player, clan_name=clan_name)
-                embed = disnake.Embed(
-                    description=f"{player.name} now tracked. View stats with `/check {player.tag}`.\n**Note:** Legends stats aren't given, so they have to be collected as they happen. Stats will appear from now & forward :)",
-                    color=disnake.Color.green())
-                return await msg.edit(content=None,embed=embed)
-            else:
-                embed = disnake.Embed(
-                    description="**No results found.** \nCommands:\n`/track add #playerTag` to track an account.",
-                    color=disnake.Color.red())
-                return await msg.edit(content=None, embed=embed)
-
-        pagination = self.bot.get_cog("MainCheck")
-        await pagination.button_pagination(msg, results, ez_look, ctx)
-
-    async def check_global_tracked(self,player):
-        results = await ongoing_stats.find_one({"tag": f"{player.tag}"})
-        return results is not None
-
-
+        return embeds

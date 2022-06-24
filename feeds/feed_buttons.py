@@ -1,8 +1,11 @@
 
 from disnake.ext import commands
 import disnake
-from utils.helper import getPlayer, ongoing_stats, profile_db
-stat_types = ["Previous Days", "Legends Overview", "Graph & Stats", "Legends History", "Add to Quick Check"]
+from utils.helper import getPlayer, ongoing_stats, profile_db, translate
+from utils.discord import partial_emoji_gen
+from utils.emojis import fetch_emojis
+
+stat_types = ["Previous Days", "Legends Overview", "Graph & Stats", "Legends History", "Quick Check & Daily Report Add", "Quick Check & Daily Report Remove"]
 from coc import utils
 from dbplayer import DB_Player
 
@@ -34,19 +37,29 @@ class FeedButtons(commands.Cog):
                 results.append(r)
                 player = DB_Player(r)
                 SUPER_SCRIPTS = ["⁰", "¹", "²", "³", "⁴", "⁵", "⁶", "⁷", "⁸", "⁹"]
-                numHits = SUPER_SCRIPTS[player.num_hits]
-                numDefs = SUPER_SCRIPTS[player.num_def]
+                try:
+                    numHits = SUPER_SCRIPTS[player.num_hits]
+                except:
+                    numHits = "⁸"
+                try:
+                    numDefs = SUPER_SCRIPTS[player.num_def]
+                except:
+                    numDefs = "⁸"
                 text += f"\u200e**<:trophyy:849144172698402817>{player.trophies} | \u200e{player.name}**\n➼ <:cw:948845649229647952> {player.sum_hits}{numHits} <:sh:948845842809360424> {player.sum_defs}{numDefs}\n"
-                trophy_results.append(disnake.SelectOption(label=f"{player.name} | 🏆{player.trophies}", value=f"{x}"))
-                embed = await check.checkEmbed(r)
+                th_emoji = partial_emoji_gen(self.bot, fetch_emojis(int(player.town_hall)))
+                trophy_results.append(
+                    disnake.SelectOption(label=f"{player.name} | 🏆{player.trophies}", value=f"{x}", emoji=th_emoji))
+                embed = await check.checkEmbed(r, ctx)
                 stats_page.append(embed)
                 x += 1
 
             if is_many and ez_look:
-                embed = disnake.Embed(title=f"{len(results)} Results",
+                embed = disnake.Embed(title=f"{len(results) - 1} {translate('results', ctx)}",
                                       description=text)
-                trophy_results.insert(0, disnake.SelectOption(label=f"Results Overview", value=f"0"))
-                embed.set_footer(text="Use `Player Results` menu Below to switch btw players")
+                r_emoji = partial_emoji_gen(self.bot, fetch_emojis("pin"))
+                trophy_results.insert(0, disnake.SelectOption(label=translate("results_overview", ctx), value=f"0",
+                                                              emoji=r_emoji))
+                embed.set_footer(text=translate("switch_tip", ctx))
                 stats_page.insert(0, embed)
                 components = await self.create_components(results, trophy_results, current_page, is_many and ez_look)
                 await ctx.send(embed=embed, components=components)
@@ -67,17 +80,21 @@ class FeedButtons(commands.Cog):
                     break
 
                 if res.values[0] in stat_types:
-                    if res.values[0] == "Add to Quick Check":
-                        await self.add_profile(res, results[current_page], components, msg)
+                    if "Quick Check & Daily Report" in res.values[0]:
+                        await self.add_profile(res, results[current_page], msg, trophy_results, current_page,
+                                               is_many and ez_look, results)
                     else:
                         current_stat = stat_types.index(res.values[0])
                         await res.response.defer()
-                        embed = await self.display_embed(results, stat_types[current_stat], current_page)
+                        embed = await self.display_embed(results, stat_types[current_stat], current_page, ctx)
                         await msg.edit(embed=embed,
                                        components=components)
                 else:
                     try:
+                        previous_page = current_page
                         current_page = int(res.values[0])
+                        components = await self.create_components(results, trophy_results, current_page,
+                                                                  is_many and ez_look, res)
                         embed = stats_page[current_page]
                         await res.response.edit_message(embed=embed,
                                                         components=components)
@@ -156,59 +173,87 @@ class FeedButtons(commands.Cog):
                     except:
                         continue
 
-    async def add_profile(self, res, tag, components, msg):
+    async def add_profile(self, res, tag, msg, trophy_results, current_page, is_true, rresult):
         tag = tag.get("tag")
         results = await profile_db.find_one({'discord_id': res.author.id})
-        await msg.edit(components=components)
         if results is None:
             await profile_db.insert_one({'discord_id': res.author.id,
                                          "profile_tags": [f"{tag}"]})
             player = await getPlayer(tag)
-            await res.send(content=f"Added {player.name} to your Quick Check list.", ephemeral=True)
+            await res.send(content=f"Added {player.name} to your Quick Check & Daily Report list.", ephemeral=True)
         else:
             profile_tags = results.get("profile_tags")
             if tag in profile_tags:
                 await profile_db.update_one({'discord_id': res.author.id},
                                             {'$pull': {"profile_tags": tag}})
                 player = await getPlayer(tag)
-                await res.send(content=f"Removed {player.name} from your Quick Check list.", ephemeral=True)
+                await res.send(content=f"Removed {player.name} from your Quick Check & Daily Report list.",
+                               ephemeral=True)
             else:
-                if len(profile_tags) > 25:
-                    await res.send(content=f"Can only have 25 players on your Quick Check list. Please remove one.",
-                                   ephemeral=True)
+                if len(profile_tags) > 24:
+                    await res.send(
+                        content=f"Can only have 24 players on your Quick Check & Daily Report list. Please remove one.",
+                        ephemeral=True)
                 else:
                     await profile_db.update_one({'discord_id': res.author.id},
                                                 {'$push': {"profile_tags": tag}})
                     player = await getPlayer(tag)
-                    await res.send(content=f"Added {player.name} to your Quick Check list.", ephemeral=True)
+                    await res.send(content=f"Added {player.name} to your Quick Check & Daily Report list.",
+                                   ephemeral=True)
 
-    async def display_embed(self, results, stat_type, current_page):
+        components = await self.create_components(rresult, trophy_results, current_page, is_true, res)
+        await msg.edit(components=components)
 
+    async def display_embed(self, results, stat_type, current_page, ctx):
         check = self.bot.get_cog("MainCheck")
 
-        if stat_type == "Legends Overview":
-            return await check.checkEmbed(results[current_page])
-        elif stat_type == "Previous Days":
-            return await check.checkYEmbed(results[current_page])
-        elif stat_type == "Graph & Stats":
-            return await check.createGraphEmbed(results[current_page])
-        elif stat_type == "Legends History":
-            return await check.create_history(results[current_page].get("tag"))
+        if stat_type == translate("Legends Overview", ctx):
+            return await check.checkEmbed(results[current_page], ctx)
+        elif stat_type == translate("Previous Days", ctx):
+            return await check.checkYEmbed(results[current_page], ctx)
+        elif stat_type == translate("Graph & Stats", ctx):
+            return await check.createGraphEmbed(results[current_page], ctx)
+        elif stat_type == translate("Legends History", ctx):
+            return await check.create_history(results[current_page].get("tag"), ctx)
 
-    async def create_components(self, results, trophy_results, current_page, is_many):
+
+    async def create_components(self, results, trophy_results, current_page, is_many, ctx):
         length = len(results)
         options = []
-
         for stat in stat_types:
-            if stat == "Add to Quick Check":
-                options.append(disnake.SelectOption(label=f"{stat}", value=f"{stat}",
-                                                    description="(If already added, will remove player instead)"))
+            if stat == "Quick Check & Daily Report Add":
+                presults = await profile_db.find_one({'discord_id': ctx.author.id})
+                if presults is None:
+                    continue
+                tags = presults.get("profile_tags")
+                result = results[current_page]
+                if result == "x":
+                    continue
+                tag = result.get("tag")
+                if tag in tags:
+                    continue
+                emoji = partial_emoji_gen(self.bot, fetch_emojis("quick_check"))
+                options.append(disnake.SelectOption(label=f"{stat}", value=f"{stat}", emoji=emoji))
+            elif stat == "Quick Check & Daily Report Remove":
+                presults = await profile_db.find_one({'discord_id': ctx.author.id})
+                if presults is None:
+                    continue
+                tags = presults.get("profile_tags")
+                result = results[current_page]
+                if result == "x":
+                    continue
+                tag = result.get("tag")
+                if tag in tags:
+                    emoji = partial_emoji_gen(self.bot, fetch_emojis("quick_check"))
+                    options.append(disnake.SelectOption(label=f"{stat}", value=f"{stat}", emoji=emoji))
             else:
-                options.append(disnake.SelectOption(label=f"{stat}", value=f"{stat}"))
+                emoji = partial_emoji_gen(self.bot, fetch_emojis(stat))
+                stat = translate(stat, ctx)
+                options.append(disnake.SelectOption(label=f"{stat}", value=f"{stat}", emoji=emoji))
 
         stat_select = disnake.ui.Select(
             options=options,
-            placeholder="Stat Pages & Settings",
+            placeholder=f"⚙️ {translate('player_results', ctx)}",
             min_values=1,  # the minimum number of options a user must select
             max_values=1  # the maximum number of options a user can select
         )
@@ -220,7 +265,7 @@ class FeedButtons(commands.Cog):
 
         profile_select = disnake.ui.Select(
             options=trophy_results,
-            placeholder="Player Results",
+            placeholder=f"🔎 {translate('stat_page_setting', ctx)}",
             min_values=1,  # the minimum number of options a user must select
             max_values=1  # the maximum number of options a user can select
         )

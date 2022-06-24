@@ -1,8 +1,8 @@
 from disnake.ext import commands
 import disnake
-from utils.helper import server_db, coc_client, getClan, clan_feed_db
+from utils.helper import server_db, coc_client, getClan, clan_feed_db, profile_db, translate, has_single_plan, has_guild_plan, decrement_usage, MissingGuildPlan
 from utils.db import removeLegendsPlayer_SERVER
-from utils.components import create_components, create_components2
+from utils.components import create_components
 from coc import utils
 
 
@@ -16,15 +16,15 @@ class bot_settings(commands.Cog):
         pass
 
     @feed.sub_command(name= "set", description="Sets feed in the channel you run this command.")
+    @commands.has_guild_permissions(manage_guild=True)
     async def setfeed(self, ctx):
+        SINGLE_PLAN = await has_single_plan(ctx)
+        GUILD_PLAN = await has_guild_plan(ctx)
+        TIER, NUM_COMMANDS, MESSAGE = await decrement_usage(ctx, SINGLE_PLAN, GUILD_PLAN)
+        if MESSAGE is not None:
+            await ctx.response.defer(ephemeral=True)
+            return await ctx.send(content=MESSAGE)
 
-        perms = ctx.author.guild_permissions.manage_guild
-        if ctx.author.id == 706149153431879760:
-            perms = True
-        if not perms:
-            embed = disnake.Embed(description="Command requires **you** to have `Manage Guild` permissions.",
-                                  color=disnake.Color.red())
-            return await ctx.send(embed=embed)
         is_thread = False
         try:
             if "thread" in str(ctx.channel.type):
@@ -56,37 +56,37 @@ class bot_settings(commands.Cog):
         await server_db.update_one({"server": ctx.guild.id}, {'$set': {"thread": None}})
         if is_thread:
             await server_db.update_one({"server": ctx.guild.id}, {'$set': {"thread": ctx.channel.id}})
-            await webhook.send("Feed Successfully Setup", username='Legends Tracker',
+            await webhook.send(translate("feed_success", ctx), username='Legends Tracker',
                                avatar_url="https://cdn.discordapp.com/attachments/843624785560993833/938961364100190269/796f92a51db491f498f6c76fea759651_1.png", thread=ctx.channel)
 
         else:
-            await webhook.send("Feed Successfully Setup", username='Legends Tracker',
+            await webhook.send(translate("feed_success", ctx), username='Legends Tracker',
                                    avatar_url="https://cdn.discordapp.com/attachments/843624785560993833/938961364100190269/796f92a51db491f498f6c76fea759651_1.png")
 
 
         embed = disnake.Embed(
-            description=f"Feed channel setup.\nView feeds with `/feed list`",
+            description=translate("feed_set_up",ctx),
             color=disnake.Color.green())
         return await ctx.send(embed=embed)
 
 
     @commands.slash_command(name="clear_under",
-                       description="Remove players under certain trophies from server tracking.")
+                       description="Remove players under certain trophies from server tracking.[Manage Server]")
+    @commands.default_member_permissions(32)
     async def trophyLimit(self, ctx: disnake.ApplicationCommandInteraction, trophies: int):
         """
             Parameters
             ----------
             trophies: trophy bar to clear under
           """
-        await ctx.response.defer()
-        perms = ctx.author.guild_permissions.manage_guild
-        if ctx.author.id == 706149153431879760:
-            perms = True
-        if not perms:
-            embed = disnake.Embed(description="Command requires you to have `Manage Server` permissions.",
-                                  color=disnake.Color.red())
-            return await ctx.send(embed=embed)
+        SINGLE_PLAN = await has_single_plan(ctx)
+        GUILD_PLAN = await has_guild_plan(ctx)
+        TIER, NUM_COMMANDS, MESSAGE = await decrement_usage(ctx, SINGLE_PLAN, GUILD_PLAN)
+        if MESSAGE is not None:
+            await ctx.response.defer(ephemeral=True)
+            return await ctx.send(content=MESSAGE)
 
+        await ctx.response.defer()
         results = await server_db.find_one({"server": ctx.guild.id})
 
         if results is None:
@@ -111,18 +111,11 @@ class bot_settings(commands.Cog):
 
     @feed.sub_command(name="remove",
                             description="Remove channel for attack/defense feed.")
+    @commands.has_guild_permissions(manage_guild=True)
     async def feed_remove(self, ctx):
-        perms = ctx.author.guild_permissions.manage_guild
-        if ctx.author.id == 706149153431879760:
-            perms = True
-        if not perms:
-            embed = disnake.Embed(description="Command requires you to have `Manage Server` permissions.",
-                                  color=disnake.Color.red())
-            return await ctx.send(embed=embed)
-
         await server_db.update_one({"server": ctx.guild.id}, {'$set': {"webhook": None}})
         await server_db.update_one({"server": ctx.guild.id}, {'$set': {"thread": None}})
-        embed = disnake.Embed(description=f"Feed removed.",
+        embed = disnake.Embed(description=translate("feed_removed", ctx),
                               color=disnake.Color.green())
         return await ctx.send(embed=embed)
 
@@ -134,7 +127,7 @@ class bot_settings(commands.Cog):
         results = await server_db.find_one({"server": ctx.guild.id})
         tags = results.get("tracked_members")
         if tags == []:
-            embed = disnake.Embed(description="No players tracked on this server.",
+            embed = disnake.Embed(description=translate("no_players_tracked_server", ctx),
                                   color=disnake.Color.red())
             return await ctx.send(embed=embed)
         async for player in coc_client.get_players(tags):
@@ -152,19 +145,19 @@ class bot_settings(commands.Cog):
             text += f"{l.name} | {l.tag}\n"
             x += 1
             if x == 25:
-                embed = disnake.Embed(title=f"Tracked List ({len(list)} results)",description=f"{text}",
+                embed = disnake.Embed(title=f"{translate('tracked_list',ctx)} ({len(list)} {translate('results',ctx)})",description=f"{text}",
                                       color=disnake.Color.blue())
                 x = 0
                 embeds.append(embed)
                 text = ""
 
         if text != "":
-            embed = disnake.Embed(title=f"Tracked List ({len(list)} results)", description=f"{text}",
+            embed = disnake.Embed(title=f"{translate('tracked_list',ctx)} ({len(list)} {translate('results',ctx)})", description=f"{text}",
                                   color=disnake.Color.blue())
             embeds.append(embed)
 
         current_page = 0
-        await ctx.edit_original_message(embed=embeds[0], components=create_components2(current_page, embeds, True))
+        await ctx.edit_original_message(embed=embeds[0], components=create_components(self.bot, current_page, embeds, True))
 
         msg = await ctx.original_message()
 
@@ -179,18 +172,18 @@ class bot_settings(commands.Cog):
                 break
 
             if res.author.id != ctx.author.id:
-                await res.send(content="You must run the command to interact with components.", ephemeral=True)
+                await res.send(content=translate("must_run_interact", ctx), ephemeral=True)
                 continue
 
             if res.data.custom_id == "Previous":
                 current_page -= 1
                 await res.response.edit_message(embed=embeds[current_page],
-                                                components=create_components2(current_page, embeds, True))
+                                                components=create_components(self.bot, current_page, embeds, True))
 
             elif res.data.custom_id == "Next":
                 current_page += 1
                 await res.response.edit_message(embed=embeds[current_page],
-                                                components=create_components2(current_page, embeds, True))
+                                                components=create_components(self.bot, current_page, embeds, True))
 
             elif res.data.custom_id == "Print":
                 await msg.delete()
@@ -200,6 +193,7 @@ class bot_settings(commands.Cog):
 
     @commands.slash_command(name='feed_defenses',
                             description="Turn feed defenses on & off")
+    @commands.has_guild_permissions(manage_guild=True)
     async def tracked_list(self, ctx: disnake.ApplicationCommandInteraction,
                            option: str = commands.Param(choices=["On", "Off"])):
         await server_db.update_one({"server": ctx.guild.id}, {'$set': {"feed_def": option}})
@@ -213,21 +207,27 @@ class bot_settings(commands.Cog):
         pass
 
     @clan_feed.sub_command(name="add", description="Add a feed, in the channel ran, for a clan")
+    @commands.has_guild_permissions(manage_guild=True)
     async def clan_feed_add(self, ctx: disnake.ApplicationCommandInteraction, clan_tag: str):
         """
             Parameters
             ----------
             clan_tag: Clan to create feed for
         """
-        perms = ctx.author.guild_permissions.manage_guild
-        if not perms:
-            embed = disnake.Embed(description="Command requires `Manage Server` permissions.",
-                                  color=disnake.Color.red())
-            return await ctx.send(embed=embed)
+        SINGLE_PLAN = await has_single_plan(ctx)
+        GUILD_PLAN = await has_guild_plan(ctx)
+
+        if GUILD_PLAN is False:
+            raise MissingGuildPlan
+
+        TIER, NUM_COMMANDS, MESSAGE = await decrement_usage(ctx, SINGLE_PLAN, GUILD_PLAN, True)
+        if MESSAGE is not None:
+            await ctx.response.defer(ephemeral=True)
+            return await ctx.send(content=MESSAGE)
 
         clan = await getClan(clan_tag)
         if clan is None:
-            embed = disnake.Embed(description="Not a valid clan tag. Check the spelling or a different tag.",
+            embed = disnake.Embed(description=translate("not_valid_clan_tag", ctx),
                                   color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
@@ -242,8 +242,9 @@ class bot_settings(commands.Cog):
         clan_webhooks = []
         clan_results = clan_feed_db.find({"server": ctx.guild.id})
         l = await clan_feed_db.count_documents(filter={"server": ctx.guild.id})
+
         if l == 5:
-            embed = disnake.Embed(description="This server has the meximum of 5 clan feeds, remove one before adding another.",
+            embed = disnake.Embed(description=translate("max_5_feed", ctx),
                                   color=disnake.Color.red())
             return await ctx.send(embed=embed)
         for re in await clan_results.to_list(length=l):
@@ -266,7 +267,7 @@ class bot_settings(commands.Cog):
 
                 for w in webhooks:
                     if w.id == main_feed or w.id in clan_webhooks:
-                        embed = disnake.Embed(description="Another feed already set up here, use a different channel or thread.",
+                        embed = disnake.Embed(description=translate("another_feed_set"),
                                               color=disnake.Color.red())
                         return await ctx.send(embed=embed)
 
@@ -301,36 +302,31 @@ class bot_settings(commands.Cog):
                 })
 
             if is_thread:
-                await webhook.send("Test, Feed Successfully Setup", username='Legends Tracker',
+                await webhook.send(translate("feed_success", ctx), username='Legends Tracker',
                                    avatar_url="https://cdn.discordapp.com/attachments/843624785560993833/938961364100190269/796f92a51db491f498f6c76fea759651_1.png",
                                    thread=ctx.channel)
 
             else:
-                await webhook.send("Test, Feed Successfully Setup", username='Legends Tracker',
+                await webhook.send(translate("feed_success", ctx), username='Legends Tracker',
                                    avatar_url="https://cdn.discordapp.com/attachments/843624785560993833/938961364100190269/796f92a51db491f498f6c76fea759651_1.png")
 
-            embed = disnake.Embed(description=f"{clan.name} feed now set up.\nView all feeds & status with `/feed list`",
+            embed = disnake.Embed(description=f"{clan.name} {translate('clan_feed_set_up', ctx)}",
                                   color=disnake.Color.green())
             return await ctx.send(embed=embed)
         else:
             embed = disnake.Embed(
-                description=f"{clan.name} already has a feed set up.\nView all feeds & status with `/feed list`",
+                description=translate("clan_feed_alr_set", ctx).format(clan_name=clan.name),
                 color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
     @clan_feed.sub_command(name="remove", description="Removes a feed for a clan")
+    @commands.has_guild_permissions(manage_guild=True)
     async def clan_feed_remove(self, ctx: disnake.ApplicationCommandInteraction, clan_tag: str):
         """
             Parameters
             ----------
             clan_tag: Clan to create feed for
         """
-        perms = ctx.author.guild_permissions.manage_guild
-        if not perms:
-            embed = disnake.Embed(description="Command requires `Manage Server` permissions.",
-                                  color=disnake.Color.red())
-            return await ctx.send(embed=embed)
-
         clan_tag = utils.correct_tag(clan_tag)
 
         results = await clan_feed_db.find_one({"$and": [
@@ -339,7 +335,7 @@ class bot_settings(commands.Cog):
         ]})
 
         if results is None:
-            embed = disnake.Embed(description="This clan does not have a feed set up.",
+            embed = disnake.Embed(description=translate("no_feed_set", ctx),
                                   color=disnake.Color.red())
             return await ctx.send(embed=embed)
         else:
@@ -349,11 +345,11 @@ class bot_settings(commands.Cog):
             ]})
             clan = await getClan(clan_tag)
             if clan is None:
-                embed = disnake.Embed(description="Clan feed removed.",
+                embed = disnake.Embed(description=translate("clan_feed_remove",ctx),
                                       color=disnake.Color.green())
                 return await ctx.send(embed=embed)
             else:
-                embed = disnake.Embed(description=f"{clan.name} feed removed.",
+                embed = disnake.Embed(description=f"{clan.name} {translate('feed_removed',ctx)}",
                                       color=disnake.Color.green())
                 return await ctx.send(embed=embed)
 
@@ -413,6 +409,25 @@ class bot_settings(commands.Cog):
             color=disnake.Color.green())
         return await ctx.send(embed=embed)
 
+    @commands.slash_command(name="language", description="Language for commands to appear in")
+    async def translate(self, ctx: disnake.ApplicationCommandInteraction, language: str = commands.Param(choices=["English", "French", "Italian", "German"])):
+        results = await profile_db.find_one({'discord_id': ctx.author.id})
+        if results is None:
+            await profile_db.insert_one({'discord_id': ctx.author.id})
+
+        if language == "English":
+            n_language = "en"
+        elif language == "French":
+            n_language = "fr"
+        elif language == "Italian":
+            n_language = "it"
+        elif language == "German":
+            n_language = "de"
+
+        await profile_db.update_one({'discord_id': ctx.author.id},
+                                    {'$set': {'language': n_language}})
+
+        await ctx.send(f"{translate('language_set', ctx)} {language}", ephemeral=True)
 
 def setup(bot: commands.Bot):
     bot.add_cog(bot_settings(bot))

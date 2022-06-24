@@ -2,6 +2,7 @@ from disnake.ext import commands
 from PIL import Image, ImageDraw, ImageFont
 import io
 import disnake
+from utils.helper import translate
 
 
 class pepe(commands.Cog):
@@ -20,7 +21,7 @@ class pepe(commands.Cog):
         """
         size = 40
         if len(sign_text) > 25:
-            return await ctx.send("Too long, sorry :/")
+            return await ctx.send(translate("too_long", ctx))
 
         if len(sign_text) >= 11:
             size = 30
@@ -48,7 +49,7 @@ class pepe(commands.Cog):
         file = disnake.File(fp=temp, filename="filename.png")
 
         if hidden == "Yes":
-            await ctx.send(content="Save image or copy link & send wherever you like :)",file=file, ephemeral=True)
+            await ctx.send(content=translate("save_image", ctx),file=file, ephemeral=True)
         else:
             await ctx.send(file=file)
 

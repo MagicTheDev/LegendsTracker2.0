@@ -1,6 +1,8 @@
 import disnake
 from disnake.ext import commands
-from utils.helper import ongoing_stats, profile_db, getPlayer
+from utils.helper import ongoing_stats, profile_db, getPlayer, translate
+from utils.discord import partial_emoji_gen
+from utils.emojis import fetch_emojis
 from dbplayer import DB_Player
 
 stat_types = ["Previous Days", "Legends Overview", "Graph & Stats", "Legends History", "Quick Check & Daily Report Add", "Quick Check & Daily Report Remove"]
@@ -37,16 +39,18 @@ class Pagination(commands.Cog):
             except:
                 numDefs = "⁸"
             text += f"\u200e**<:trophyy:849144172698402817>{player.trophies} | \u200e{player.name}**\n➼ <:cw:948845649229647952> {player.sum_hits}{numHits} <:sh:948845842809360424> {player.sum_defs}{numDefs}\n"
-            trophy_results.append(disnake.SelectOption(label=f"{player.name} | 🏆{player.trophies}", value=f"{x}"))
-            embed = await check.checkEmbed(r)
+            th_emoji = partial_emoji_gen(self.bot, fetch_emojis(int(player.town_hall)))
+            trophy_results.append(disnake.SelectOption(label=f"{player.name} | 🏆{player.trophies}", value=f"{x}", emoji=th_emoji))
+            embed = await check.checkEmbed(r, ctx)
             stats_page.append(embed)
             x+=1
 
         if is_many and ez_look:
-            embed = disnake.Embed(title=f"{len(results)} Results",
+            embed = disnake.Embed(title=f"{len(results)-1} {translate('results',ctx)}",
                                   description=text)
-            trophy_results.insert(0, disnake.SelectOption(label=f"Results Overview", value=f"0"))
-            embed.set_footer(text="Use `Player Results` menu Below to switch btw players")
+            r_emoji = partial_emoji_gen(self.bot, fetch_emojis("pin"))
+            trophy_results.insert(0, disnake.SelectOption(label=translate("results_overview",ctx), value=f"0", emoji=r_emoji))
+            embed.set_footer(text=translate("switch_tip", ctx))
             stats_page.insert(0, embed)
             components = await self.create_components(results, trophy_results, current_page, is_many and ez_look, ctx)
             await msg.edit(embed=embed, components=components)
@@ -70,7 +74,7 @@ class Pagination(commands.Cog):
                 else:
                     current_stat = stat_types.index(res.values[0])
                     await res.response.defer()
-                    embed = await self.display_embed(results, stat_types[current_stat], current_page)
+                    embed = await self.display_embed(results, stat_types[current_stat], current_page, ctx)
                     await msg.edit(embed=embed,
                                    components=components)
             else:
@@ -112,18 +116,18 @@ class Pagination(commands.Cog):
         components = await self.create_components(rresult, trophy_results, current_page, is_true, res)
         await msg.edit(components=components)
 
-    async def display_embed(self, results, stat_type, current_page):
+    async def display_embed(self, results, stat_type, current_page, ctx):
 
         check = self.bot.get_cog("MainCheck")
 
         if stat_type == "Legends Overview":
-            return await check.checkEmbed(results[current_page])
+            return await check.checkEmbed(results[current_page], ctx)
         elif stat_type == "Previous Days":
-            return await check.checkYEmbed(results[current_page])
+            return await check.checkYEmbed(results[current_page], ctx)
         elif stat_type == "Graph & Stats":
-            return await check.createGraphEmbed(results[current_page])
+            return await check.createGraphEmbed(results[current_page], ctx)
         elif stat_type == "Legends History":
-            return await check.create_history(results[current_page].get("tag"))
+            return await check.create_history(results[current_page].get("tag"), ctx)
 
     async def create_components(self, results, trophy_results, current_page, is_many, ctx):
         length = len(results)
@@ -140,7 +144,8 @@ class Pagination(commands.Cog):
                 tag = result.get("tag")
                 if tag in tags:
                     continue
-                options.append(disnake.SelectOption(label=f"{stat}", value=f"{stat}"))
+                emoji = partial_emoji_gen(self.bot, fetch_emojis("quick_check"))
+                options.append(disnake.SelectOption(label=f"{stat}", value=f"{stat}", emoji=emoji))
             elif stat == "Quick Check & Daily Report Remove":
                 presults = await profile_db.find_one({'discord_id': ctx.author.id})
                 if presults is None:
@@ -151,13 +156,17 @@ class Pagination(commands.Cog):
                     continue
                 tag = result.get("tag")
                 if tag in tags:
-                    options.append(disnake.SelectOption(label=f"{stat}", value=f"{stat}"))
+                    emoji = partial_emoji_gen(self.bot, fetch_emojis("quick_check"))
+                    options.append(disnake.SelectOption(label=f"{stat}", value=f"{stat}", emoji=emoji))
             else:
-                options.append(disnake.SelectOption(label=f"{stat}", value=f"{stat}"))
+                emoji = partial_emoji_gen(self.bot, fetch_emojis(stat))
+                old_stat = stat
+                stat = translate(stat, ctx)
+                options.append(disnake.SelectOption(label=f"{stat}", value=f"{old_stat}", emoji=emoji))
 
-        stat_select  = disnake.ui.Select(
+        stat_select = disnake.ui.Select(
             options=options,
-            placeholder="Stat Pages & Settings",
+            placeholder=f"⚙️ {translate('player_results',ctx)}",
             min_values=1,  # the minimum number of options a user must select
             max_values=1  # the maximum number of options a user can select
         )
@@ -169,7 +178,7 @@ class Pagination(commands.Cog):
 
         profile_select = disnake.ui.Select(
             options=trophy_results,
-            placeholder="Player Results",
+            placeholder=f"🔎 {translate('stat_page_setting',ctx)}",
             min_values=1,  # the minimum number of options a user must select
             max_values=1  # the maximum number of options a user can select
         )

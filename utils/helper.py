@@ -9,6 +9,7 @@ import disnake
 from googletrans import Translator
 translator = Translator()
 from disnake.ext import commands
+import re
 
 IS_BETA = False
 
@@ -83,6 +84,7 @@ async def patreon_discord_ids():
     async with aiohttp.ClientSession() as session:
         async with session.get(url, headers=headers) as resp:
             data = await resp.json(content_type=None)
+            print(data)
             inc = data['included']
             for thing in inc:
                 if thing["type"] == "user":
@@ -98,8 +100,8 @@ async def has_single_plan(ctx: disnake.ApplicationCommandInteraction):
     results = await profile_db.find_one({'discord_id': ctx.author.id})
     if results is None:
         return False
-    plan = results.get("patreon_sub")
-    if plan is None:
+    plan = results.get("tier")
+    if plan is None or plan == 0:
         return False
     return True
 
@@ -108,17 +110,18 @@ async def has_guild_plan(ctx: disnake.ApplicationCommandInteraction):
     results =  await server_db.find_one({"server": ctx.guild.id})
     if results is None:
         return False
-    plan = results.get("patreon_sub")
-    if plan is None:
+    plan = results.get("tier")
+    if plan is None or plan == 0:
         return False
     return True
 
 async def decrement_usage(ctx: disnake.ApplicationCommandInteraction, SINGLE_PLAN: bool, GUILD_PLAN: bool, guild_only=False):
-    if SINGLE_PLAN and guild_only is False:
+    if (SINGLE_PLAN and guild_only is False) or (SINGLE_PLAN and guild_only and GUILD_PLAN):
         return await single_decrement(ctx)
     else:
         if GUILD_PLAN:
             receipt1 = await guild_decrement(ctx)
+            #message = out of guild commands
             if receipt1[2] is not None and guild_only is not True:
                 receipt2 = await free_decrement(ctx)
                 if receipt2[2] is not None:
@@ -129,6 +132,28 @@ async def decrement_usage(ctx: disnake.ApplicationCommandInteraction, SINGLE_PLA
                 return receipt1
         else:
             return await free_decrement(ctx)
+
+async def highest_tier(ctx: disnake.ApplicationCommandInteraction):
+    TIER = 0
+    results = await server_db.find_one({"server": ctx.guild.id})
+    if results is None:
+        pass
+    else:
+        tier = results.get("tier")
+        if tier is not None and tier > TIER:
+            TIER = tier
+
+    results = await profile_db.find_one({'discord_id': ctx.author.id})
+    if results is None:
+        pass
+    else:
+        tier = results.get("tier")
+        if tier is not None and tier > TIER:
+            TIER = tier
+
+    return TIER
+
+
 
 
 async def guild_decrement(ctx: disnake.ApplicationCommandInteraction):
@@ -205,15 +230,35 @@ def translate(text, ctx, id=None):
         language = "en"
 
     if language != "en":
-        translate_file = open(f"text_en.json")
+        translate_file = open(f"translations/text_{language}.json")
         translate_file = json.load(translate_file)
         text = translate_file[text]
+        import ftfy
+        text = ftfy.fix_text(text)
+        #print(text)
+        '''
         text = text.replace("\n", "~")
-        text = translator.translate(text, dest=language).text
+
+        VAR, REPL = re.compile(r'({\w+})'), re.compile(r'__(\d+)__')
+        varlist = []
+
+        def replace(matchobj):
+            varlist.append(matchobj.group())
+            return "__%d__" % (len(varlist) - 1)
+
+        def restore(matchobj):
+            return varlist[int(matchobj.group(1))]
+
+        txtorig = VAR.sub(replace, text)
+        txttrans = translator.translate(txtorig, dest=language).text
+        text = REPL.sub(restore, txttrans)
+        #text = translator.translate(text, dest=language).text
         text = text.replace("~", "\n")
+        '''
         return text
+
     else:
-        translate_file = open(f"text_{language}.json")
+        translate_file = open(f"translations/text_{language}.json")
         translate_file = json.load(translate_file)
         return translate_file[text]
 

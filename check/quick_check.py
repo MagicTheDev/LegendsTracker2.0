@@ -1,5 +1,5 @@
 from disnake.ext import commands
-from utils.helper import profile_db, ongoing_stats
+from utils.helper import profile_db, ongoing_stats, translate, has_single_plan, has_guild_plan, decrement_usage
 import disnake
 
 
@@ -12,9 +12,16 @@ class QuickCheck(commands.Cog):
                        description="Quickly check the profiles saved to your account (up to 24).",
                        )
     async def saved_profiles(self, ctx: disnake.ApplicationCommandInteraction):
+        SINGLE_PLAN = await has_single_plan(ctx)
+        GUILD_PLAN = await has_guild_plan(ctx)
+        TIER, NUM_COMMANDS, MESSAGE = await decrement_usage(ctx, SINGLE_PLAN, GUILD_PLAN)
+        if MESSAGE is not None:
+            await ctx.response.defer(ephemeral=True)
+            return await ctx.send(content=MESSAGE)
+
         await ctx.response.defer()
         embed = disnake.Embed(
-            description="<a:loading:884400064313819146> Fetching Stats. | Searches of 10+ players can take a few seconds.",
+            description=translate("check_loading", ctx),
             color=disnake.Color.green())
         await ctx.edit_original_message(embed=embed)
         msg = await ctx.original_message()

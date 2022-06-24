@@ -41,41 +41,16 @@ class LeaderboardLoop(commands.Cog):
 
     @tasks.loop(seconds=300)
     async def lbloop(self):
-        glob = await coc_client.get_location_players()
-        x = 1
-        global rankings
-        rr = []
-        for player in glob:
-            rr.append(player.tag)
-            rr.append("global")
-            rr.append(x)
-            rr.append("Global")
-            try:
-                rr.append(player.clan.tag)
-                rr.append(player.clan.name)
-            except:
-                rr.append("No Clan")
-                rr.append("No Clan")
-            rr.append(player.trophies)
-            rr.append(player.name)
-            x += 1
-
-        for location in locations:
-            country = await coc_client.get_location_players(location_id=location)
-            country_code = await coc_client.get_location(location_id=location)
-            country_name = country_code.name
-            # print(country_name)
-            country_code = country_code.country_code
+        try:
+            glob = await coc_client.get_location_players()
             x = 1
-            for player in country:
+            global rankings
+            rr = []
+            for player in glob:
                 rr.append(player.tag)
-                rr.append(country_code)
+                rr.append("global")
                 rr.append(x)
-                rr.append(country_name)
-                results = await ongoing_stats.find_one({'tag': f"{player.tag}"})
-                if results is not None:
-                    await ongoing_stats.update_one({'tag': f"{player.tag}"},
-                                                   {'$set': {'location': country_name, "location_code": country_code}})
+                rr.append("Global")
                 try:
                     rr.append(player.clan.tag)
                     rr.append(player.clan.name)
@@ -85,9 +60,37 @@ class LeaderboardLoop(commands.Cog):
                 rr.append(player.trophies)
                 rr.append(player.name)
                 x += 1
-        rankings = rr
 
-        print("lb loop done")
+            for location in locations:
+                country = await coc_client.get_location_players(location_id=location)
+                country_code = await coc_client.get_location(location_id=location)
+                country_name = country_code.name
+                # print(country_name)
+                country_code = country_code.country_code
+                x = 1
+                for player in country:
+                    rr.append(player.tag)
+                    rr.append(country_code)
+                    rr.append(x)
+                    rr.append(country_name)
+                    results = await ongoing_stats.find_one({'tag': f"{player.tag}"})
+                    if results is not None:
+                        await ongoing_stats.update_one({'tag': f"{player.tag}"},
+                                                       {'$set': {'location': country_name, "location_code": country_code}})
+                    try:
+                        rr.append(player.clan.tag)
+                        rr.append(player.clan.name)
+                    except:
+                        rr.append("No Clan")
+                        rr.append("No Clan")
+                    rr.append(player.trophies)
+                    rr.append(player.name)
+                    x += 1
+            rankings = rr
+
+            print("lb loop done")
+        except:
+            pass
 
 
 

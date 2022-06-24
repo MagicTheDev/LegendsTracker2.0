@@ -7,8 +7,7 @@ import pytz
 utc = pytz.utc
 from coc import utils
 
-from fastapi import FastAPI, Request, Response, Depends, HTTPException, status
-
+from fastapi import FastAPI, Request, Response, HTTPException
 
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -31,7 +30,7 @@ app = FastAPI()
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-from clash import coc_client, setup_coc
+from API.clash import coc_client, setup_coc
 
 dates = ["2015-07", "2015-08", "2015-09", "2015-10", "2015-11", "2015-12",
          "2016-01","2016-02","2016-03","2016-04","2016-05","2016-06","2016-07","2016-08","2016-09","2016-10","2016-11","2016-12",

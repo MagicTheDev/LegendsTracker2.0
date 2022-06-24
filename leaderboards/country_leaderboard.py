@@ -1,6 +1,8 @@
 
 from disnake.ext import commands
-from utils.helper import coc_client, locations
+from utils.helper import coc_client, locations, translate, has_single_plan, has_guild_plan, decrement_usage, MissingGuildPlan
+from utils.discord import partial_emoji_gen
+from utils.emojis import fetch_emojis
 from utils.db import *
 from utils.components import create_components
 SUPER_SCRIPTS=["⁰","¹","²","³","⁴","⁵","⁶", "⁷","⁸", "⁹"]
@@ -14,58 +16,64 @@ class CountryLeaderboard(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    async def autocomp_names(self, query: str):
-        query = query.lower()
-        query = re.escape(query)
-        names = []
-        results = locations.find({"country_name": {"$regex": f"^(?i).*{query}.*$"}})
-        for document in await results.to_list(length=25):
-            names.append(document.get("country_name"))
-        return names
+
 
     @commands.slash_command(name="country", description="test")
     async def country(self, ctx):
         pass
 
     @country.sub_command(name="leaderboards", description="Search country (or global) leaderboards")
-    async def country_lb(self, ctx: disnake.ApplicationCommandInteraction , country: str = commands.Param(autocomplete=autocomp_names)):
+    async def country_lb(self, ctx: disnake.ApplicationCommandInteraction , country: str):
+        SINGLE_PLAN = await has_single_plan(ctx)
+        GUILD_PLAN = await has_guild_plan(ctx)
+        TIER, NUM_COMMANDS, MESSAGE = await decrement_usage(ctx, SINGLE_PLAN, GUILD_PLAN)
+        if MESSAGE is not None:
+            await ctx.response.defer(ephemeral=True)
+            return await ctx.send(content=MESSAGE)
+
         await ctx.response.defer()
         loc = await coc_client.get_location_named(country)
         if country == "Global":
-            embeds = await self.create_lb("global")
+            embeds = await self.create_lb("global", ctx)
         else:
             if loc is None:
-                return await ctx.edit_original_message(content="Not a valid country. Use the autocomplete to help select from the 100+ countries.")
-            embeds = await self.create_lb(loc.id)
+                return await ctx.edit_original_message(content=translate("not_valid_country", ctx))
+            embeds = await self.create_lb(loc.id, ctx)
 
         current_page = 0
-        await ctx.edit_original_message(embed=embeds[0], components=create_components(current_page, embeds))
+        await ctx.edit_original_message(embed=embeds[0], components=create_components(self.bot, current_page, embeds, True))
         msg = await ctx.original_message()
+
         def check(res: disnake.MessageInteraction):
             return res.message.id == msg.id
 
         while True:
             try:
-                res = await self.bot.wait_for("message_interaction", check=check, timeout=600)
+                res: disnake.MessageInteraction = await self.bot.wait_for("message_interaction", check=check,
+                                                                          timeout=600)
             except:
-                await ctx.edit_original_message(components=[])
+                await msg.edit(components=[])
                 break
 
-            # print(res.custom_id)
             if res.data.custom_id == "Previous":
                 current_page -= 1
                 await res.response.edit_message(embed=embeds[current_page],
-                               components=create_components(current_page, embeds))
+                                                components=create_components(self.bot, current_page, embeds, True))
 
             elif res.data.custom_id == "Next":
                 current_page += 1
                 await res.response.edit_message(embed=embeds[current_page],
-                               components=create_components(current_page, embeds))
+                                                components=create_components(self.bot, current_page, embeds, True))
 
+            elif res.data.custom_id == "Print":
+                await msg.delete()
+                for embed in embeds:
+                    await ctx.channel.send(embed=embed)
 
 
     @country.sub_command(name="track", description="Add players from country (or global) leaderboards")
-    async def country_track(self,ctx: disnake.ApplicationCommandInteraction, country: str = commands.Param(autocomplete=autocomp_names), top: int = 200):
+    @commands.has_guild_permissions(manage_guild=True)
+    async def country_track(self,ctx: disnake.ApplicationCommandInteraction, country: str, top: int = 200):
         """
             Parameters
             ----------
@@ -73,26 +81,28 @@ class CountryLeaderboard(commands.Cog):
             top: Top # of players to track (1 - 200), default is 200
           """
 
-        perms = ctx.author.guild_permissions.manage_guild
-        if not perms:
-            embed = disnake.Embed(description="Command requires `Manage Server` permissions.",
-                                  color=disnake.Color.red())
-            return await ctx.send(embed=embed)
+        SINGLE_PLAN = await has_single_plan(ctx)
+        GUILD_PLAN = await has_guild_plan(ctx)
+
+        if GUILD_PLAN is False:
+            raise MissingGuildPlan
+
+        TIER, NUM_COMMANDS, MESSAGE = await decrement_usage(ctx, SINGLE_PLAN, GUILD_PLAN, True)
+        if MESSAGE is not None:
+            await ctx.response.defer(ephemeral=True)
+            return await ctx.send(content=MESSAGE)
 
         if top <= 0 or top >= 201:
-            embed = disnake.Embed(description="Top number must be between 1 and 200.",
+            embed = disnake.Embed(description=translate("top_number", ctx),
                                   color=disnake.Color.red())
             return await ctx.send(embed=embed)
-
-
 
         results = await server_db.find_one({"server": ctx.guild.id})
         tracked_members = results.get("tracked_members")
         feed = results.get("channel_id")
         if len(tracked_members) > 500 and feed is not None:
             embed = disnake.Embed(
-                description="Sorry this command cannot be used while you have more than 500 people tracked and have feed enabled.\n"
-                            "Please clear some members with `/clear_under`, sync members with `/clan_track sync`, or remove individual accounts with `/track remove`",
+                description=translate("500_limit", ctx),
                 color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
@@ -113,18 +123,18 @@ class CountryLeaderboard(commands.Cog):
 
         country = await coc_client.get_location_players(location_id=location_id)
 
-        embed = disnake.Embed(description=f"**Warning this will add the top {top} {country_name} players to your server feed & list, click Cancel if this isn't what you intend.**\n"
-                                          f"**Would you like to remove tracked players outside of this location?**\n"
-                                          f"if **yes**, this will set your feed & leaderboard to just players in this location.\n",
+        embed = disnake.Embed(description=f"**{translate('warning_country_track1',ctx).format(top=top, country_name=country_name)}**\n"
+                                          f"**{translate('warning_country_track2',ctx)}**\n"
+                                          f"{translate('warning_country_track3',ctx)}\n",
                               color=disnake.Color.green())
 
         select1 = disnake.ui.Select(
             options=[
-                disnake.SelectOption(label="Yes", value=f"Yes", emoji="✅"),
-                disnake.SelectOption(label="No", value=f"No", emoji="❌"),
-                disnake.SelectOption(label="CANCEL", value="cancel")
+                disnake.SelectOption(label=translate("yes",ctx), value=f"Yes", emoji="✅"),
+                disnake.SelectOption(label=translate("no",ctx), value=f"No", emoji="❌"),
+                disnake.SelectOption(label=translate("cancel",ctx), emoji=partial_emoji_gen(self.bot, fetch_emojis("trashcan")),value="cancel")
             ],
-            placeholder="Choose your option",
+            placeholder=translate("choose_option", ctx),
             min_values=1,  # the minimum number of options a user must select
             max_values=1  # the maximum number of options a user can select
         )
@@ -139,6 +149,7 @@ class CountryLeaderboard(commands.Cog):
         def check(res: disnake.MessageInteraction):
             return res.message.id == msg.id
 
+        res = None
         while chose is False:
             try:
                 res: disnake.MessageInteraction = await self.bot.wait_for("message_interaction", check=check,
@@ -148,21 +159,21 @@ class CountryLeaderboard(commands.Cog):
                 break
 
             if res.author.id != ctx.author.id:
-                await res.send(content="You must run the command to interact with components.", ephemeral=True)
+                await res.send(content=translate("must_run_interact", ctx), ephemeral=True)
                 continue
 
             chose = res.values[0]
             if chose == "cancel":
-                embed = disnake.Embed(description=f"No problem. Canceling the command now.",
+                embed = disnake.Embed(description=translate("canceling_command", ctx),
                                       color=disnake.Color.green())
                 return await res.response.edit_message(embed=embed,
                                                        components=[])
 
 
         embed = disnake.Embed(
-            description="<a:loading:884400064313819146> Adding players...",
+            description=f"<a:loading:884400064313819146> {translate('adding_players', ctx)}...",
             color=disnake.Color.green())
-        await msg.edit(embed=embed, components=[])
+        await res.response.edit_message(embed=embed, components=[])
 
         num_global_tracked = 0
         num_global_alr = 0
@@ -171,6 +182,8 @@ class CountryLeaderboard(commands.Cog):
         remove_num = 0
         done = 0
         players_to_be = []
+        added_to_server_tracking = []
+        removed_from_server_tracking = []
         for player in country:
             if str(player.league) == "Legend League":
                 players_to_be.append(player.tag)
@@ -188,6 +201,7 @@ class CountryLeaderboard(commands.Cog):
                     await addLegendsPlayer_GLOBAL(player=player,clan_name=clan_name)
                 if not is_server_tracked:
                     num_server_tracked+=1
+                    added_to_server_tracking.append(player.tag)
                     await addLegendsPlayer_SERVER(player=player, guild_id=ctx.guild.id)
                 done += 1
                 if done == top:
@@ -198,22 +212,56 @@ class CountryLeaderboard(commands.Cog):
             for mem in tracked_members:
                 if mem not in players_to_be:
                     remove_num += 1
+                    removed_from_server_tracking.append(mem)
                     await ongoing_stats.update_one({'tag': mem},
                                                    {'$pull': {"servers": ctx.guild.id}})
                     await server_db.update_one({'server': ctx.guild.id},
                                                {'$pull': {"tracked_members": mem}})
 
+        page_buttons = [
+            disnake.ui.Button(label=translate("revert", ctx), emoji=partial_emoji_gen(self.bot, fetch_emojis("Legends History")),
+                              style=disnake.ButtonStyle.red,
+                              custom_id="Revert")]
+        buttons = disnake.ui.ActionRow()
+        buttons.append_item(page_buttons[0])
+
         embed = disnake.Embed(title=f"Location: {country_name}, Top {top}",
-            description=f"Global Tracking: {num_global_tracked} added | {num_global_alr} already present\n"
-                        f"Server Tracking: {num_server_tracked} added | {num_server_alr} already present\n"
-                        f"{remove_num} removed from server tracking.",
+            description=f"{translate('global_tracking',ctx)}: {num_global_tracked} {translate('added',ctx)} | {num_global_alr} {translate('already_present',ctx)}\n"
+                        f"{translate('server_tracking',ctx)}: {num_server_tracked} {translate('added',ctx)} | {num_server_alr} {translate('already_present',ctx)}\n"
+                        f"{remove_num} {translate('removed_server_tracking', ctx)}",
             color=disnake.Color.green())
+        embed.set_footer(text=translate("10_min_revert", ctx))
         if ctx.guild.icon is not None:
             embed.set_thumbnail(url=ctx.guild.icon.url)
-        return await msg.edit(embed=embed, components=[])
+        await msg.edit(embed=embed, components=buttons)
+
+        chose = False
+        while chose is False:
+            try:
+                res: disnake.MessageInteraction = await self.bot.wait_for("message_interaction", check=check,
+                                                                          timeout=600)
+            except:
+                await msg.edit(components=[])
+                break
+
+            if res.author.id != ctx.author.id:
+                await res.send(content=translate("must_run_interact", ctx), ephemeral=True)
+                continue
+
+            if res.data.custom_id == "Revert":
+                await res.response.defer()
+                for tag in added_to_server_tracking:
+                    await removeLegendsPlayer_SERVER(ctx.guild_id, None, tag)
+                for tag in removed_from_server_tracking:
+                    await addLegendsPlayer_SERVER(ctx.guild_id, None, tag)
+                embed = disnake.Embed(description=translate("server_tracking_reverted", ctx).format(country_name=country_name),
+                                      color=disnake.Color.green())
+                return await res.edit_original_message(embed=embed,
+                                                       components=[])
 
 
-    async def create_lb(self, location_id):
+
+    async def create_lb(self, location_id, ctx):
 
         if location_id == "global":
             country = await coc_client.get_location_players(location_id="global")
@@ -251,23 +299,33 @@ class CountryLeaderboard(commands.Cog):
 
             text += f"`{rank}`\u200e**<:trophyy:849144172698402817>\u200e{member.trophies} | \u200e{name}**{hit_text}\n"
             y += 1
-            if y == 20:
-                embed = disnake.Embed(title=f"**{country_name} Legend Leaderboard**",
+            if y == 30:
+                embed = disnake.Embed(title=f"**{country_name} {translate('legend_lb', ctx)}**",
                                       description=text)
                 y = 0
                 embeds.append(embed)
                 text = ""
 
         if text != "":
-            embed = disnake.Embed(title=f"**{country_name} Legend Leaderboard**",
+            embed = disnake.Embed(title=f"**{country_name} {translate('legend_lb', ctx)}**",
                                   description=text)
             embeds.append(embed)
 
         if text == "" and embeds == []:
-            text = "No Players"
-            embed = disnake.Embed(title=f"**{country_name} Legend Leaderboard**",
+            text = translate("no_players", ctx)
+            embed = disnake.Embed(title=f"**{country_name} {translate('legend_lb', ctx)}**",
                                   description=text)
             embeds.append(embed)
 
         return embeds
 
+    @country_lb.autocomplete("country")
+    @country_track.autocomplete("country")
+    async def autocomp_names(self, inter:disnake.ApplicationCommandInteraction, user_input: str):
+        query = user_input.lower()
+        query = re.escape(query)
+        names = []
+        results = locations.find({"country_name": {"$regex": f"^(?i).*{query}.*$"}})
+        for document in await results.to_list(length=25):
+            names.append(document.get("country_name"))
+        return names

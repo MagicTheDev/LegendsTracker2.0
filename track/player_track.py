@@ -1,5 +1,5 @@
 from disnake.ext import commands
-from utils.helper import getPlayer, ongoing_stats, server_db
+from utils.helper import getPlayer, ongoing_stats, server_db, has_guild_plan, has_single_plan, decrement_usage, translate, highest_tier
 from utils.db import addLegendsPlayer_SERVER, addLegendsPlayer_GLOBAL, removeLegendsPlayer_SERVER
 import disnake
 
@@ -30,6 +30,16 @@ class PlayerTrack(commands.Cog):
             ----------
             player_tag: player to add
         """
+        SINGLE_PLAN = await has_single_plan(ctx)
+        GUILD_PLAN = await has_guild_plan(ctx)
+        TIER, NUM_COMMANDS, MESSAGE = await decrement_usage(ctx, SINGLE_PLAN, GUILD_PLAN)
+        if MESSAGE is not None:
+            await ctx.response.defer(ephemeral=True)
+            return await ctx.send(content=MESSAGE)
+
+        TIER = await highest_tier(ctx)
+        LIMITS = {0: 50, 1: 50, 2: 250, 3: 500}
+
         # pull player from tag, check if valid player or in legends
         player = await getPlayer(player_tag)
         valid = await self.valid_player_check(ctx=ctx, player=player)
@@ -41,34 +51,32 @@ class PlayerTrack(commands.Cog):
 
         results = await server_db.find_one({"server": ctx.guild.id})
         tracked_members = results.get("tracked_members")
-        feed = results.get("channel_id")
 
-        is_full = (len(tracked_members) > 500) and (feed is not None)
+        limit = LIMITS[TIER]
+        is_full = (len(tracked_members) > limit)
 
-        if len(tracked_members) > 500 and feed is not None:
+        if len(tracked_members) > limit:
             embed = disnake.Embed(
-                description="Sorry this command cannot be used while you have more than 500 people tracked and have feed enabled.\n"
-                            "Please clear some members with `/clear_under`, sync members with `/clan_track sync`, or remove individual accounts with `/track remove`",
+                description=translate("choose_limit", ctx).format(num=limit),
                 color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
         if is_global_tracked and is_server_tracked:
-            embed = disnake.Embed(description=f"{player.name} is already globally & server tracked.",
+            embed = disnake.Embed(description=translate("already_glob_serv_tracked",ctx).format(player_name=player.name),
                                   color=disnake.Color.green())
             return await ctx.send(embed=embed)
         elif is_global_tracked and not is_server_tracked:
             if is_full:
-                embed = disnake.Embed(description=f"**This player is already globally tracked**\nHowever, cannot server track this player. Feed is full - has 500 players.\n"
-                                                  f"Please clear some members with `/clear_under`, sync members with `/clan_track sync`, or remove individual accounts with `/track remove`",
+                embed = disnake.Embed(description=translate("choose_limit", ctx).format(num=limit),
                                       color=disnake.Color.from_rgb(255,255,0))
                 return await ctx.send(embed=embed)
             else:
-                embed = disnake.Embed(description=f"{player.name} is already globally tracked, would you like to add them to server tracking?.",
+                embed = disnake.Embed(description=translate("already_glob_add_server",ctx).format(player_name=player.name),
                                       color=disnake.Color.green())
                 page_buttons = [
-                    disnake.ui.Button(label="Yes", emoji="✅", style=disnake.ButtonStyle.green,
+                    disnake.ui.Button(label=translate("Yes", ctx), emoji="✅", style=disnake.ButtonStyle.green,
                                       custom_id="Yes"),
-                    disnake.ui.Button(label="No", emoji="❌", style=disnake.ButtonStyle.red,
+                    disnake.ui.Button(label=translate("No", ctx), emoji="❌", style=disnake.ButtonStyle.red,
                                       custom_id="No")
                 ]
                 buttons = disnake.ui.ActionRow()
@@ -91,25 +99,24 @@ class PlayerTrack(commands.Cog):
                         break
 
                     if res.author.id != ctx.author.id:
-                        await res.send(content="You must run the command to interact with components.", ephemeral=True)
+                        await res.send(content=translate("must_run_interact", ctx), ephemeral=True)
                         continue
 
                     chose = res.data.custom_id
 
                     if chose == "No":
-                        embed = disnake.Embed(description=f"No problem. Use `/check search {player_tag}` to view stats for this player.",
+                        embed = disnake.Embed(description=translate("player_track_canceled", ctx).format(player_tag=player_tag),
                                               color=disnake.Color.green())
                         return await res.response.edit_message(embed=embed,
                                                                components=[])
 
-                embed = disnake.Embed(description=f"{player.name} added to server tracking.",
+                embed = disnake.Embed(description=translate("added_server_tracking", ctx).format(player_name=player.name),
                                       color=disnake.Color.green())
                 await addLegendsPlayer_SERVER(player=player, guild_id=ctx.guild.id)
                 return await ctx.edit_original_message(embed=embed, components=[])
         else:
             if is_full:
-                embed = disnake.Embed(description=f"**Player added for global tracking.**\n However, cannot server track this player. Feed is full - has 500 players.\n"
-                                                  f"Please clear some members with `/clear_under`, sync members with `/clan_track sync`, or remove individual accounts with `/track remove`",
+                embed = disnake.Embed(description=translate("added_glob_no_server", ctx).format(num=limit),
                                       color=disnake.Color.from_rgb(255,255,0))
                 await ctx.send(embed=embed)
 
@@ -123,7 +130,7 @@ class PlayerTrack(commands.Cog):
                 await addLegendsPlayer_SERVER(player=player, guild_id=ctx.guild.id)
 
             embed = disnake.Embed(
-                description=f"[{player.name}]({player.share_link}) | {clan_name} was added for legends tracking.",
+                description=f"[{player.name}]({player.share_link}) | {clan_name} {translate('added_tracking', ctx)} ",
                 color=disnake.Color.green())
             await ctx.send(embed=embed)
 
@@ -136,20 +143,27 @@ class PlayerTrack(commands.Cog):
             ----------
             player_tag: player to remove
         """
+        SINGLE_PLAN = await has_single_plan(ctx)
+        GUILD_PLAN = await has_guild_plan(ctx)
+        TIER, NUM_COMMANDS, MESSAGE = await decrement_usage(ctx, SINGLE_PLAN, GUILD_PLAN)
+        if MESSAGE is not None:
+            await ctx.response.defer(ephemeral=True)
+            return await ctx.send(content=MESSAGE)
+
         player = await getPlayer(player_tag)
         if player is None:
-            embed = disnake.Embed(description=f"`{player_tag}` not a valid player tag. Check the spelling or use a different tag.",
+            embed = disnake.Embed(description=f"`{player_tag}` {translate('not_valid_player', ctx)}",
                                   color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
         is_server_tracked = await self.check_server_tracked(player=player, server_id=ctx.guild.id)
         if not is_server_tracked:
-            embed = disnake.Embed(description="This player is not server tracked at this time.",
+            embed = disnake.Embed(description=translate("not_server_tracked", ctx),
                                   color=disnake.Color.red())
             return await ctx.send(embed=embed)
 
         await removeLegendsPlayer_SERVER(player=player, guild_id=ctx.guild.id)
-        embed = disnake.Embed(description=f"[{player.name}]({player.share_link}) removed from **server** legends tracking.\n**Global** tracking cannot be removed.",
+        embed = disnake.Embed(description=f"[{player.name}]({player.share_link}) {translate('removed_server_tracking2', ctx)}",
                               color=disnake.Color.green())
         return await ctx.send(embed=embed)
 
@@ -176,13 +190,13 @@ class PlayerTrack(commands.Cog):
 
     async def valid_player_check(self, ctx, player):
         if player is None:
-            embed = disnake.Embed(description="Not a valid player tag. Check the spelling or a different tag.",
+            embed = disnake.Embed(description=translate("not_valid_player", ctx),
                                   color=disnake.Color.red())
             await ctx.send(embed=embed)
             return False
 
         if str(player.league) != "Legend League":
-            embed = disnake.Embed(description="Sorry, cannot track players that are not in legends.",
+            embed = disnake.Embed(description=translate("cannot_track_not_legends", ctx),
                                   color=disnake.Color.red())
             await ctx.send(embed=embed)
             return False
