@@ -20,7 +20,7 @@ class FeedButtons(commands.Cog):
     async def on_dropdown(self, ctx: disnake.MessageInteraction):
         if utils.is_valid_tag(ctx.values[0]):
             tags = [ctx.values[0]]
-            if tags == ["x"]:
+            if ["x"] in tags:
                 return
             ez_look = False
             check = self.bot.get_cog("MainCheck")
