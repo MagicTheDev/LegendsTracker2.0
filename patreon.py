@@ -72,7 +72,7 @@ class Patreon(commands.Cog):
     async def auto_guild(self, inter, name):
         guilds = self.bot.guilds
         list = []
-        async for guild in guilds:
+        for guild in guilds:
             if name.lower() in guild.name.lower() or name in str(guild.id):
                 list.append(f"{guild.name} | {guild.id}")
                 if len(list) == 25:
