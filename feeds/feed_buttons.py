@@ -19,9 +19,8 @@ class FeedButtons(commands.Cog):
     @commands.Cog.listener()
     async def on_dropdown(self, ctx: disnake.MessageInteraction):
         if utils.is_valid_tag(ctx.values[0]):
-            tags = [ctx.values[0]]
-            if ["x"] in tags:
-                return
+            tag = ctx.values[0]
+            print(tag)
             ez_look = False
             check = self.bot.get_cog("MainCheck")
             current_page = 0
@@ -30,32 +29,32 @@ class FeedButtons(commands.Cog):
 
             x = 0
             results = []
-            is_many = len(tags) > 1
+            is_many = False
             if is_many and ez_look:
                 x = 1
             text = ""
-            for tag in tags:
-                r = await ongoing_stats.find_one({"tag": tag})
-                if r is None:
-                    return await ctx.send(content="This player does not exist.", ephemeral=True)
-                results.append(r)
-                player = DB_Player(r)
-                SUPER_SCRIPTS = ["⁰", "¹", "²", "³", "⁴", "⁵", "⁶", "⁷", "⁸", "⁹"]
-                try:
-                    numHits = SUPER_SCRIPTS[player.num_hits]
-                except:
-                    numHits = "⁸"
-                try:
-                    numDefs = SUPER_SCRIPTS[player.num_def]
-                except:
-                    numDefs = "⁸"
-                text += f"\u200e**<:trophyy:849144172698402817>{player.trophies} | \u200e{player.name}**\n➼ <:cw:948845649229647952> {player.sum_hits}{numHits} <:sh:948845842809360424> {player.sum_defs}{numDefs}\n"
-                th_emoji = partial_emoji_gen(self.bot, fetch_emojis(int(player.town_hall)))
-                trophy_results.append(
-                    disnake.SelectOption(label=f"{player.name} | 🏆{player.trophies}", value=f"{x}", emoji=th_emoji))
-                embed = await check.checkEmbed(r, ctx)
-                stats_page.append(embed)
-                x += 1
+
+            r = await ongoing_stats.find_one({"tag": tag})
+            if r is None:
+                return await ctx.send(content="This player does not exist.", ephemeral=True)
+            results.append(r)
+            player = DB_Player(r)
+            SUPER_SCRIPTS = ["⁰", "¹", "²", "³", "⁴", "⁵", "⁶", "⁷", "⁸", "⁹"]
+            try:
+                numHits = SUPER_SCRIPTS[player.num_hits]
+            except:
+                numHits = "⁸"
+            try:
+                numDefs = SUPER_SCRIPTS[player.num_def]
+            except:
+                numDefs = "⁸"
+            text += f"\u200e**<:trophyy:849144172698402817>{player.trophies} | \u200e{player.name}**\n➼ <:cw:948845649229647952> {player.sum_hits}{numHits} <:sh:948845842809360424> {player.sum_defs}{numDefs}\n"
+            th_emoji = partial_emoji_gen(self.bot, fetch_emojis(int(player.town_hall)))
+            trophy_results.append(
+                disnake.SelectOption(label=f"{player.name} | 🏆{player.trophies}", value=f"{x}", emoji=th_emoji))
+            embed = await check.checkEmbed(r, ctx)
+            stats_page.append(embed)
+            x += 1
 
             if is_many and ez_look:
                 embed = disnake.Embed(title=f"{len(results) - 1} {translate('results', ctx)}",
