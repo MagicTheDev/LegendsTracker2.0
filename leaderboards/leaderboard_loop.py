@@ -33,10 +33,12 @@ class LeaderboardLoop(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.lbloop.start()
+        self.rank_update.start()
 
 
     def cog_unload(self):
         self.lbloop.cancel()
+        self.rank_update.cancel()
 
     @tasks.loop(seconds=300)
     async def lbloop(self):
