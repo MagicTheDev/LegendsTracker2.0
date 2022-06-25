@@ -97,10 +97,10 @@ class Bot_Events(commands.Cog):
                 await ctx.send(embed=embed, ephemeral=True)
             else:
                 embed = disnake.Embed(
-                    description=f"Unhandled Error: {str(error)[0:3000]}\nPlease report this bug at https://discord.gg/gChZm3XCrS",
+                    description=f"Oops I crashed :/\nPlease report this bug at https://discord.gg/gChZm3XCrS",
                     color=disnake.Color.red())
                 embed2 = disnake.Embed(
-                    description=f"Unhandled Error: {''.join(traceback.format_tb(error.__traceback__))[0:3000]}",
+                    description=f"Unhandled Error: {str(error)[0:3000]}",
                     color=disnake.Color.red())
                 channel = await self.bot.fetch_channel(989919520405725264)
                 await channel.send(content=f"`/{ctx.application_command.qualified_name} {ctx.filled_options}`", embeds=[embed2,embed])
