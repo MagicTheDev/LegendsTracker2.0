@@ -56,7 +56,7 @@ class History(commands.Cog):
                 stats.append("None")
                 stats.append("None")
 
-        if no_results is True:
+        if no_results:
           embed = disnake.Embed(description=translate("ended_in_legends", ctx),
                                   color=disnake.Color.red())
           return embed

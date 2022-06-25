@@ -38,7 +38,9 @@ class CountryLeaderboard(commands.Cog):
         else:
             if loc is None:
                 return await ctx.edit_original_message(content=translate("not_valid_country", ctx))
-            embeds = await self.create_lb(loc.id, ctx)
+            locations = await coc_client.search_locations(limit=None)
+            country = coc.utils.get(locations, name=country, is_country=True)
+            embeds = await self.create_lb(country.id, ctx)
 
         current_page = 0
         await ctx.edit_original_message(embed=embeds[0], components=create_components(self.bot, current_page, embeds, True))
@@ -52,7 +54,10 @@ class CountryLeaderboard(commands.Cog):
                 res: disnake.MessageInteraction = await self.bot.wait_for("message_interaction", check=check,
                                                                           timeout=600)
             except:
-                await msg.edit(components=[])
+                try:
+                    await msg.edit(components=[])
+                except:
+                    pass
                 break
 
             if res.data.custom_id == "Previous":
