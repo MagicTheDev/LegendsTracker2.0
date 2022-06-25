@@ -99,7 +99,7 @@ class Bot_Events(commands.Cog):
             else:
                 e = str(error)[0:3000]
                 if "404 Not Found" in e:
-                    pass
+                    return
                 embed = disnake.Embed(
                     description=f"Oops I crashed :/\nPlease report this bug at https://discord.gg/gChZm3XCrS",
                     color=disnake.Color.red())
