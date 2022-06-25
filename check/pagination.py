@@ -65,7 +65,10 @@ class Pagination(commands.Cog):
             try:
                 res: disnake.MessageInteraction = await self.bot.wait_for("message_interaction", check=check, timeout=600)
             except:
-                await msg.edit(components=[])
+                try:
+                    await msg.edit(components=[])
+                except:
+                    pass
                 break
 
             if res.values[0] in stat_types:
