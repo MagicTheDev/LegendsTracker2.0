@@ -19,6 +19,7 @@ class FeedButtons(commands.Cog):
     @commands.Cog.listener()
     async def on_dropdown(self, ctx: disnake.MessageInteraction):
         if "feed" in ctx.values[0]:
+            await ctx.response.defer()
             tag = ctx.values[0]
             tag = tag.replace("feed","")
             ez_look = False
@@ -65,12 +66,12 @@ class FeedButtons(commands.Cog):
                 embed.set_footer(text=translate("switch_tip", ctx))
                 stats_page.insert(0, embed)
                 components = await self.create_components(results, trophy_results, current_page, is_many and ez_look, ctx)
-                await ctx.send(embed=embed, components=components)
+                msg = await ctx.followup.send(embed=embed, components=components, wait=True)
             else:
                 components = await self.create_components(results, trophy_results, current_page, is_many and ez_look, ctx)
-                await ctx.send(embed=stats_page[0], components=components, delete_after=300)
+                msg = await ctx.followup.send(embed=stats_page[0], components=components, delete_after=300, wait=True)
 
-            msg= await ctx.original_message()
+            #msg= await ctx.original_message()
             def check(res: disnake.MessageInteraction):
                 return res.message.id == msg.id
 
