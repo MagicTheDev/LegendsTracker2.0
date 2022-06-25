@@ -88,7 +88,8 @@ class Bot_Events(commands.Cog):
                 description=f"**This command requires a [guild subscription](https://www.patreon.com/magicbots).**",
                 color=disnake.Color.red())
             return await ctx.send(embed=embed)
-
+        elif isinstance(error, disnake.NotFound):
+            pass
         else:
             if ctx.guild is None:
                 embed = disnake.Embed(
