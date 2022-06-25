@@ -88,7 +88,7 @@ class Bot_Events(commands.Cog):
                 description=f"**This command requires a [guild subscription](https://www.patreon.com/magicbots).**",
                 color=disnake.Color.red())
             return await ctx.send(embed=embed)
-        elif isinstance(error, disnake.NotFound):
+        elif isinstance(error, commands.MessageNotFound) or isinstance(error, disnake.NotFound):
             pass
         else:
             if ctx.guild is None:
@@ -97,6 +97,9 @@ class Bot_Events(commands.Cog):
                     color=disnake.Color.red())
                 await ctx.send(embed=embed, ephemeral=True)
             else:
+                e = str(error)[0:3000]
+                if "404 Not Found" in e:
+                    pass
                 embed = disnake.Embed(
                     description=f"Oops I crashed :/\nPlease report this bug at https://discord.gg/gChZm3XCrS",
                     color=disnake.Color.red())
