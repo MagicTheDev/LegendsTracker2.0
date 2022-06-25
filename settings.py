@@ -355,6 +355,7 @@ class bot_settings(commands.Cog):
 
     @feed.sub_command(name="list", description="List of feeds on this server")
     async def feed_list(self, ctx: disnake.ApplicationCommandInteraction):
+        await ctx.response.defer()
         server_results = await server_db.find_one({"server": ctx.guild.id})
         main_feed = server_results.get("webhook")
         main_thread = server_results.get("thread")
@@ -407,7 +408,7 @@ class bot_settings(commands.Cog):
         embed = disnake.Embed(title="Server Feed List",
             description=text,
             color=disnake.Color.green())
-        return await ctx.send(embed=embed)
+        return await ctx.edit_original_message(embed=embed)
 
     @commands.slash_command(name="language", description="Language for commands to appear in")
     async def translate(self, ctx: disnake.ApplicationCommandInteraction, language: str = commands.Param(choices=["English", "French", "Italian", "German"])):

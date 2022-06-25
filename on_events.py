@@ -100,15 +100,11 @@ class Bot_Events(commands.Cog):
                 e = str(error)[0:3000]
                 if "404 Not Found" in e:
                     return
-                embed = disnake.Embed(
-                    description=f"Oops I crashed :/\nPlease report this bug at https://discord.gg/gChZm3XCrS",
-                    color=disnake.Color.red())
                 embed2 = disnake.Embed(
                     description=f"Unhandled Error: {str(error)[0:3000]}",
                     color=disnake.Color.red())
                 channel = await self.bot.fetch_channel(989919520405725264)
-                await channel.send(content=f"`/{ctx.application_command.qualified_name} {ctx.filled_options}`", embeds=[embed2,embed])
-                return await ctx.send(embed=embed)
+                await channel.send(content=f"`/{ctx.application_command.qualified_name} {ctx.filled_options}`", embeds=[embed2])
 
 
 
