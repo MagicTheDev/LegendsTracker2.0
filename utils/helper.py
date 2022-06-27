@@ -97,25 +97,28 @@ async def patreon_discord_ids():
 
 
 async def has_single_plan(ctx: disnake.ApplicationCommandInteraction):
+    return True
     results = await profile_db.find_one({'discord_id': ctx.author.id})
     if results is None:
         return False
-    plan = results.get("tier")
+    plan = results.get("patreon_tier")
     if plan is None or plan == 0:
         return False
     return True
 
 
 async def has_guild_plan(ctx: disnake.ApplicationCommandInteraction):
+    return True
     results =  await server_db.find_one({"server": ctx.guild.id})
     if results is None:
         return False
-    plan = results.get("tier")
+    plan = results.get("patreon_tier")
     if plan is None or plan == 0:
         return False
     return True
 
 async def decrement_usage(ctx: disnake.ApplicationCommandInteraction, SINGLE_PLAN: bool, GUILD_PLAN: bool, guild_only=False):
+    return [3, 1000, None]
     if (SINGLE_PLAN and guild_only is False) or (SINGLE_PLAN and guild_only and GUILD_PLAN):
         return await single_decrement(ctx)
     else:
@@ -134,12 +137,13 @@ async def decrement_usage(ctx: disnake.ApplicationCommandInteraction, SINGLE_PLA
             return await free_decrement(ctx)
 
 async def highest_tier(ctx: disnake.ApplicationCommandInteraction):
+    return 3
     TIER = 0
     results = await server_db.find_one({"server": ctx.guild.id})
     if results is None:
         pass
     else:
-        tier = results.get("tier")
+        tier = results.get("patreon_tier")
         if tier is not None and tier > TIER:
             TIER = tier
 
@@ -147,7 +151,7 @@ async def highest_tier(ctx: disnake.ApplicationCommandInteraction):
     if results is None:
         pass
     else:
-        tier = results.get("tier")
+        tier = results.get("patreon_tier")
         if tier is not None and tier > TIER:
             TIER = tier
 
@@ -160,7 +164,7 @@ async def guild_decrement(ctx: disnake.ApplicationCommandInteraction):
     message = None
     results = await server_db.find_one({"server": ctx.guild.id})
     remaining_commands = results.get("num_commands")
-    tier = results.get("tier")
+    tier = results.get("patreon_tier")
     if remaining_commands == 0:
         message = f"**{ctx.author.mention}**, this server has used its monthly command allotment."
         return [tier, remaining_commands, message]
@@ -174,7 +178,7 @@ async def single_decrement(ctx: disnake.ApplicationCommandInteraction):
     message = None
     results = await profile_db.find_one({'discord_id': ctx.author.id})
     remaining_commands = results.get("num_commands")
-    tier = results.get("tier")
+    tier = results.get("patreon_tier")
     await profile_db.update_one({'discord_id': ctx.author.id},
                                 {'$inc': {'num_commands': -1}})
     remaining_commands -= 1

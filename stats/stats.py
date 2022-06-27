@@ -322,6 +322,7 @@ class LegendStats(commands.Cog):
                               color=disnake.Color.blue())
         await ctx.edit_original_message(embed=board)
 
+    '''
     @commands.slash_command(name="legend-popularity", description="Number of legends accounts at EOS over time")
     async def legend_popularity(self, ctx: disnake.ApplicationCommandInteraction):
         SINGLE_PLAN = await has_single_plan(ctx)
@@ -370,6 +371,7 @@ class LegendStats(commands.Cog):
         plt.clf()
         plt.close("all")
         await ctx.edit_original_message(content=pic)
+    '''
 
     @commands.slash_command(name="eos-finishers", description="Number 1 EOS finishers for every month")
     async def eos_finishers(self, ctx: disnake.ApplicationCommandInteraction):

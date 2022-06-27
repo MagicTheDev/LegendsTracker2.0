@@ -430,5 +430,43 @@ class bot_settings(commands.Cog):
 
         await ctx.send(f"{translate('language_set', ctx)} {language}", ephemeral=True)
 
+    @commands.slash_command(name="tier_info", description="Info about tier for server & self")
+    async def tier_info(self, ctx: disnake.ApplicationCommandInteraction):
+        user_tier = 0
+        user_commands = 50
+        guild_tier = "None"
+        guild_commands = 0
+        results = await profile_db.find_one({"server": ctx.author.id})
+        if results is None:
+            pass
+        else:
+            user_tier = results.get("patreon_tier")
+            if user_tier is None:
+                user_tier = 0
+            user_commands = results.get("num_commands")
+            if user_commands is None:
+                user_commands = 50
+
+        if user_tier == 0:
+            user_text = f"User Tier: {user_tier}\nCommands Left: {user_commands}"
+        else:
+            user_text = f"User Tier: {user_tier}"
+
+        results = await server_db.find_one({'discord_id': ctx.guild.id})
+        if results is None:
+            pass
+        else:
+            guild_tier = results.get("patreon_tier")
+            if guild_tier is None:
+                guild_tier = "None"
+            guild_commands = results.get("num_commands")
+            if guild_commands is None:
+                guild_commands = 0
+
+        embed = disnake.Embed(title="Tier Info",
+                              description=f"{user_text}\nGuild Tier: {guild_tier}")
+        await ctx.send(embed=embed)
+
+
 def setup(bot: commands.Bot):
     bot.add_cog(bot_settings(bot))
