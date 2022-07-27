@@ -93,24 +93,10 @@ class LeaderboardLoop(commands.Cog):
         except:
             pass
 
-    @tasks.loop(seconds=1800)
-    async def rank_update(self):
-        rank = 1
-        tracked = ongoing_stats.find().sort("trophies", -1)
-        limit = await ongoing_stats.count_documents(filter={})
-        for document in await tracked.to_list(length=limit):
-            servers = document.get("servers")
-            if servers is None:
-                continue
-            tag = document.get("tag")
-            await ongoing_stats.update_one({'tag': f"{tag}"},
-                                           {'$set': {"rank": rank,
-                                                     "popularity": len(servers)}})
-            rank += 1
+
 
 
     @lbloop.before_loop
-    @rank_update.before_loop
     async def before_printer(self):
         await self.bot.wait_until_ready()
 
