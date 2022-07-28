@@ -11,12 +11,13 @@ class LegendsFeed(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.feed_update.start()
+        #self.feed_update.start()
 
     def cog_unload(self):
-        self.feed_update.cancel()
+        #self.feed_update.cancel()
+        pass
 
-    @tasks.loop(seconds=600)
+    @tasks.loop(seconds=900)
     async def feed_update(self):
         t = time.time()
         all_tags = []
